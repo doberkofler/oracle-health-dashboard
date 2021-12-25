@@ -15,6 +15,18 @@ export function textLoad(filename: string): string {
 }
 
 /*
+ * Save text file
+ */
+export function textSave(filename: string, data: string): void {
+	try {
+		fs.writeFileSync(filename, data, {});
+	} catch (e: unknown) {
+		/* istanbul ignore next */
+		throw new Error(`The file "${filename}" cannot be written`);
+	}
+}
+
+/*
  * Load json file
  */
 export function jsonLoad<T>(filename: string): T {
@@ -23,7 +35,7 @@ export function jsonLoad<T>(filename: string): T {
 	try {
 		return JSON.parse(data, jsonDateParser);
 	} catch (e: unknown) {
-		throw new Error(`The file "${filename}" is not a valid json file`);
+		throw new Error(`The content "${data}" of the file "${filename}" is not valid json`);
 	}
 }
 
@@ -31,21 +43,9 @@ export function jsonLoad<T>(filename: string): T {
  * Save json file
  */
 export function jsonSave(filename: string, value: unknown): void {
-	let data;
-	
-	try {
-		data = JSON.stringify(value);
-	} catch (e: unknown) {
-		throw new Error('Unable to JSON.stringify');
-	}
-
-	try {
-		fs.writeFileSync(filename, data, {});
-	} catch (e: unknown) {
-		throw new Error(`The file "${filename}" cannot be written`);
-	}
+	const data = JSON.stringify(value);
+	textSave(filename, data);
 }
-
 
 /*
 *	JSON date parser

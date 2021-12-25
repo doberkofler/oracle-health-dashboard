@@ -1,0 +1,13 @@
+.dashboard {
+	margin: 10px;
+}
+
+.dashboard-grid {
+	display: grid;
+	grid-gap: 20px;
+	grid-template-columns: repeat(auto-fill, 300px);
+}
+
+.dashboard-card {
+	height: 300px;
+}

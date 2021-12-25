@@ -1,0 +1,51 @@
+{
+  "name": "oracle-health-dashboard",
+  "version": "0.0.1",
+  "description": "NodeJS based dashboard to monitor Oracle instances.",
+  "type": "module",
+  "exports": "./build/src/index.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "compression": "1.7.4",
+    "date-fns": "2.27.0",
+    "debug": "4.3.3",
+    "express": "4.17.2",
+    "oracledb": "5.3.0",
+    "threads": "1.7.0",
+    "tslib": "2.3.1"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.13",
+    "@types/jest": "27.0.3",
+    "@types/node": "17.0.4",
+    "@types/oracledb": "5.2.2",
+    "@typescript-eslint/eslint-plugin": "5.8.0",
+    "@typescript-eslint/parser": "5.8.0",
+    "eslint": "8.5.0",
+    "eslint-plugin-jest": "25.3.0",
+    "jest": "27.4.5",
+    "nodemon": "2.0.15",
+    "rimraf": "3.0.2",
+    "ts-jest": "27.1.2",
+    "tsutils": "3.21.0",
+    "typescript": "4.5.4"
+  },
+  "scripts": {
+    "start": "node build/src/index.js",
+    "start:watch": "nodemon --watch build/src build/src/index.js",
+    "clean": "rimraf coverage build tmp",
+    "prebuild": "npm run lint",
+    "build": "tsc -p tsconfig.release.json",
+    "build:watch": "tsc -w -p tsconfig.release.json",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
+  },
+  "author": "Dieter Oberkofler <doberkofler@users.noreply.github.com",
+  "license": "Apache-2.0",
+  "volta": {
+    "node": "16.13.0"
+  }
+}

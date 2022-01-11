@@ -1,4 +1,4 @@
-import {formatDistance, isDate as _isDate, isValid} from 'date-fns';
+import {formatDistance, isDate as _isDate, isValid, format} from 'date-fns';
 import {inspect as _inspect} from 'util';
 
 /**
@@ -40,6 +40,30 @@ export function isDate(value: unknown): value is Date {
  */
 export function distanceToString(relativeDate: Date, currentDate = new Date()): string {
 	return formatDistance(relativeDate, currentDate, {addSuffix: true});
+}
+
+/*
+ *	Format a number as a human readable string
+ *
+ * @param {number} value - The number
+ * @returns {boolean} returns a human readable string
+ */
+export function numberToString(value: number, precision = 2): string {
+	const multiplier = 10 ** precision;
+	const round = Math.round(value * multiplier) / multiplier;
+
+	return round.toString();
+}
+
+
+/*
+ *	Format a timestamp a human readable string
+ *
+ * @param {Date} date - The date
+ * @returns {boolean} returns a human readable string
+ */
+export function timestampToString(date: Date): string {
+	return format(date, 'dd MMM yyyy HH:mm:ss');
 }
 
 /*

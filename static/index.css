@@ -11,3 +11,17 @@
 .dashboard-card {
 	height: 300px;
 }
+
+.metrics-enclosure {
+	width: 100%;
+	overflow: auto;
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+.metrics {
+	display: grid;
+    grid-template-columns: 1fr 1fr;
+	gap: 2px 2px;
+	font-size: small;
+}

@@ -1,7 +1,6 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
-import {inspect} from '../util/util.js';
 import type {cdbConfigType, pdbConfigType} from '../config.js';
 import type {statsKeyType} from '../statsStore';
 

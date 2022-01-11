@@ -24,9 +24,11 @@ export type statsAddDataType = statsKeyType & {
 	metric: metricType,
 };
 
+export type statusMetricType = statusType & metricType;
+
 export type statsDataType = statsKeyType & {
 	oracle_version: string,
-	metrics: (statusType & metricType)[],
+	metrics: statusMetricType[],
 };
 
 export type statsType = {

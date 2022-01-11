@@ -1,11 +1,11 @@
 import debugModule from 'debug';
 import express from 'express';
 import {statsLoad} from '../statsStore.js';
-import {isDate, distanceToString, inspect} from '../util/util.js';
+import {isDate, distanceToString, numberToString, timestampToString, inspect} from '../util/util.js';
 import {getHtmlPage} from '../html/html.js';
 
-import type {configType, cdbConfigType/*, pdbConfigType*/} from '../config.js';
-import type {statsDataType} from '../statsStore';
+import type {configType} from '../config.js';
+import type {statsDataType, statusMetricType} from '../statsStore';
 
 const debug = debugModule('oracle-health-dashboard:handlerDefault');
 
@@ -32,26 +32,29 @@ async function getPage(config: configType): Promise<string> {
 
 	const title = 'Oracle Health Dashboard';
 
+	// load stats
 	const stats = await statsLoad();
 
-	const content = [] as string[];
-	content.push('<div class="dashboard">');
-	content.push(	'<div class="page-header">');
-	content.push(		`<h2>${title}</h2>`);
-	content.push(	'</div>');
-	content.push(	'<div class="dashboard-grid">');
-	config.cdb.map(cdb => renderDatabase(content, cdb, stats));
-	content.push(	'</div>');
-	content.push('</div>');
+	// sort the list of databases
+	stats.sort(sortStats);
 
-	return getHtmlPage(title, content);
+	const html = [] as string[];
+	html.push('<div class="dashboard">');
+	html.push(	'<div class="page-header">');
+	html.push(		`<h2>${title}</h2>`);
+	html.push(	'</div>');
+	html.push(	'<div class="dashboard-grid">');
+	stats.map(renderDatabase.bind(null, html));
+	html.push(	'</div>');
+	html.push('</div>');
+
+	return getHtmlPage(title, html, config.pollingSeconds);
 }
 
-function renderDatabase(html: Array<string>, database: cdbConfigType, data: statsDataType[]) {
+function renderDatabase(html: Array<string>, database: statsDataType) {
 	debug('renderDatabase');
 
-	const databaseStats = data.find(e => e.cdb_name === database.name);
-	const lastDatabaseStats = databaseStats && databaseStats.metrics.length > 0 ? databaseStats.metrics[databaseStats.metrics.length - 1] : null;
+	const lastDatabaseStats = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
 	const online = lastDatabaseStats ? lastDatabaseStats.success : false;
 	const timestamp = lastDatabaseStats && isDate(lastDatabaseStats.timestamp) ? distanceToString(lastDatabaseStats.timestamp) : '';
 	const noOfSessions = lastDatabaseStats && typeof lastDatabaseStats.no_of_sessions === 'number' ? lastDatabaseStats.no_of_sessions.toFixed() : '';
@@ -62,10 +65,12 @@ function renderDatabase(html: Array<string>, database: cdbConfigType, data: stat
 	html.push('<div class="dashboard-card">');
 	html.push(	'<div class="card support-bar overflow-hidden card-height">');
 	html.push(		'<div class="card-body pb-0">');
-	html.push(			`<h4 class="m-0">${database.name}</h4>`);
+	html.push(			getDatabaseName(database));
 	html.push(			`<span class="text-c-blue">${online ? 'online' : 'offline'}</span>`);
 	html.push(			`<span class="fs-6 fst-lighter">(${timestamp})</span>`);
-	html.push(			'<p class="mb-3 mt-3">Total number of support requests that come in.</p>');
+	if (lastDatabaseStats) {
+		getDetais(html, lastDatabaseStats);
+	}
 	html.push(		'</div>');
 	html.push(		'<div id="support-chart"></div>');
 	html.push(		'<div class="card-footer bg-primary text-white">');
@@ -82,4 +87,56 @@ function renderDatabase(html: Array<string>, database: cdbConfigType, data: stat
 	html.push(		'</div>');
 	html.push('	</div>');
 	html.push('</div>');
+}
+
+function getDatabaseName(database: statsDataType): string {
+	if (database.pdb_name === '') {
+		return `<h5 class="m-0">${database.cdb_name}</h5>`;
+	} else {
+		return `<h5 class="m-0">CDB: ${database.cdb_name}</h5><h6 class="m-0">PDB: ${database.pdb_name}</h6>`;
+	}
+}
+
+function getDetais(html: Array<string>, metric: statusMetricType): void {
+	const data = [
+		['Server date', metric.server_date, ''],
+		['Host CPU utilization', metric.host_cpu_utilization, '%'],
+		['IO requests per sec', metric.io_requests_per_second, ''],
+		['Buffer cache hit ratio', metric.buffer_cache_hit_ratio, '%'],
+		['Executions per sec', metric.executions_per_sec, ''],
+	];
+
+	html.push('<div class="metrics-enclosure">');
+	html.push('<div class="metrics">');
+	data.forEach(row => html.push(`<div>${row[0]}</div><div>${getValueAsString(row[1])}${row[2]}</div>`));
+	html.push('</div>');
+	html.push('</div>');
+}
+
+function getValueAsString(value: string | number | boolean | Date | null): string {
+	if (typeof value === 'string') {
+		return value;
+	} else if (typeof value === 'number') {
+		return numberToString(value);
+	} else if (typeof value === 'boolean') {
+		return value ? 'Yes' : 'No';
+	} else if (isDate(value)) {
+		return timestampToString(value);
+	} else {
+		return '';
+	}
+}
+
+function sortStats(a: statsDataType, b: statsDataType): number {
+	if (a.cdb_name.toLowerCase() > b.cdb_name.toLowerCase()) {
+		return 1;
+	} else if (a.cdb_name.toLowerCase() < b.cdb_name.toLowerCase()) {
+		return -1;
+	} else if (a.pdb_name.toLowerCase() > b.pdb_name.toLowerCase()) {
+		return 1;
+	} else if (a.pdb_name.toLowerCase() < b.pdb_name.toLowerCase()) {
+		return -1;
+	} else {
+		return 0;
+	}
 }

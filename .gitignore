@@ -4,6 +4,7 @@ logs
 npm-debug.log*
 
 # Dependencies
+package-lock.json
 node_modules/
 
 # Coverage
@@ -29,3 +30,4 @@ build/
 tmp
 .DS_Store
 db.json
+config.json

@@ -1,10 +1,10 @@
-import {jsonLoad} from './files.js';
-import {isInteger} from './util.js';
+import {jsonLoad} from './util/files.js';
+import {isInteger} from './util/util.js';
 
 /**
- * Database configuration object.
+ * PDB configuration object.
  */
-export type databaseConfigType = {
+export type pdbConfigType = {
 	name: string,
 	connection: string,
 	username: string,
@@ -12,12 +12,23 @@ export type databaseConfigType = {
 };
 
 /**
+ * CDB configuration object.
+ */
+export type cdbConfigType = {
+	name: string,
+	connection: string,
+	username: string,
+	password: string,
+	pdb?: Array<pdbConfigType>,
+};
+
+/**
  * Configuration object.
  */
 export type configType = {
-	port: number,
+	http_port: number,
 	pollingSeconds: number,
-	databases: Array<databaseConfigType>,
+	cdb: Array<cdbConfigType>,
 };
 
 /**
@@ -29,20 +40,23 @@ export type configType = {
 export function configLoad(filename = 'config.json'): configType {
 	const config = jsonLoad<configType>(filename);
 
-	return validate(config);
+	return validateConfig(config);
 }
 
 /*
  * Validates and returns a configuration object.
+ *
+ * @param {configType} config - - The configuration object.
+ * @returns {configType} - The validated configuration object.
  */
-function validate(config: configType): configType {
+export function validateConfig(config: Partial<configType>): configType {
 	// port
-	if ('port' in config) {
-		if (!isInteger(config.port) || config.port <= 0 || config.port > 65536) {
+	if ('http_port' in config) {
+		if (!isInteger(config.http_port) || config.http_port <= 0 || config.http_port > 65536) {
 			throw new Error('The configuration has an no valid property "port"');
 		}
 	} else {
-		config.port = 8080;
+		config.http_port = 80;
 	}
 
 	// pollingSeconds
@@ -54,17 +68,50 @@ function validate(config: configType): configType {
 		config.pollingSeconds = 60;
 	}
 
-	// database
-	if (!Array.isArray(config.databases)) {
-		throw new Error('The configuration has no property "databases" of type array');
+	// CDB's
+	if (!Array.isArray(config.cdb)) {
+		throw new Error('The configuration has no property "cdb" of type array');
+	} else {
+		config.cdb = config.cdb.map(validateCDB);
 	}
-	config.databases.forEach((database, index) => {
-		['name', 'connection', 'username', 'password'].forEach(propName => {
-			if (typeof database[propName] !== 'string' || database[propName].length === 0) {
-				throw new Error(`The configuration has an invalid "${propName}" property in "databases[${index}]"`);
-			}
-		});
+
+	return config as configType;
+}
+
+/*
+ * Validates and returns a CDB object.
+ */
+function validateCDB(cdb: cdbConfigType, index: number): cdbConfigType {
+	['name', 'connection', 'username', 'password'].forEach(propName => {
+		const value = cdb[propName as keyof cdbConfigType];
+
+		if (typeof value !== 'string' || value.length === 0) {
+			throw new Error(`The configuration has an invalid "${propName}" property in cdb with index "${index}"`);
+		}
 	});
 
-	return config;
+	if ('pdb' in cdb) {
+		if (!Array.isArray(cdb.pdb)) {
+			throw new Error(`The configuration has an invalid "pdb" property in cdb with index "${index}"`);
+		} else {
+			cdb.pdb = cdb.pdb.map(validatePDB.bind(null, cdb));
+		}
+	}
+
+	return cdb;
+}
+
+/*
+ * Validates and returns a PDB object.
+ */
+function validatePDB(cdb: cdbConfigType, pdb: pdbConfigType, index: number): pdbConfigType {
+	['name', 'connection', 'username', 'password'].forEach(propName => {
+		const value = pdb[propName as keyof pdbConfigType];
+
+		if (typeof value !== 'string' || value.length === 0) {
+			throw new Error(`The configuration has an invalid "${propName}" property in pdb with index "${index}" of cdb with name "${cdb.name}"`);
+		}
+	});
+
+	return pdb;
 }

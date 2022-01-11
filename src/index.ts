@@ -3,11 +3,13 @@ import {spawn, Thread, Worker} from 'threads';
 import express from 'express';
 import compression from 'compression';
 import {configLoad} from './config.js';
-import {render} from './render.js';
+import {handlerDefault} from './router/handlerDefault.js';
+import {handlerDebug} from './router/handlerDebug.js';
+import {gathererInitialize} from './gatherer/gatherer.js';
 
-import type {Gatherer} from './gathererWorker';
+import type {Gatherer} from './gatherer/gathererWorker';
 
-const debug = new debugModule('oracle-health-dashboard:index');
+const debug = debugModule('oracle-health-dashboard:index');
 
 async function main() {
 	// install signal event handler
@@ -19,31 +21,30 @@ async function main() {
 	debug('load configuration');
 	const config = configLoad();
 
+	// initialize gatherer
+	debug('initialize gatherer');
+	await gathererInitialize(config);
+
 	// start gatherer thread
 	debug('start gatherer thread');
-	const gatherer = await spawn<Gatherer>(new Worker('./gatherProcess'));
+	const gatherer = await spawn<Gatherer>(new Worker('./gatherer/gathererWorker'));
 	await gatherer(config);
 
 	const app = express();
 
 	app.use(compression());
 
+	// "static" route
 	app.use('/static', express.static('static'));
 
-	app.get('/', async (_req, res) => {
-		debug('request');
-		
-		const html = await render(config);
+	// "default" route
+	app.get('/', handlerDefault.bind(null, config));
 
-		// set header and status
-		res.contentType('text/html');
-		res.status(200);
-		
-		return res.send(html);
-	});
+	// "debug" route
+	app.get('/debug', handlerDebug.bind(null, config));
 
-	const server = app.listen(config.port, () => {
-		console.log(`Listening at http://127.0.0.1:${config.port}`);
+	const server = app.listen(config.http_port, () => {
+		console.log(`Listening at http://127.0.0.1:${config.http_port}`);
 	});
 
 	async function shutDown() {

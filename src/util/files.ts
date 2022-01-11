@@ -58,6 +58,7 @@ function jsonDateParser(_key: string, value: unknown) {
 		}
 		
 		a = reMsAjax.exec(value);
+		/* istanbul ignore next */
 		if (a) {
 			const b = a[1].split(/[-+,.]/);
 			return new Date(b[0] ? +b[0] : 0 - +b[1]);

@@ -2,7 +2,9 @@ import {
 	isNumber,
 	isInteger,
 	isDate,
-} from '../src/util.js';
+	distanceToString,
+	inspect,
+} from '../src/util/util.js';
 
 describe('isNumber', () => {
 	it('returns true for numbers', () => {
@@ -52,5 +54,23 @@ describe('isDate', () => {
 		expect(isDate(true)).toBe(false);
 		expect(isDate(false)).toBe(false);
 		expect(isDate(new Date())).toBe(true);
+	});
+});
+
+describe('distanceToString', () => {
+	it('returns a human readable relative date', () => {
+		const currentDate = new Date(2022, 0, 4, 16, 0, 0, 0); // 2022-01-05 16:00:00,0
+		const relativeDate = new Date(2022, 0, 4, 15, 0, 0, 0); // 2022-01-05 16:00:00,0
+
+		expect(distanceToString(relativeDate, currentDate)).toBe('about 1 hour ago');
+		expect(distanceToString(new Date())).toBe('less than a minute ago');
+	});
+});
+
+describe('inspect', () => {
+	it('returns a string representation', () => {
+		expect(inspect(1)).toBe('1');
+		expect(inspect([1])).toBe('[ 1 ]');
+		expect(inspect({p:1})).toBe('{ p: 1 }');
 	});
 });

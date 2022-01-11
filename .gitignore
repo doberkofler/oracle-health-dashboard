@@ -31,3 +31,7 @@ tmp
 .DS_Store
 db.json
 config.json
+
+# ONLY TEMPORARY
+.github
+

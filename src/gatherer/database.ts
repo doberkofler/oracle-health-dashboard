@@ -299,8 +299,6 @@ async function gatherPeriodicPDB(data: periodicGatherCdbType, pdb: pdbConfigType
 	data.metric.last_successful_rman_backup_date_archive_log = info.last_successful_rman_backup_date_archive_log;
 	data.metric.last_rman_backup_date_full_db = info.last_rman_backup_date_full_db;
 	data.metric.last_rman_backup_date_archive_log = info.last_rman_backup_date_archive_log;
-
-	console.log('gatherer', inspect({info, data}));
 }
 
 function getStatus(success: boolean, message = ''): statusType {

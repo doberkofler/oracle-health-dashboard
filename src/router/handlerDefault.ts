@@ -1,7 +1,7 @@
 import debugModule from 'debug';
 import express from 'express';
 import {statsLoad} from '../statsStore.js';
-import {isDate, distanceToString} from '../util/util.js';
+import {isDate, distanceToString, inspect} from '../util/util.js';
 import {getHtmlPage} from '../html/html.js';
 
 import type {configType, cdbConfigType/*, pdbConfigType*/} from '../config.js';
@@ -57,7 +57,7 @@ function renderDatabase(html: Array<string>, database: cdbConfigType, data: stat
 	const noOfSessions = lastDatabaseStats && typeof lastDatabaseStats.no_of_sessions === 'number' ? lastDatabaseStats.no_of_sessions.toFixed() : '';
 	const cpu = lastDatabaseStats && typeof lastDatabaseStats.host_cpu_utilization === 'number' ? lastDatabaseStats.host_cpu_utilization.toFixed() + '%' : '';
 
-	//console.log({lastDatabaseStats});
+	debug('renderDatabase', inspect({lastDatabaseStats}));
 
 	html.push('<div class="dashboard-card">');
 	html.push(	'<div class="card support-bar overflow-hidden card-height">');

@@ -186,7 +186,7 @@ export async function gatherPeriodicCDB(cdb: cdbConfigType): Promise<periodicGat
 	// connect with CDB
 	const connection = await connect({
 		name: cdb.name,
-		connectionString: cdb.connection,
+		connection: cdb.connection,
 		username: cdb.username,
 		password: cdb.password,
 
@@ -236,7 +236,7 @@ export async function gatherPeriodicCDB(cdb: cdbConfigType): Promise<periodicGat
 
 	// are we dealing with a multitenant architecture
 	if (Array.isArray(cdb.pdb)) {
-		await Promise.all(cdb.pdb.map(gatherPeriodicPDB.bind(null, data)));
+		await Promise.all(cdb.pdb.filter(e => e.enabled).map(gatherPeriodicPDB.bind(null, data)));
 	}
 
 	data.status = getStatus(true);
@@ -264,7 +264,7 @@ async function gatherPeriodicPDB(data: periodicGatherCdbType, pdb: pdbConfigType
 	// connect with PDB
 	const connection = await connect({
 		name: pdb.name,
-		connectionString: pdb.connection,
+		connection: pdb.connection,
 		username: pdb.username,
 		password: pdb.password,
 	});

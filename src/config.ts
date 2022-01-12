@@ -1,24 +1,19 @@
 import {jsonLoad} from './util/files.js';
 import {isInteger} from './util/util.js';
+import type {connectionOptionsType} from './gatherer/oracle';
 
 /**
  * PDB configuration object.
  */
-export type pdbConfigType = {
-	name: string,
-	connection: string,
-	username: string,
-	password: string,
+export type pdbConfigType = connectionOptionsType & {
+	enabled?: boolean,
 };
 
 /**
  * CDB configuration object.
  */
-export type cdbConfigType = {
-	name: string,
-	connection: string,
-	username: string,
-	password: string,
+export type cdbConfigType = connectionOptionsType & {
+	enabled?: boolean,
 	pdb?: Array<pdbConfigType>,
 };
 
@@ -90,6 +85,14 @@ function validateCDB(cdb: cdbConfigType, index: number): cdbConfigType {
 		}
 	});
 
+	if ('enabled' in cdb) {
+		if (typeof cdb.enabled !== 'boolean') {
+			throw new Error(`The configuration has an invalid "enabled" property in cdb with index "${index}"`);
+		}
+	} else {
+		cdb.enabled = true;
+	}
+
 	if ('pdb' in cdb) {
 		if (!Array.isArray(cdb.pdb)) {
 			throw new Error(`The configuration has an invalid "pdb" property in cdb with index "${index}"`);
@@ -112,6 +115,14 @@ function validatePDB(cdb: cdbConfigType, pdb: pdbConfigType, index: number): pdb
 			throw new Error(`The configuration has an invalid "${propName}" property in pdb with index "${index}" of cdb with name "${cdb.name}"`);
 		}
 	});
+
+	if ('enabled' in pdb) {
+		if (typeof pdb.enabled !== 'boolean') {
+			throw new Error(`The configuration has an invalid "enabled" property in pdb with index "${index}" of cdb with name "${cdb.name}"`);
+		}
+	} else {
+		pdb.enabled = true;
+	}
 
 	return pdb;
 }

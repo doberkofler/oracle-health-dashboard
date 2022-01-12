@@ -17,12 +17,12 @@ export async function gathererInitial(config: configType): Promise<void> {
 
 	const queryPromises = [] as Promise<initialGatherType>[];
 
-	config.cdb.forEach(cdb => {
+	config.cdb.filter(e => e.enabled).forEach(cdb => {
 		if (Array.isArray(cdb.pdb)) {
-			cdb.pdb.forEach(pdb => {
+			cdb.pdb.filter(e => e.enabled).forEach(pdb => {
 				queryPromises.push(gatherInitial({
 					name: pdb.name,
-					connectionString: pdb.connection,
+					connection: pdb.connection,
 					username: pdb.username,
 					password: pdb.password,
 				}, cdb.name, pdb.name));
@@ -30,7 +30,7 @@ export async function gathererInitial(config: configType): Promise<void> {
 		} else {
 			queryPromises.push(gatherInitial({
 				name: cdb.name,
-				connectionString: cdb.connection,
+				connection: cdb.connection,
 				username: cdb.username,
 				password: cdb.password,
 			}, cdb.name, ''));

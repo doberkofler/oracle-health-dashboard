@@ -21,7 +21,7 @@ export async function gatherer(config: configType): Promise<void> {
 	debug('gatherer');
 
 	// quere all databases and and wait until we got results from all of them
-	const results = await Promise.all(config.cdb.map(gatherPeriodicCDB));
+	const results = await Promise.all(config.cdb.filter(e => e.enabled).map(gatherPeriodicCDB));
 
 	// process the results and prepare the statics to add
 	const stats = results.map(result => ({

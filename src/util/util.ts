@@ -32,17 +32,6 @@ export function isDate(value: unknown): value is Date {
 }
 
 /*
- *	Format a distance between dates a human readable string
- *
- * @param {Date} relativeDate - The relative date
- * @param {Date} currentDate - The current date
- * @returns {boolean} returns a human readable string of the time distance
- */
-export function distanceToString(relativeDate: Date, currentDate = new Date()): string {
-	return formatDistance(relativeDate, currentDate, {addSuffix: true});
-}
-
-/*
  *	Format a number as a human readable string
  *
  * @param {number} value - The number
@@ -55,6 +44,16 @@ export function numberToString(value: number, precision = 2): string {
 	return round.toString();
 }
 
+/*
+ *	Format a distance between dates a human readable string
+ *
+ * @param {Date} relativeDate - The relative date
+ * @param {Date} currentDate - The current date
+ * @returns {boolean} returns a human readable string of the time distance
+ */
+export function distanceToString(relativeDate: Date, currentDate = new Date()): string {
+	return formatDistance(relativeDate, currentDate, {addSuffix: true});
+}
 
 /*
  *	Format a timestamp a human readable string
@@ -63,7 +62,7 @@ export function numberToString(value: number, precision = 2): string {
  * @returns {boolean} returns a human readable string
  */
 export function timestampToString(date: Date): string {
-	return format(date, 'dd MMM yyyy HH:mm:ss');
+	return format(date, 'd MMM yyyy HH:mm:ss');
 }
 
 /*

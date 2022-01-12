@@ -2,7 +2,9 @@ import {
 	isNumber,
 	isInteger,
 	isDate,
+	numberToString,
 	distanceToString,
+	timestampToString,
 	inspect,
 } from '../src/util/util.js';
 
@@ -57,13 +59,28 @@ describe('isDate', () => {
 	});
 });
 
+describe('numberToString', () => {
+	it('returns a human readable number', () => {
+		expect(numberToString(-1)).toBe('-1');
+		expect(numberToString(0)).toBe('0');
+		expect(numberToString(1)).toBe('1');
+		expect(numberToString(0.006)).toBe('0.01');
+	});
+});
+
 describe('distanceToString', () => {
 	it('returns a human readable relative date', () => {
-		const currentDate = new Date(2022, 0, 4, 16, 0, 0, 0); // 2022-01-05 16:00:00,0
-		const relativeDate = new Date(2022, 0, 4, 15, 0, 0, 0); // 2022-01-05 16:00:00,0
+		const currentDate = new Date(2022, 0, 4, 16, 0, 0, 0); // 2022-01-04 16:00:00,0
+		const relativeDate = new Date(2022, 0, 4, 15, 0, 0, 0); // 2022-01-04 15:00:00,0
 
 		expect(distanceToString(relativeDate, currentDate)).toBe('about 1 hour ago');
 		expect(distanceToString(new Date())).toBe('less than a minute ago');
+	});
+});
+
+describe('dateToString', () => {
+	it('returns a human readable timestamp', () => {
+		expect(timestampToString(new Date(2022, 0, 4, 16, 1, 2, 3))).toBe('4 Jan 2022 16:01:02'); // 2022-01-04 16:00:00,0
 	});
 });
 

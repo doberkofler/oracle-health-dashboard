@@ -5,6 +5,7 @@ import {isDate, distanceToString, numberToString, timestampToString, inspect} fr
 import {getHtmlPage} from '../html/html.js';
 
 import type {configType} from '../config.js';
+import type {sqlInitialType} from '../gatherer/databaseInitial.js';
 import type {statsDataType, statusMetricType} from '../statsStore';
 
 const debug = debugModule('oracle-health-dashboard:handlerDefault');
@@ -69,7 +70,7 @@ function renderDatabase(html: Array<string>, database: statsDataType) {
 	html.push(			`<span class="text-c-blue">${online ? 'online' : 'offline'}</span>`);
 	html.push(			`<span class="fs-6 fst-lighter">(${timestamp})</span>`);
 	if (lastDatabaseStats) {
-		getDetais(html, lastDatabaseStats);
+		getDetais(html, database.statics, lastDatabaseStats);
 	}
 	html.push(		'</div>');
 	html.push(		'<div id="support-chart"></div>');
@@ -97,18 +98,24 @@ function getDatabaseName(database: statsDataType): string {
 	}
 }
 
-function getDetais(html: Array<string>, metric: statusMetricType): void {
+function getDetais(html: Array<string>, statics: sqlInitialType, metric: statusMetricType): void {
 	const data = [
-		['Server date', metric.server_date, ''],
+		['Oracle version', statics.oracle_version],
+		['Oracle platform', statics.oracle_platform],
+		['Archive logging', statics.oracle_log_mode],
+		['Character set', statics.oracle_database_character_set],
+		['SGA target', statics.oracle_sga_target],
+		['PGA target', statics.oracle_pga_aggregate_target],
+		//['Server date', metric.server_date],
 		['Host CPU utilization', metric.host_cpu_utilization, '%'],
-		['IO requests per sec', metric.io_requests_per_second, ''],
+		['IO requests per sec', metric.io_requests_per_second],
 		['Buffer cache hit ratio', metric.buffer_cache_hit_ratio, '%'],
-		['Executions per sec', metric.executions_per_sec, ''],
+		['Executions per sec', metric.executions_per_sec],
 	];
 
 	html.push('<div class="metrics-enclosure">');
 	html.push('<div class="metrics">');
-	data.forEach(row => html.push(`<div>${row[0]}</div><div>${getValueAsString(row[1])}${row[2]}</div>`));
+	data.forEach(row => html.push(`<div>${row[0]}</div><div>${getValueAsString(row[1])}${row.length > 2 ? row[2] : ''}</div>`));
 	html.push('</div>');
 	html.push('</div>');
 }

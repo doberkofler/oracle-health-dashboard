@@ -41,7 +41,7 @@ export type periodicGatherCdbType = statsKeyType & {
 	metric: metricType,
 };
 
-const bindingsCDB = [
+const bndCDB = [
 	{
 		id: 'server_date',
 		type: oracledb.DATE,
@@ -67,19 +67,19 @@ const bindingsCDB = [
 const sqlCDB = `
 BEGIN
 	-- server date
-	SELECT SYSDATE INTO :${getPlaceholder('server_date', bindingsCDB)} FROM DUAL;
+	SELECT SYSDATE INTO :${getPlaceholder('server_date', bndCDB)} FROM DUAL;
 
 	-- Host CPU Utilization (%)
-	SELECT ROUND(MAX(value), 2) INTO :${getPlaceholder('host_cpu_utilization', bindingsCDB)} FROM v$sysmetric WHERE metric_id = 2057;
+	SELECT ROUND(MAX(value), 2) INTO :${getPlaceholder('host_cpu_utilization', bndCDB)} FROM v$sysmetric WHERE metric_id = 2057;
 
 	-- I/O Requests per Second
-	SELECT ROUND(MAX(value), 2) INTO :${getPlaceholder('io_requests_per_second', bindingsCDB)} FROM v$sysmetric WHERE metric_id = 2146;
+	SELECT ROUND(MAX(value), 2) INTO :${getPlaceholder('io_requests_per_second', bndCDB)} FROM v$sysmetric WHERE metric_id = 2146;
 
 	-- Buffer Cache Hit Ratio
-	SELECT ROUND(MIN(value), 2) INTO :${getPlaceholder('buffer_cache_hit_ratio', bindingsCDB)} FROM v$sysmetric WHERE metric_id = 2000;
+	SELECT ROUND(MIN(value), 2) INTO :${getPlaceholder('buffer_cache_hit_ratio', bndCDB)} FROM v$sysmetric WHERE metric_id = 2000;
 
 	-- Executions Per Sec
-	SELECT ROUND(MAX(value), 2) INTO :${getPlaceholder('executions_per_sec', bindingsCDB)} FROM v$sysmetric WHERE metric_id = 2121;
+	SELECT ROUND(MAX(value), 2) INTO :${getPlaceholder('executions_per_sec', bndCDB)} FROM v$sysmetric WHERE metric_id = 2121;
 END;
 `;
 
@@ -135,55 +135,30 @@ BEGIN
 END;
 `;
 
-/**
- * get statistics from CDB.
- */
-export async function gatherInitialCDB(cdb: cdbConfigType): Promise<initialGatherType> {
-	const bnd = [
-		{
-			id: 'version',
-			type: oracledb.STRING,
-		},
-	];
+/*
 
-	const sql = `BEGIN
--- server version
-SELECT banner INTO :${getPlaceholder('version', bnd)} FROM v$version;
-END;`;
-
-	// connect
-	const connection = await connect(cdb.name, cdb.connection, cdb.username, cdb.password);
-	if (typeof connection === 'string') {
-		return {
-			status: getStatus(false, connection),
-			oracle_version: '',
-		};
-	}
-
-	// get information
-	debug(`Gather initial database information "${cdb.name}"`);
-	const info = await execute<{version: string}>(connection, sql, bnd);
-	if (typeof info === 'string') {
-		return {
-			status: getStatus(false, info),
-			oracle_version: '',
-		};
-	}
-
-	// disconnect from database
-	const result = disconnect(cdb.name, connection);
-	if (typeof result === 'string') {
-		return {
-			status: getStatus(false, result),
-			oracle_version: '',
-		};
-	}
-
-	return {
-		status: getStatus(true),
-		oracle_version: info.version,
-	};
-}
+Oracle - Tablespace Usage
+		SELECT		ddf.TABLESPACE_NAME "Tablespace",
+					ddf.BYTES "Bytes Allocated",
+					ddf.BYTES - DFS.BYTES  "Bytes Used",
+					ROUND(((ddf.BYTES - dfs.BYTES) / ddf.BYTES) * 100, 2) "Percent Used",
+         			dfs.BYTES "Bytes Free",
+         			ROUND((1 - ((ddf.BYTES - dfs.BYTES) / ddf.BYTES)) * 100, 2) "Percent Free",
+         			DECODE(SIGN(ROUND((1 - ((ddf.BYTES - dfs.BYTES) / ddf.BYTES)) * 100, 2) - 10), -1, STYLE_WARNING, NULL) "style"
+		FROM    	(	SELECT		TABLESPACE_NAME,
+        							SUM(BYTES) bytes
+         				FROM		dba_data_files
+         				GROUP BY 	TABLESPACE_NAME
+  					) ddf,
+        			(
+        				SELECT		TABLESPACE_NAME,
+                					SUM(BYTES) bytes
+         				FROM		dba_free_space
+         				GROUP BY	TABLESPACE_NAME
+         			) dfs
+		WHERE		ddf.TABLESPACE_NAME = dfs.TABLESPACE_NAME
+		ORDER BY	((ddf.BYTES - dfs.BYTES) / ddf.BYTES) DESC;
+*/
 
 /**
  * get statistics from CDB.
@@ -209,7 +184,13 @@ export async function gatherPeriodicCDB(cdb: cdbConfigType): Promise<periodicGat
 	};
 
 	// connect with CDB
-	const connection = await connect(cdb.name, cdb.connection, cdb.username, cdb.password);
+	const connection = await connect({
+		name: cdb.name,
+		connectionString: cdb.connection,
+		username: cdb.username,
+		password: cdb.password,
+
+	});
 	if (typeof connection === 'string') {
 		data.status = getStatus(false, connection);
 		return data;
@@ -217,7 +198,7 @@ export async function gatherPeriodicCDB(cdb: cdbConfigType): Promise<periodicGat
 
 	// get information for CDB
 	debug(`Gather database information from CDB "${cdb.name}"`);
-	const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bindingsCDB);
+	const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
 	if (typeof infoCDB === 'string') {
 		data.status = getStatus(false, infoCDB);
 		return data;
@@ -264,13 +245,29 @@ export async function gatherPeriodicCDB(cdb: cdbConfigType): Promise<periodicGat
 }
 
 /**
+ * get status object.
+ */
+export function getStatus(success: boolean, message = ''): statusType {
+	return {
+		timestamp: new Date(),
+		success,
+		message,
+	};
+}
+
+/**
  * get statistics from PDB.
  */
 async function gatherPeriodicPDB(data: periodicGatherCdbType, pdb: pdbConfigType): Promise<void> {
 	data.pdb_name = pdb.name;
 
 	// connect with PDB
-	const connection = await connect(pdb.name, pdb.connection, pdb.username, pdb.password);
+	const connection = await connect({
+		name: pdb.name,
+		connectionString: pdb.connection,
+		username: pdb.username,
+		password: pdb.password,
+	});
 	if (typeof connection === 'string') {
 		data.status = getStatus(false, connection);
 		return;
@@ -298,12 +295,4 @@ async function gatherPeriodicPDB(data: periodicGatherCdbType, pdb: pdbConfigType
 	data.metric.last_successful_rman_backup_date_archive_log = info.last_successful_rman_backup_date_archive_log;
 	data.metric.last_rman_backup_date_full_db = info.last_rman_backup_date_full_db;
 	data.metric.last_rman_backup_date_archive_log = info.last_rman_backup_date_archive_log;
-}
-
-function getStatus(success: boolean, message = ''): statusType {
-	return {
-		timestamp: new Date(),
-		success,
-		message,
-	};
 }

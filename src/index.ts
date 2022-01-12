@@ -5,7 +5,7 @@ import compression from 'compression';
 import {configLoad} from './config.js';
 import {handlerDefault} from './router/handlerDefault.js';
 import {handlerDebug} from './router/handlerDebug.js';
-import {gathererInitialize} from './gatherer/gatherer.js';
+import {gathererInitial} from './gatherer/gathererInitial.js';
 
 import type {Gatherer} from './gatherer/gathererWorker';
 
@@ -23,7 +23,7 @@ async function main() {
 
 	// initialize gatherer
 	debug('initialize gatherer');
-	await gathererInitialize(config);
+	await gathererInitial(config);
 
 	// start gatherer thread
 	debug('start gatherer thread');

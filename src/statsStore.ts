@@ -1,7 +1,7 @@
 import {jsonLoad, jsonSave} from './util/files.js';
 import {inspect} from './util/util.js';
-import type {configType} from './config';
 import type {statusType, metricType} from './gatherer/database.js';
+import type {sqlInitialType} from './gatherer/databaseInitial.js';
 
 const MAGIC = 'MAGIC';
 const VERSION = 1;
@@ -14,9 +14,8 @@ export type statsKeyType = {
 	pdb_name: string,
 };
 
-export type statsInitType = {
-	cdb_name: string,
-	oracle_version: string,
+export type statsInitialType = statsKeyType & {
+	statics: sqlInitialType,
 };
 
 export type statsAddDataType = statsKeyType & {
@@ -27,7 +26,7 @@ export type statsAddDataType = statsKeyType & {
 export type statusMetricType = statusType & metricType;
 
 export type statsDataType = statsKeyType & {
-	oracle_version: string,
+	statics: sqlInitialType,
 	metrics: statusMetricType[],
 };
 
@@ -72,34 +71,13 @@ export type statsExportType = {
  *
  * @param {initialGatherType} data - The stored statistics.
  */
-export function statsInit(config: configType, data: statsInitType[]): void {
-	const database: statsDataType[] = [];
-
-	config.cdb.forEach(cdb => {
-		const f = data.find(e => e.cdb_name === cdb.name);
-		if (!f) {
-			throw new Error(`Unable to find data bucket with cdb "${cdb.name}"`);
-		}
-
-		// are we dealing with a multitenant architecture
-		if (Array.isArray(cdb.pdb)) {
-			cdb.pdb.forEach(pdb => {
-				database.push({
-					cdb_name: cdb.name,
-					pdb_name: pdb.name,
-					oracle_version: f.oracle_version,
-					metrics: [],
-				});
-			});
-		} else {
-			database.push({
-				cdb_name: cdb.name,
-				pdb_name: '',
-				oracle_version: f.oracle_version,
-				metrics: [],
-			});
-		}
-	});
+export function statsInitial(data: statsInitialType[]): void {
+	const database: statsDataType[] = data.map(e => ({
+		cdb_name: e.cdb_name,
+		pdb_name: e.pdb_name,
+		statics: e.statics,
+		metrics: [],
+	}));
 
 	statsSave(database);
 }

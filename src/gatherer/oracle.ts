@@ -4,6 +4,13 @@ import {isDate, inspect} from '../util/util.js';
 
 const debug = debugModule('oracle-health-dashboard:oracle');
 
+export type connectionOptionsType = {
+	name: string,
+	connectionString: string,
+	username: string,
+	password: string,
+};
+
 export type bindingsType = Array<{
 	id: string,
 	type: number,
@@ -12,16 +19,16 @@ export type bindingsType = Array<{
 /*
 *	Connect with database
 */
-export async function connect(name: string, connectionString: string, username: string, password: string): Promise<oracledb.Connection | string> {
-	debug(`Connect with database "${name}" as "${username}" at "${connectionString}"`);
+export async function connect(options: connectionOptionsType): Promise<oracledb.Connection | string> {
+	debug(`Connect with database "${options.name}" as "${options.username}" at "${options.connectionString}"`);
 
 	const connectionAttributes: oracledb.ConnectionAttributes = {
-		connectionString,
-		user: username,
-		password: password,
+		connectionString: options.connectionString,
+		user: options.username,
+		password: options.password,
 	};
 
-	if (username.toLowerCase() === 'sys') {
+	if (options.username.toLowerCase() === 'sys') {
 		connectionAttributes.privilege = oracledb.SYSDBA;
 	}
 
@@ -29,7 +36,7 @@ export async function connect(name: string, connectionString: string, username: 
 	try {
 		connection = await oracledb.getConnection(connectionAttributes);
 	} catch (e: unknown) {
-		const message = `Unable to connect with database "${name}" as "${username}" at "${connectionString}"`;
+		const message = `Unable to connect with database "${name}" as "${options.username}" at "${options.connectionString}"`;
 		console.error(message, e);
 		return message + '\n' + (e as Error).message;
 	}

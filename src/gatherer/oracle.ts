@@ -36,7 +36,7 @@ export async function connect(options: connectionOptionsType): Promise<oracledb.
 	try {
 		connection = await oracledb.getConnection(connectionAttributes);
 	} catch (e: unknown) {
-		const message = `Unable to connect with database "${name}" as "${options.username}" at "${options.connection}"`;
+		const message = `Unable to connect with database "${options.name}" as "${options.username}" at "${options.connection}"`;
 		console.error(message, e);
 		return message + '\n' + (e as Error).message;
 	}

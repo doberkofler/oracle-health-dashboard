@@ -102,7 +102,7 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 	}
 
 	// disconnect
-	const result = disconnect(database.databaseName, connection);
+	const result = disconnect(connection, database.cdbConnect);
 	if (typeof result === 'string') {
 		console.log(`${title}: cannot disconnect (${result})`);
 		data.status = getStatus(false, result);

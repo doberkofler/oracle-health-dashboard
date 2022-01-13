@@ -198,14 +198,13 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 	// get information for PDB
 	const infoPDB = await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB);
 	if (typeof infoPDB === 'string') {
-		disconnect(database.pdbConnect.name, connection);
+		disconnect(connection, database.pdbConnect);
 		data.status = getStatus(false, infoPDB);
 		return data;
 	}
 
 	if (!multitenant) {
 		// get information for CDB
-		debug(`Gather database information from CDB "${database.cdbConnect.name}"`);
 		const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
 		if (typeof infoCDB === 'string') {
 			data.status = getStatus(false, infoCDB);
@@ -220,7 +219,7 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 	}
 
 	// disconnect from PDB
-	let resultCDB = disconnect(database.pdbConnect.name, connection);
+	let resultCDB = disconnect(connection, database.pdbConnect);
 	if (typeof resultCDB === 'string') {
 		data.status = getStatus(false, resultCDB);
 		return data;
@@ -235,7 +234,6 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 		}
 	
 		// get information for CDB
-		debug(`Gather database information from CDB "${database.cdbConnect.name}"`);
 		const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
 		if (typeof infoCDB === 'string') {
 			data.status = getStatus(false, infoCDB);
@@ -249,7 +247,7 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 		data.metric.executions_per_sec = infoCDB.executions_per_sec;
 
 		// disconnect from CDB
-		resultCDB = disconnect(database.cdbConnect.name, connection);
+		resultCDB = disconnect(connection, database.cdbConnect);
 		if (typeof resultCDB === 'string') {
 			data.status = getStatus(false, resultCDB);
 			return data;

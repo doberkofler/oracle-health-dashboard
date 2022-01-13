@@ -1,5 +1,5 @@
 import {configLoad, validateConfig} from '../src/config.js';
-import type {configExternType} from '../src/config.js';
+import type {configType} from '../src/config.js';
 
 describe('configLoad', () => {
 	it('loads the configuration and returns a validated configuration object or throws an error', () => {
@@ -10,9 +10,9 @@ describe('configLoad', () => {
 
 describe('validateConfig', () => {
 	it('returns a validated configuration object', () => {
-		expect(validateConfig({cdb: []})).toStrictEqual({http_port: 80, pollingSeconds: 60, cdb: []});
-		expect(validateConfig({http_port: 9090, pollingSeconds: 90, cdb: []})).toStrictEqual({http_port: 9090, pollingSeconds: 90, cdb: []});
-		expect(validateConfig({cdb: [{name: 'name', connection: 'connection', username: 'username', password: 'password'}]})).toStrictEqual({http_port: 80, pollingSeconds: 60, cdb: [{name: 'name', connection: 'connection', username: 'username', password: 'password'}]});
+		expect(validateConfig({hosts: []})).toStrictEqual({http_port: 80, pollingSeconds: 60, cdb: []});
+		expect(validateConfig({http_port: 9090, pollingSeconds: 90, hosts: []})).toStrictEqual({http_port: 9090, pollingSeconds: 90, cdb: []});
+		expect(validateConfig({hosts: [{name: 'name', host: '127.0.0.1', databases: []}]})).toStrictEqual({http_port: 80, pollingSeconds: 60, hosts: [{name: 'name', host: '127.0.0.1', databases: []}]});
 	});
 
 	it('throws an error when the configuration is invalid', () => {
@@ -32,7 +32,7 @@ describe('validateConfig', () => {
 		];
 		
 		tests.forEach(test => {
-			expect(() => validateConfig(test[0] as unknown as configExternType)).toThrow(test[1]);
+			expect(() => validateConfig(test[0] as unknown as configType)).toThrow(test[1]);
 		});
 	});
 });

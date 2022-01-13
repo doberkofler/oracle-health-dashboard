@@ -1,5 +1,5 @@
 import {configLoad, validateConfig} from '../src/config.js';
-import type {configType} from '../src/config.js';
+import type {configExternType} from '../src/config.js';
 
 describe('configLoad', () => {
 	it('loads the configuration and returns a validated configuration object or throws an error', () => {
@@ -32,7 +32,7 @@ describe('validateConfig', () => {
 		];
 		
 		tests.forEach(test => {
-			expect(() => validateConfig(test[0] as unknown as configType)).toThrow(test[1]);
+			expect(() => validateConfig(test[0] as unknown as configExternType)).toThrow(test[1]);
 		});
 	});
 });

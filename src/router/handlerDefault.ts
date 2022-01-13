@@ -36,9 +36,6 @@ async function getPage(config: configType): Promise<string> {
 	// load stats
 	const stats = await statsLoad();
 
-	// sort the list of databases
-	stats.sort(sortStats);
-
 	const html = [] as string[];
 	html.push('<div class="dashboard">');
 	html.push(	'<div class="page-header">');
@@ -66,8 +63,9 @@ function renderDatabase(html: Array<string>, database: statsDataType) {
 	html.push('<div class="dashboard-card">');
 	html.push(	'<div class="card support-bar overflow-hidden card-height">');
 	html.push(		'<div class="card-body pb-0">');
-	html.push(			getDatabaseName(database));
-	html.push(			`<span class="text-c-blue">${online ? 'online' : 'offline'}</span>`);
+	getDatabaseName(html, database);
+	html.push(			`<span class="text-c-blue ${online ? 'green' : 'red'}">${online ? 'online' : 'offline'}</span>`);
+	html.push(			'&nbsp;');
 	html.push(			`<span class="fs-6 fst-lighter">(${timestamp})</span>`);
 	if (lastDatabaseStats) {
 		getDetais(html, database.statics, lastDatabaseStats);
@@ -90,12 +88,15 @@ function renderDatabase(html: Array<string>, database: statsDataType) {
 	html.push('</div>');
 }
 
-function getDatabaseName(database: statsDataType): string {
-	if (database.pdb_name === '') {
-		return `<h5 class="m-0">${database.cdb_name}</h5>`;
-	} else {
-		return `<h5 class="m-0">CDB: ${database.cdb_name}</h5><h6 class="m-0">PDB: ${database.pdb_name}</h6>`;
-	}
+function getDatabaseName(html: Array<string>, database: statsDataType): void {
+	html.push('<div class="card-title-grid">');
+	html.push(	'<div>host:</div>');
+	html.push(	`<div>${database.hostName}</div>`);
+	html.push(	'<div>database:</div>');
+	html.push(	`<div>${database.databaseName}</div>`);
+	html.push(	'<div>schema:</div>');
+	html.push(	`<div>${database.schemaName}</div>`);
+	html.push('</div>');
 }
 
 function getDetais(html: Array<string>, statics: sqlInitialType, metric: statusMetricType): void {
@@ -115,7 +116,12 @@ function getDetais(html: Array<string>, statics: sqlInitialType, metric: statusM
 
 	html.push('<div class="metrics-enclosure">');
 	html.push('<div class="metrics">');
-	data.forEach(row => html.push(`<div>${row[0]}</div><div>${getValueAsString(row[1])}${row.length > 2 ? row[2] : ''}</div>`));
+	data.forEach(row => {
+		const title = row[0];
+		const value = getValueAsString(row[1]);
+
+		html.push(`<div>${title}</div><div>${value}${value.length > 0 && row.length > 2 ? row[2] : ''}</div>`);
+	});
 	html.push('</div>');
 	html.push('</div>');
 }
@@ -131,19 +137,5 @@ function getValueAsString(value: string | number | boolean | Date | null): strin
 		return timestampToString(value);
 	} else {
 		return '';
-	}
-}
-
-function sortStats(a: statsDataType, b: statsDataType): number {
-	if (a.cdb_name.toLowerCase() > b.cdb_name.toLowerCase()) {
-		return 1;
-	} else if (a.cdb_name.toLowerCase() < b.cdb_name.toLowerCase()) {
-		return -1;
-	} else if (a.pdb_name.toLowerCase() > b.pdb_name.toLowerCase()) {
-		return 1;
-	} else if (a.pdb_name.toLowerCase() < b.pdb_name.toLowerCase()) {
-		return -1;
-	} else {
-		return 0;
 	}
 }

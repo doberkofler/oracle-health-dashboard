@@ -2,8 +2,7 @@ import debugModule from 'debug';
 import oracledb from 'oracledb';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {getStatus} from './database.js';
-import type {statsKeyType} from '../statsStore.js';
-import type {connectionOptionsType} from './oracle.js';
+import type {databaseKeyType, databaseType} from '../config';
 import type {statusType} from './database.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
@@ -17,7 +16,7 @@ export type sqlInitialType = {
 	oracle_pga_aggregate_target: string,
 };
 
-export type initialGatherType = statsKeyType & {
+export type initialGatherType = databaseKeyType & {
 	status: statusType,
 	statics?: sqlInitialType,
 };
@@ -73,42 +72,38 @@ END;`;
 /**
  * get statistics from CDB.
  */
-export async function gatherInitial(options: connectionOptionsType, cdb_name: string, pdb_name: string): Promise<initialGatherType> {
+export async function gatherInitial(database: databaseType): Promise<initialGatherType> {
+	const data: initialGatherType = {
+		id: database.id,
+		hostName: database.hostName,
+		databaseName: database.databaseName,
+		schemaName: database.schemaName,
+		status: getStatus(true),
+	};
+
 	// connect
-	const connection = await connect(options);
+	const connection = await connect(database.cdbConnect);
 	if (typeof connection === 'string') {
-		return {
-			cdb_name,
-			pdb_name,
-			status: getStatus(false, connection),
-		};
+		data.status = getStatus(false, connection);
+		return data;
 	}
 
 	// get information
-	debug(`Gather initial database information "${options.name}"`);
+	debug(`Gather initial database information "${database.databaseName}"`);
 	const info = await execute<sqlInitialType>(connection, sqlInitial, bndInitial);
 	if (typeof info === 'string') {
-		return {
-			cdb_name,
-			pdb_name,
-			status: getStatus(false, info),
-		};
+		data.status = getStatus(false, info);
+		return data;
 	}
 
 	// disconnect from database
-	const result = disconnect(options.name, connection);
+	const result = disconnect(database.databaseName, connection);
 	if (typeof result === 'string') {
-		return {
-			cdb_name,
-			pdb_name,
-			status: getStatus(false, result),
-		};
+		data.status = getStatus(false, result);
+		return data;
 	}
 
-	return {
-		cdb_name,
-		pdb_name,
-		status: getStatus(true),
-		statics: info,
-	};
+	data.statics = info;
+
+	return data;
 }

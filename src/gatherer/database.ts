@@ -1,8 +1,8 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
-import type {cdbConfigType, pdbConfigType} from '../config.js';
-import type {statsKeyType} from '../statsStore';
+import {inspect} from '../util/util.js';
+import type {databaseType, databaseKeyType} from '../config.js';
 
 const debug = debugModule('oracle-health-dashboard:database');
 
@@ -36,7 +36,7 @@ export type initialGatherType = {
 
 export type metricType = sqlCdbType & sqlPdbType;
 
-export type periodicGatherCdbType = statsKeyType & {
+export type periodicGatherCdbType = databaseKeyType & {
 	status: statusType,
 	metric: metricType,
 };
@@ -163,10 +163,12 @@ Oracle - Tablespace Usage
 /**
  * get statistics from CDB.
  */
-export async function gatherPeriodicCDB(cdb: cdbConfigType): Promise<periodicGatherCdbType> {
+export async function gatherPeriodic(database: databaseType): Promise<periodicGatherCdbType> {
 	const data: periodicGatherCdbType = {
-		cdb_name: cdb.name,
-		pdb_name: '',
+		id: database.id,
+		hostName: database.hostName,
+		databaseName: database.databaseName,
+		schemaName: database.schemaName,
 		status: getStatus(false),
 		metric: {
 			server_date: null,
@@ -183,63 +185,80 @@ export async function gatherPeriodicCDB(cdb: cdbConfigType): Promise<periodicGat
 		},
 	};
 
-	// connect with CDB
-	const connection = await connect({
-		name: cdb.name,
-		connection: cdb.connection,
-		username: cdb.username,
-		password: cdb.password,
+	// are we dealing with a multitenant architecture
+	const multitenant = database.pdbConnect.connection !== database.cdbConnect.connection || database.pdbConnect.username !== database.cdbConnect.username || database.pdbConnect.password !== database.cdbConnect.password;
 
-	});
+	// connect with PDB
+	const connection = await connect(database.pdbConnect);
 	if (typeof connection === 'string') {
 		data.status = getStatus(false, connection);
 		return data;
 	}
 
-	// get information for CDB
-	debug(`Gather database information from CDB "${cdb.name}"`);
-	const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
-	if (typeof infoCDB === 'string') {
-		data.status = getStatus(false, infoCDB);
+	// get information for PDB
+	const infoPDB = await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB);
+	if (typeof infoPDB === 'string') {
+		disconnect(database.pdbConnect.name, connection);
+		data.status = getStatus(false, infoPDB);
 		return data;
 	}
 
-	data.metric.server_date = infoCDB.server_date;
-	data.metric.host_cpu_utilization = infoCDB.host_cpu_utilization;
-	data.metric.io_requests_per_second = infoCDB.io_requests_per_second;
-	data.metric.buffer_cache_hit_ratio = infoCDB.buffer_cache_hit_ratio;
-	data.metric.executions_per_sec = infoCDB.executions_per_sec;
-
-	// are we NOT dealing with a multitenant architecture
-	if (!('pdb' in cdb)) {
-		const infoPDB = await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB);
-		if (typeof infoPDB === 'string') {
-			disconnect(cdb.name, connection);
-			data.status = getStatus(false, infoPDB);
+	if (!multitenant) {
+		// get information for CDB
+		debug(`Gather database information from CDB "${database.cdbConnect.name}"`);
+		const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
+		if (typeof infoCDB === 'string') {
+			data.status = getStatus(false, infoCDB);
 			return data;
 		}
 
-		data.metric.no_of_sessions = infoPDB.no_of_sessions;
-		data.metric.flashback_percentage = infoPDB.flashback_percentage;
-		data.metric.last_successful_rman_backup_date_full_db = infoPDB.last_successful_rman_backup_date_full_db;
-		data.metric.last_successful_rman_backup_date_archive_log = infoPDB.last_successful_rman_backup_date_archive_log;
-		data.metric.last_rman_backup_date_full_db = infoPDB.last_rman_backup_date_full_db;
-		data.metric.last_rman_backup_date_archive_log = infoPDB.last_rman_backup_date_archive_log;
+		data.metric.server_date = infoCDB.server_date;
+		data.metric.host_cpu_utilization = infoCDB.host_cpu_utilization;
+		data.metric.io_requests_per_second = infoCDB.io_requests_per_second;
+		data.metric.buffer_cache_hit_ratio = infoCDB.buffer_cache_hit_ratio;
+		data.metric.executions_per_sec = infoCDB.executions_per_sec;
 	}
 
-	// disconnect from database
-	const result = disconnect(cdb.name, connection);
-	if (typeof result === 'string') {
-		data.status = getStatus(false, result);
+	// disconnect from PDB
+	let resultCDB = disconnect(database.pdbConnect.name, connection);
+	if (typeof resultCDB === 'string') {
+		data.status = getStatus(false, resultCDB);
 		return data;
 	}
 
-	// are we dealing with a multitenant architecture
-	if (Array.isArray(cdb.pdb)) {
-		await Promise.all(cdb.pdb.filter(e => e.enabled).map(gatherPeriodicPDB.bind(null, data)));
+	if (multitenant) {
+		// connect to CDB
+		const connection = await connect(database.cdbConnect);
+		if (typeof connection === 'string') {
+			data.status = getStatus(false, connection);
+			return data;
+		}
+	
+		// get information for CDB
+		debug(`Gather database information from CDB "${database.cdbConnect.name}"`);
+		const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
+		if (typeof infoCDB === 'string') {
+			data.status = getStatus(false, infoCDB);
+			return data;
+		}
+
+		data.metric.server_date = infoCDB.server_date;
+		data.metric.host_cpu_utilization = infoCDB.host_cpu_utilization;
+		data.metric.io_requests_per_second = infoCDB.io_requests_per_second;
+		data.metric.buffer_cache_hit_ratio = infoCDB.buffer_cache_hit_ratio;
+		data.metric.executions_per_sec = infoCDB.executions_per_sec;
+
+		// disconnect from CDB
+		resultCDB = disconnect(database.cdbConnect.name, connection);
+		if (typeof resultCDB === 'string') {
+			data.status = getStatus(false, resultCDB);
+			return data;
+		}
 	}
 
 	data.status = getStatus(true);
+
+	debug('gatherPeriodic', inspect({database, multitenant, data}));
 
 	return data;
 }
@@ -253,46 +272,4 @@ export function getStatus(success: boolean, message = ''): statusType {
 		success,
 		message,
 	};
-}
-
-/**
- * get statistics from PDB.
- */
-async function gatherPeriodicPDB(data: periodicGatherCdbType, pdb: pdbConfigType): Promise<void> {
-	data.pdb_name = pdb.name;
-
-	// connect with PDB
-	const connection = await connect({
-		name: pdb.name,
-		connection: pdb.connection,
-		username: pdb.username,
-		password: pdb.password,
-	});
-	if (typeof connection === 'string') {
-		data.status = getStatus(false, connection);
-		return;
-	}
-
-	// get information for CDB
-	debug(`Gather database information from PDB "${pdb.name}"`);
-	const info = await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB);
-	if (typeof info === 'string') {
-		disconnect(pdb.name, connection);
-		data.status = getStatus(false, info);
-		return;
-	}
-
-	// disconnect from database
-	const result = disconnect(pdb.name, connection);
-	if (typeof result === 'string') {
-		data.status = getStatus(false, result);
-		return;
-	}
-
-	data.metric.no_of_sessions = info.no_of_sessions;
-	data.metric.flashback_percentage = info.flashback_percentage;
-	data.metric.last_successful_rman_backup_date_full_db = info.last_successful_rman_backup_date_full_db;
-	data.metric.last_successful_rman_backup_date_archive_log = info.last_successful_rman_backup_date_archive_log;
-	data.metric.last_rman_backup_date_full_db = info.last_rman_backup_date_full_db;
-	data.metric.last_rman_backup_date_archive_log = info.last_rman_backup_date_archive_log;
 }

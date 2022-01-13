@@ -1,29 +1,63 @@
 import {jsonLoad} from './util/files.js';
 import {isInteger} from './util/util.js';
-import type {connectionOptionsType} from './gatherer/oracle';
+import type {connectionOptionsType} from './gatherer/oracle.js';
 
-/**
- * PDB configuration object.
- */
-export type pdbConfigType = connectionOptionsType & {
+type externConfigSchemaType = {
 	enabled?: boolean,
+	name: string,
+	username: string,
+	password: string,
 };
 
-/**
- * CDB configuration object.
- */
-export type cdbConfigType = connectionOptionsType & {
-	enabled?: boolean,
-	pdb?: Array<pdbConfigType>,
+type externConfigContainerDatabaseType = {
+	port?: number,
+	service: string,
+	username?: string,
+	password?: string,
 };
 
-/**
- * Configuration object.
- */
+type externConfigDatabaseType = {
+	enabled?: boolean,
+	name: string,
+	port: number,
+	service: string,
+	username: string,
+	password: string,
+	containerDatabase?: externConfigContainerDatabaseType,
+	schemas: externConfigSchemaType[],
+};
+
+type externConfigHostType = {
+	enabled?: boolean,
+	name: string,
+	host: string,
+	databases: externConfigDatabaseType[],
+};
+
+type externConfigType = {
+	http_port: number,
+	pollingSeconds: number,
+	hosts: externConfigHostType[],
+};
+
+export type databaseKeyType = {
+	id: number,
+	hostName: string,
+	databaseName: string,
+	schemaName: string,
+};
+
+export type databaseType = databaseKeyType & {
+	cdbConnect: connectionOptionsType,
+	pdbConnect: connectionOptionsType,
+	schemaConnect: connectionOptionsType,
+	enabled: boolean,
+};
+
 export type configType = {
 	http_port: number,
 	pollingSeconds: number,
-	cdb: Array<cdbConfigType>,
+	databases: databaseType[],
 };
 
 /**
@@ -33,7 +67,7 @@ export type configType = {
  * @returns {configType} - A configuration object.
  */
 export function configLoad(filename = 'config.json'): configType {
-	const config = jsonLoad<configType>(filename);
+	const config = jsonLoad<externConfigType>(filename);
 
 	return validateConfig(config);
 }
@@ -41,88 +75,288 @@ export function configLoad(filename = 'config.json'): configType {
 /*
  * Validates and returns a configuration object.
  *
- * @param {configType} config - - The configuration object.
- * @returns {configType} - The validated configuration object.
+ * @param {externConfigType} externalConfig - - The external configuration object.
+ * @returns {configType} - The validated internal configuration object.
  */
-export function validateConfig(config: Partial<configType>): configType {
+export function validateConfig(externalConfig: Partial<externConfigType>): configType {
+	const config: configType = {
+		http_port: 80,
+		pollingSeconds: 60,
+		databases: [],
+	};
+
 	// port
-	if ('http_port' in config) {
-		if (!isInteger(config.http_port) || config.http_port <= 0 || config.http_port > 65536) {
+	if ('http_port' in externalConfig) {
+		if (!isInteger(externalConfig.http_port) || externalConfig.http_port <= 0 || externalConfig.http_port > 65536) {
 			throw new Error('The configuration has an no valid property "port"');
+		} else {
+			config.http_port = externalConfig.http_port;
 		}
-	} else {
-		config.http_port = 80;
 	}
 
 	// pollingSeconds
-	if ('pollingSeconds' in config) {
-		if (!isInteger(config.pollingSeconds) || config.pollingSeconds <= 0) {
+	if ('pollingSeconds' in externalConfig) {
+		if (!isInteger(externalConfig.pollingSeconds) || externalConfig.pollingSeconds <= 0) {
 			throw new Error('The configuration has an no valid property "pollingSeconds"');
-		}
-	} else {
-		config.pollingSeconds = 60;
-	}
-
-	// CDB's
-	if (!Array.isArray(config.cdb)) {
-		throw new Error('The configuration has no property "cdb" of type array');
-	} else {
-		config.cdb = config.cdb.map(validateCDB);
-	}
-
-	return config as configType;
-}
-
-/*
- * Validates and returns a CDB object.
- */
-function validateCDB(cdb: cdbConfigType, index: number): cdbConfigType {
-	['name', 'connection', 'username', 'password'].forEach(propName => {
-		const value = cdb[propName as keyof cdbConfigType];
-
-		if (typeof value !== 'string' || value.length === 0) {
-			throw new Error(`The configuration has an invalid "${propName}" property in cdb with index "${index}"`);
-		}
-	});
-
-	if ('enabled' in cdb) {
-		if (typeof cdb.enabled !== 'boolean') {
-			throw new Error(`The configuration has an invalid "enabled" property in cdb with index "${index}"`);
-		}
-	} else {
-		cdb.enabled = true;
-	}
-
-	if ('pdb' in cdb) {
-		if (!Array.isArray(cdb.pdb)) {
-			throw new Error(`The configuration has an invalid "pdb" property in cdb with index "${index}"`);
 		} else {
-			cdb.pdb = cdb.pdb.map(validatePDB.bind(null, cdb));
+			config.pollingSeconds = externalConfig.pollingSeconds;
 		}
 	}
 
-	return cdb;
+	// hosts
+	if (!Array.isArray(externalConfig.hosts)) {
+		throw new Error('The configuration has no property "hosts" of type array');
+	}
+
+	// validate the structure of the hosts
+	config.databases = validateHosts(externalConfig.hosts);
+
+	return config;
 }
 
 /*
- * Validates and returns a PDB object.
+ * Validates hosts
  */
-function validatePDB(cdb: cdbConfigType, pdb: pdbConfigType, index: number): pdbConfigType {
-	['name', 'connection', 'username', 'password'].forEach(propName => {
-		const value = pdb[propName as keyof pdbConfigType];
+function validateHosts(hosts: externConfigHostType[]): databaseType[] {
+	const databases: databaseType[] = [];
+	let id = 1;
 
-		if (typeof value !== 'string' || value.length === 0) {
-			throw new Error(`The configuration has an invalid "${propName}" property in pdb with index "${index}" of cdb with name "${cdb.name}"`);
+	// process all hosts
+	hosts.forEach((host, hostIndex) => {
+		const hostErrorLocation = `host[${hostIndex}]`;
+
+		// enabled
+		if ('enabled' in host) {
+			if (typeof host.enabled !== 'boolean') {
+				throw new Error(`"enabled" must be boolean: "${hostErrorLocation}"`);
+			}
 		}
+
+		// name
+		if (typeof host.name !== 'string' || host.name.length === 0) {
+			throw new Error(`"name" must be non-empty string: "${hostErrorLocation}"`);
+		}
+		// host
+		if (typeof host.host !== 'string' || host.host.length === 0) {
+			throw new Error(`"host" must be non-empty string: "${hostErrorLocation}"`);
+		}
+
+		// process all databases
+		host.databases.forEach((database, databaseIndex) => {
+			const databaseErrorLocation = `${hostErrorLocation}.database[${databaseIndex}]`;
+
+			// enabled
+			if ('enabled' in database) {
+				if (typeof database.enabled !== 'boolean') {
+					throw new Error(`"enabled" must be boolean: "${databaseErrorLocation}"`);
+				}
+			}
+
+			// name
+			if (typeof database.name !== 'string' || database.name.length === 0) {
+				throw new Error(`"name" must be non-empty string: "${databaseErrorLocation}"`);
+			}
+			// port
+			if ('port' in database) {
+				if (!isInteger(database.port) || database.port <= 0 || database.port > 65536) {
+					throw new Error(`"port" must be integer between 1 and 65536: "${databaseErrorLocation}"`);
+				}
+			}
+			// service
+			if (typeof database.service !== 'string' || database.service.length === 0) {
+				throw new Error(`"service" must be non-empty string: "${databaseErrorLocation}"`);
+			}
+			// username
+			if (typeof database.username !== 'string' || database.username.length === 0) {
+				throw new Error(`"username" must be non-empty string: "${databaseErrorLocation}"`);
+			}
+			// password
+			if (typeof database.password !== 'string' || database.password.length === 0) {
+				throw new Error(`"password" must be non-empty string: "${databaseErrorLocation}"`);
+			}
+
+			// containerDatabase
+			if (typeof database.containerDatabase === 'object') {
+				const containerDatabaseErrorLocation = `${hostErrorLocation}.database[${databaseIndex}].containerDatabase`;
+				const containerDatabase = database.containerDatabase;
+
+				// port
+				if ('port' in containerDatabase) {
+					if (!isInteger(containerDatabase.port) || containerDatabase.port <= 0 || containerDatabase.port > 65536) {
+						throw new Error(`"port" must be integer between 1 and 65536: "${containerDatabaseErrorLocation}"`);
+					}
+				}
+
+				// service
+				if ('service' in containerDatabase) {
+					if (typeof containerDatabase.service !== 'string' || containerDatabase.service.length === 0) {
+						throw new Error(`"service" must be non-empty string: "${containerDatabaseErrorLocation}"`);
+					}
+				}
+
+				// username
+				if ('username' in containerDatabase) {
+					if (typeof containerDatabase.username !== 'string' || containerDatabase.username.length === 0) {
+						throw new Error(`"username" must be non-empty string: "${containerDatabaseErrorLocation}"`);
+					}
+				}
+
+				// password
+				if ('password' in containerDatabase) {
+					if (typeof containerDatabase.password !== 'string' || containerDatabase.password.length === 0) {
+						throw new Error(`"password" must be non-empty string: "${containerDatabaseErrorLocation}"`);
+					}
+				}
+			}
+
+			// process all schemas
+			database.schemas.forEach((schema, schemaIndex) => {
+				const schemaErrorLocation = `${hostErrorLocation}.database[${databaseIndex}].schema[${schemaIndex}]`;
+
+				// enabled
+				if ('enabled' in schema) {
+					if (typeof schema.enabled !== 'boolean') {
+						throw new Error(`"enabled" must be boolean: "${schemaErrorLocation}"`);
+					}
+				}
+
+				// name
+				if (typeof schema.name !== 'string' || schema.name.length === 0) {
+					throw new Error(`"name" must be non-empty string: "${schemaErrorLocation}"`);
+				}
+
+				// username
+				if (typeof schema.username !== 'string' || schema.username.length === 0) {
+					throw new Error(`"username" must be non-empty string: "${schemaErrorLocation}"`);
+				}
+
+				// password
+				if (typeof schema.password !== 'string' || schema.password.length === 0) {
+					throw new Error(`"password" must be non-empty string: "${schemaErrorLocation}"`);
+				}
+
+				const containerDatabase = getContainerDatabase(database);
+				const cdbConnect = {
+					name: database.name,
+					connection: getConnectionString(host.host, containerDatabase.port, containerDatabase.service),
+					username: containerDatabase.username,
+					password: containerDatabase.password,
+				};
+
+				const pdbConnect = {
+					name: database.name,
+					connection: getConnectionString(host.host, database.port, database.service),
+					username: database.username,
+					password: database.password,
+				};
+
+				const schemaConnect = {
+					name: schema.name,
+					connection: getConnectionString(host.host, database.port, database.service),
+					username: schema.username,
+					password: schema.password,
+				};
+
+				const data: databaseType = {
+					id: id++,
+					hostName: host.name,
+					databaseName: database.name,
+					schemaName: schema.name,
+					cdbConnect,
+					pdbConnect,
+					schemaConnect,
+					enabled: isEnabled(host, database, schema),
+				};
+				
+				databases.push(data);
+			});
+		});
 	});
 
-	if ('enabled' in pdb) {
-		if (typeof pdb.enabled !== 'boolean') {
-			throw new Error(`The configuration has an invalid "enabled" property in pdb with index "${index}" of cdb with name "${cdb.name}"`);
-		}
-	} else {
-		pdb.enabled = true;
+	databases.sort(databaseSorter);
+
+	return databases;
+}
+
+function isEnabled(host: externConfigHostType, database: externConfigDatabaseType, schema: externConfigSchemaType): boolean {
+	if (typeof host.enabled === 'boolean' && host.enabled === false) {
+		return false;
 	}
 
-	return pdb;
+	if (typeof database.enabled === 'boolean' && database.enabled === false) {
+		return false;
+	}
+
+	if (typeof schema.enabled === 'boolean' && schema.enabled === false) {
+		return false;
+	}
+
+	return true;
+}
+
+function databaseSorter(a: databaseType, b: databaseType): number {
+	if (a.hostName.toLowerCase() > b.hostName.toLowerCase()) {
+		return 1;
+	} else if (a.hostName.toLowerCase() < b.hostName.toLowerCase()) {
+		return -1;
+	} else if (a.databaseName.toLowerCase() > b.databaseName.toLowerCase()) {
+		return 1;
+	} else if (a.databaseName.toLowerCase() < b.databaseName.toLowerCase()) {
+		return -1;
+	} else if (a.schemaName.toLowerCase() > b.schemaName.toLowerCase()) {
+		return 1;
+	} else if (a.schemaName.toLowerCase() < b.schemaName.toLowerCase()) {
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
+/*
+ * Compute defauls in all hosts
+ */
+function getContainerDatabase(database: externConfigDatabaseType): Required<externConfigContainerDatabaseType> {
+	const containerDatabase: Required<externConfigContainerDatabaseType> = {
+		port: 0,
+		service: '',
+		username: '',
+		password: '',
+	};
+
+	if (typeof database.containerDatabase !== 'object') {
+		containerDatabase.port = database.port;
+		containerDatabase.service = database.service;
+		containerDatabase.username = database.username;
+		containerDatabase.password = database.password;
+	} else {
+		if (typeof database.containerDatabase.port !== 'number') {
+			containerDatabase.port = database.port;
+		} else {
+			containerDatabase.port = database.containerDatabase.port;
+		}
+		if (typeof database.containerDatabase.service !== 'string') {
+			containerDatabase.service = database.service;
+		} else {
+			containerDatabase.service = database.containerDatabase.service;
+		}
+		if (typeof database.containerDatabase.username !== 'string') {
+			containerDatabase.username = database.username;
+		} else {
+			containerDatabase.username = database.containerDatabase.username;
+		}
+		if (typeof database.containerDatabase.password !== 'string') {
+			containerDatabase.password = database.password;
+		} else {
+			containerDatabase.password = database.containerDatabase.password;
+		}
+	}
+
+	return containerDatabase;
+}
+
+/*
+ * Create a connection
+ */
+function getConnectionString(host: string, port: number, service: string): string {
+	return `${host}:${port}/${service}`;
 }

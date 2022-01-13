@@ -1,7 +1,7 @@
 import debugModule from 'debug';
 import {expose} from 'threads/worker';
 import {statsAdd} from '../statsStore.js';
-import {gatherPeriodicCDB} from './database.js';
+import {gatherPeriodic} from './database.js';
 import {inspect} from '../util/util.js';
 import type {configType} from '../config.js';
 
@@ -14,19 +14,21 @@ expose(gatherer);
 /**
  * Start statistics gathering.
  *
- * @param {databaseConfigType} config - The configuration object.
+ * @param {configType} config - The configuration object.
  * @returns {Promise<void>} - A promise that resolves when done.
  */
 export async function gatherer(config: configType): Promise<void> {
 	debug('gatherer');
 
 	// quere all databases and and wait until we got results from all of them
-	const results = await Promise.all(config.cdb.filter(e => e.enabled).map(gatherPeriodicCDB));
+	const results = await Promise.all(config.databases.filter(e => e.enabled).map(gatherPeriodic));
 
 	// process the results and prepare the statics to add
 	const stats = results.map(result => ({
-		cdb_name: result.cdb_name,
-		pdb_name: result.pdb_name,
+		id: result.id,
+		hostName: result.hostName,
+		databaseName: result.databaseName,
+		schemaName: result.schemaName,
 		status: result.status,
 		metric: result.metric,
 	}));

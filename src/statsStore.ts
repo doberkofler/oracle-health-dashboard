@@ -1,5 +1,6 @@
 import {jsonLoad, jsonSave} from './util/files.js';
 import {inspect} from './util/util.js';
+import type {databaseKeyType} from './config';
 import type {statusType, metricType} from './gatherer/database.js';
 import type {sqlInitialType} from './gatherer/databaseInitial.js';
 
@@ -9,23 +10,18 @@ const VERSION = 1;
 // Use JSON file for storage
 const FILENAME = 'db.json';
 
-export type statsKeyType = {
-	cdb_name: string,
-	pdb_name: string,
-};
-
-export type statsInitialType = statsKeyType & {
+export type statsInitialType = databaseKeyType & {
 	statics: sqlInitialType,
 };
 
-export type statsAddDataType = statsKeyType & {
+export type statsAddDataType = databaseKeyType & {
 	status: statusType,
 	metric: metricType,
 };
 
 export type statusMetricType = statusType & metricType;
 
-export type statsDataType = statsKeyType & {
+export type statsDataType = databaseKeyType & {
 	statics: sqlInitialType,
 	metrics: statusMetricType[],
 };
@@ -73,8 +69,10 @@ export type statsExportType = {
  */
 export function statsInitial(data: statsInitialType[]): void {
 	const database: statsDataType[] = data.map(e => ({
-		cdb_name: e.cdb_name,
-		pdb_name: e.pdb_name,
+		id: e.id,
+		hostName: e.hostName,
+		databaseName: e.databaseName,
+		schemaName: e.schemaName,
 		statics: e.statics,
 		metrics: [],
 	}));
@@ -117,9 +115,9 @@ export function statsAdd(newData: statsAddDataType[]): void {
 	const oldDatabase = statsLoad();
 
 	newData.forEach(e => {
-		const database = oldDatabase.find(compareKey.bind(null, e));
+		const database = oldDatabase.find(ee => ee.id = e.id);
 		if (!database) {
-			throw new Error(`Unable to find database with cdb "${e.cdb_name}" and pdb "${e.pdb_name}" in "${inspect(oldDatabase)}"`);
+			throw new Error(`Unable to find database with id "${e.id}" in "${inspect(oldDatabase)}"`);
 		}
 
 		const metric = Object.assign({}, e.metric, e.status);
@@ -140,10 +138,6 @@ function statsSave(database: statsDataType[]): void {
 	};
 
 	jsonSave(FILENAME, stats);
-}
-
-function compareKey(key1: statsKeyType, key2: statsKeyType): boolean {
-	return key1.cdb_name === key2.cdb_name && key1.pdb_name === key2.pdb_name;
 }
 
 /*

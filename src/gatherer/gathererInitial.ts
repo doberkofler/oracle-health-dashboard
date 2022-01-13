@@ -18,10 +18,6 @@ export async function gathererInitial(config: configType): Promise<void> {
 	const queryResults = await Promise.all(queryPromises);
 
 	const stats = queryResults.map(e => {
-		if (!e.statics) {
-			throw new Error('Internal error');
-		}
-
 		return {
 			id: e.id,
 			hostName: e.hostName,

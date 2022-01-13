@@ -11,7 +11,7 @@ const VERSION = 1;
 const FILENAME = 'db.json';
 
 export type statsInitialType = databaseKeyType & {
-	statics: sqlInitialType,
+	statics?: sqlInitialType,
 };
 
 export type statsAddDataType = databaseKeyType & {
@@ -22,7 +22,7 @@ export type statsAddDataType = databaseKeyType & {
 export type statusMetricType = statusType & metricType;
 
 export type statsDataType = databaseKeyType & {
-	statics: sqlInitialType,
+	statics?: sqlInitialType,
 	metrics: statusMetricType[],
 };
 

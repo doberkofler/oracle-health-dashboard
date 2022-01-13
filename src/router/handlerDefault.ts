@@ -67,7 +67,7 @@ function renderDatabase(html: Array<string>, database: statsDataType) {
 	html.push(			`<span class="text-c-blue ${online ? 'green' : 'red'}">${online ? 'online' : 'offline'}</span>`);
 	html.push(			'&nbsp;');
 	html.push(			`<span class="fs-6 fst-lighter">(${timestamp})</span>`);
-	if (lastDatabaseStats) {
+	if (lastDatabaseStats && database.statics) {
 		getDetais(html, database.statics, lastDatabaseStats);
 	}
 	html.push(		'</div>');

@@ -88,7 +88,7 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 	// connect
 	const connection = await connect(database.cdbConnect);
 	if (typeof connection === 'string') {
-		console.log(`${title}: cannot connect (${connection})`);
+		console.log(`${title}: cannot connect`);
 		data.status = getStatus(false, connection);
 		return data;
 	}
@@ -96,7 +96,7 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 	// execute
 	const info = await execute<sqlInitialType>(connection, sqlInitial, bndInitial);
 	if (typeof info === 'string') {
-		console.log(`${title}: cannot execute (${info})`);
+		console.log(`${title}: cannot execute`);
 		data.status = getStatus(false, info);
 		return data;
 	}
@@ -104,7 +104,7 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 	// disconnect
 	const result = disconnect(connection, database.cdbConnect);
 	if (typeof result === 'string') {
-		console.log(`${title}: cannot disconnect (${result})`);
+		console.log(`${title}: cannot disconnect`);
 		data.status = getStatus(false, result);
 		return data;
 	}

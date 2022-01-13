@@ -6,12 +6,17 @@ import {configLoad} from './config.js';
 import {handlerDefault} from './router/handlerDefault.js';
 import {handlerDebug} from './router/handlerDebug.js';
 import {gathererInitial} from './gatherer/gathererInitial.js';
+import {getOptions} from './options.js';
 
 import type {Gatherer} from './gatherer/gathererWorker';
 
 const debug = debugModule('oracle-health-dashboard:index');
 
 async function main() {
+	// get options
+	const options = getOptions();
+	debug('getOptions', options);
+
 	// install signal event handler
 	debug('install signal event handler');
 	process.on('SIGTERM', shutDown);
@@ -19,7 +24,7 @@ async function main() {
 
 	// load configuration
 	debug('load configuration');
-	const config = configLoad();
+	const config = configLoad(options.config);
 
 	// initialize gatherer
 	debug('initialize gatherer');

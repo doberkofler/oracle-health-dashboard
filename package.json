@@ -14,7 +14,8 @@
     "express": "4.17.2",
     "oracledb": "5.3.0",
     "threads": "1.7.0",
-    "tslib": "2.3.1"
+    "tslib": "2.3.1",
+    "yargs": "17.3.1"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",
@@ -23,6 +24,7 @@
     "@types/jest": "27.4.0",
     "@types/node": "17.0.8",
     "@types/oracledb": "5.2.2",
+    "@types/yargs": "17.0.8",
     "@typescript-eslint/eslint-plugin": "5.9.1",
     "@typescript-eslint/parser": "5.9.1",
     "bootstrap-icons": "1.7.2",
@@ -37,7 +39,7 @@
   },
   "scripts": {
     "start": "node build/src/index.js",
-    "start:watch": "nodemon --watch build/src --watch config.json build/src/index.js",
+    "start:watch": "nodemon --watch build/src --watch ./config build/src/index.js --config=./config/config.json",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "npm run clean && tsc -p tsconfig.release.json",

@@ -202,6 +202,12 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 		data.status = getStatus(false, infoPDB);
 		return data;
 	}
+	data.metric.no_of_sessions = infoPDB.no_of_sessions;
+	data.metric.flashback_percentage = infoPDB.flashback_percentage;
+	data.metric.last_successful_rman_backup_date_full_db = infoPDB.last_successful_rman_backup_date_full_db;
+	data.metric.last_successful_rman_backup_date_archive_log = infoPDB.last_successful_rman_backup_date_archive_log;
+	data.metric.last_rman_backup_date_full_db = infoPDB.last_rman_backup_date_full_db;
+	data.metric.last_rman_backup_date_archive_log = infoPDB.last_rman_backup_date_archive_log;
 
 	if (!multitenant) {
 		// get information for CDB

@@ -73,7 +73,7 @@ END;`;
  * get statistics from CDB.
  */
 export async function gatherInitial(database: databaseType): Promise<initialGatherType> {
-	const title = `Gathering initial data for host "${database.hostName}", database "${database.databaseName}" and schema "${database.schemaName}"`;
+	const title = `Gathering initial data on host "${database.hostName}" with database "${database.databaseName}" as "${database.cdbConnect.username}" using "${database.cdbConnect.connection}"`;
 
 	debug(title);
 

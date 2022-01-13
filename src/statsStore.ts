@@ -115,7 +115,7 @@ export function statsAdd(newData: statsAddDataType[]): void {
 	const oldDatabase = statsLoad();
 
 	newData.forEach(e => {
-		const database = oldDatabase.find(ee => ee.id = e.id);
+		const database = oldDatabase.find(ee => ee.id === e.id);
 		if (!database) {
 			throw new Error(`Unable to find database with id "${e.id}" in "${inspect(oldDatabase)}"`);
 		}

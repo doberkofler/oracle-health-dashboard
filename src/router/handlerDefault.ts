@@ -52,13 +52,13 @@ async function getPage(config: configType): Promise<string> {
 function renderDatabase(html: Array<string>, database: statsDataType) {
 	debug('renderDatabase');
 
-	const lastDatabaseStats = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
-	const online = lastDatabaseStats ? lastDatabaseStats.success : false;
-	const timestamp = lastDatabaseStats && isDate(lastDatabaseStats.timestamp) ? distanceToString(lastDatabaseStats.timestamp) : '';
-	const noOfSessions = lastDatabaseStats && typeof lastDatabaseStats.no_of_sessions === 'number' ? lastDatabaseStats.no_of_sessions.toFixed() : '';
-	const cpu = lastDatabaseStats && typeof lastDatabaseStats.host_cpu_utilization === 'number' ? lastDatabaseStats.host_cpu_utilization.toFixed() + '%' : '';
+	const metric = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
+	const online = metric ? metric.success : false;
+	const timestamp = metric && isDate(metric.timestamp) ? distanceToString(metric.timestamp) : '';
+	const noOfSessions = metric && typeof metric.no_of_sessions === 'number' ? metric.no_of_sessions.toFixed() : '';
+	const cpu = metric && typeof metric.host_cpu_utilization === 'number' ? metric.host_cpu_utilization.toFixed() + '%' : '';
 
-	debug('renderDatabase', inspect({lastDatabaseStats}));
+	debug('renderDatabase', inspect({host: database.hostName, database: database.databaseName, schema: database.schemaName, metric}));
 
 	html.push('<div class="dashboard-card">');
 	html.push(	'<div class="card support-bar overflow-hidden card-height">');
@@ -66,10 +66,8 @@ function renderDatabase(html: Array<string>, database: statsDataType) {
 	getDatabaseName(html, database);
 	html.push(			`<span class="text-c-blue ${online ? 'green' : 'red'}">${online ? 'online' : 'offline'}</span>`);
 	html.push(			'&nbsp;');
-	html.push(			`<span class="fs-6 fst-lighter">(${timestamp})</span>`);
-	if (lastDatabaseStats && database.statics) {
-		getDetais(html, database.statics, lastDatabaseStats);
-	}
+	html.push(			`<span class="fs-6 fst-lighter">&nbsp;${timestamp}</span>`);
+	getDetais(html, database.statics, metric);
 	html.push(		'</div>');
 	html.push(		'<div id="support-chart"></div>');
 	html.push(		'<div class="card-footer bg-primary text-white">');
@@ -99,30 +97,33 @@ function getDatabaseName(html: Array<string>, database: statsDataType): void {
 	html.push('</div>');
 }
 
-function getDetais(html: Array<string>, statics: sqlInitialType, metric: statusMetricType): void {
-	const data = [
-		['Oracle version', statics.oracle_version],
-		['Oracle platform', statics.oracle_platform],
-		['Archive logging', statics.oracle_log_mode],
-		['Character set', statics.oracle_database_character_set],
-		['SGA target', statics.oracle_sga_target],
-		['PGA target', statics.oracle_pga_aggregate_target],
-		//['Server date', metric.server_date],
-		['Host CPU utilization', metric.host_cpu_utilization, '%'],
-		['IO requests per sec', metric.io_requests_per_second],
-		['Buffer cache hit ratio', metric.buffer_cache_hit_ratio, '%'],
-		['Executions per sec', metric.executions_per_sec],
-	];
-
+function getDetais(html: Array<string>, statics: sqlInitialType | undefined, metric: statusMetricType | null): void {
 	html.push('<div class="metrics-enclosure">');
-	html.push('<div class="metrics">');
-	data.forEach(row => {
-		const title = row[0];
-		const value = getValueAsString(row[1]);
 
-		html.push(`<div>${title}</div><div>${value}${value.length > 0 && row.length > 2 ? row[2] : ''}</div>`);
-	});
-	html.push('</div>');
+	if (statics && metric) {
+		const data = [
+			['Oracle version', statics.oracle_version],
+			['Oracle platform', statics.oracle_platform],
+			['Archive logging', statics.oracle_log_mode],
+			['Character set', statics.oracle_database_character_set],
+			['SGA target', statics.oracle_sga_target],
+			['PGA target', statics.oracle_pga_aggregate_target],
+			//['Server date', metric.server_date],
+			['Host CPU utilization', metric.host_cpu_utilization, '%'],
+			['IO requests per sec', metric.io_requests_per_second],
+			['Buffer cache hit ratio', metric.buffer_cache_hit_ratio, '%'],
+			['Executions per sec', metric.executions_per_sec],
+		];
+		html.push('<div class="metrics">');
+		data.forEach(row => {
+			const title = row[0];
+			const value = getValueAsString(row[1]);
+
+			html.push(`<div>${title}</div><div>${value}${value.length > 0 && row.length > 2 ? row[2] : ''}</div>`);
+		});
+		html.push('</div>');
+	}
+
 	html.push('</div>');
 }
 

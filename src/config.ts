@@ -273,7 +273,25 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 		});
 	});
 
-	databases.sort(databaseSorter);
+	/*
+	databases.sort((a: databaseType, b: databaseType) => {
+		if (a.hostName.toLowerCase() > b.hostName.toLowerCase()) {
+			return 1;
+		} else if (a.hostName.toLowerCase() < b.hostName.toLowerCase()) {
+			return -1;
+		} else if (a.databaseName.toLowerCase() > b.databaseName.toLowerCase()) {
+			return 1;
+		} else if (a.databaseName.toLowerCase() < b.databaseName.toLowerCase()) {
+			return -1;
+		} else if (a.schemaName.toLowerCase() > b.schemaName.toLowerCase()) {
+			return 1;
+		} else if (a.schemaName.toLowerCase() < b.schemaName.toLowerCase()) {
+			return -1;
+		} else {
+			return 0;
+		}
+	});
+	*/
 
 	return databases;
 }
@@ -292,24 +310,6 @@ function isEnabled(host: externConfigHostType, database: externConfigDatabaseTyp
 	}
 
 	return true;
-}
-
-function databaseSorter(a: databaseType, b: databaseType): number {
-	if (a.hostName.toLowerCase() > b.hostName.toLowerCase()) {
-		return 1;
-	} else if (a.hostName.toLowerCase() < b.hostName.toLowerCase()) {
-		return -1;
-	} else if (a.databaseName.toLowerCase() > b.databaseName.toLowerCase()) {
-		return 1;
-	} else if (a.databaseName.toLowerCase() < b.databaseName.toLowerCase()) {
-		return -1;
-	} else if (a.schemaName.toLowerCase() > b.schemaName.toLowerCase()) {
-		return 1;
-	} else if (a.schemaName.toLowerCase() < b.schemaName.toLowerCase()) {
-		return -1;
-	} else {
-		return 0;
-	}
 }
 
 /*

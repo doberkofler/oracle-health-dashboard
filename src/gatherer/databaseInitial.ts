@@ -73,6 +73,10 @@ END;`;
  * get statistics from CDB.
  */
 export async function gatherInitial(database: databaseType): Promise<initialGatherType> {
+	const title = `Gathering initial data for host "${database.hostName}", database "${database.databaseName}" and schema "${database.schemaName}"`;
+
+	debug(title);
+
 	const data: initialGatherType = {
 		id: database.id,
 		hostName: database.hostName,
@@ -84,24 +88,28 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 	// connect
 	const connection = await connect(database.cdbConnect);
 	if (typeof connection === 'string') {
+		console.log(`${title}: cannot connect (${connection})`);
 		data.status = getStatus(false, connection);
 		return data;
 	}
 
-	// get information
-	debug(`Gather initial database information "${database.databaseName}"`);
+	// execute
 	const info = await execute<sqlInitialType>(connection, sqlInitial, bndInitial);
 	if (typeof info === 'string') {
+		console.log(`${title}: cannot execute (${info})`);
 		data.status = getStatus(false, info);
 		return data;
 	}
 
-	// disconnect from database
+	// disconnect
 	const result = disconnect(database.databaseName, connection);
 	if (typeof result === 'string') {
+		console.log(`${title}: cannot disconnect (${result})`);
 		data.status = getStatus(false, result);
 		return data;
 	}
+
+	console.log(`${title}: success`);
 
 	data.statics = info;
 

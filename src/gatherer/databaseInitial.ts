@@ -88,7 +88,7 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 	// connect
 	const connection = await connect(database.cdbConnect);
 	if (typeof connection === 'string') {
-		console.log(`${title}: cannot connect`);
+		console.log(`${title}: error`);
 		data.status = getStatus(false, connection);
 		return data;
 	}

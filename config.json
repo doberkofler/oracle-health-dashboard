@@ -1,0 +1,29 @@
+{
+	"http_port": 80,
+	"pollingSeconds": 60,
+	"hosts": [
+		{
+			"name": "localhost",
+			"host": "127.0.0.1",
+			"databases": [
+				{
+					"name": "orcl",
+					"port": 1521,
+					"service": "orclpdb",
+					"username": "sys",
+					"password": "manager",
+					"containerDatabase": {
+						"service": "orclcdb"
+					},
+					"schemas": [
+						{
+							"name": "scott",
+							"username": "scott",
+							"password": "tiger"
+						}
+					]
+				}
+			]
+		}
+	]
+}

@@ -81,7 +81,7 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 		id: database.id,
 		hostName: database.hostName,
 		databaseName: database.databaseName,
-		schemaName: database.schemaName,
+		//schemaName: database.schemaName,
 		status: getStatus(true),
 	};
 

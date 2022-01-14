@@ -72,7 +72,7 @@ export function statsInitial(data: statsInitialType[]): void {
 		id: e.id,
 		hostName: e.hostName,
 		databaseName: e.databaseName,
-		schemaName: e.schemaName,
+		//schemaName: e.schemaName,
 		statics: e.statics,
 		metrics: [],
 	}));

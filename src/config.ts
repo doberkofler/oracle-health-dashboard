@@ -44,13 +44,18 @@ export type databaseKeyType = {
 	id: number,
 	hostName: string,
 	databaseName: string,
+};
+
+export type schemaType = {
 	schemaName: string,
+	schemaConnect: connectionOptionsType,
+	enabled: boolean,
 };
 
 export type databaseType = databaseKeyType & {
 	cdbConnect: connectionOptionsType,
 	pdbConnect: connectionOptionsType,
-	schemaConnect: connectionOptionsType,
+	schemas: schemaType[],
 	enabled: boolean,
 };
 
@@ -209,6 +214,33 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 				}
 			}
 
+			const containerDatabase = getContainerDatabase(database);
+			const cdbConnect = {
+				name: database.name,
+				connection: getConnectionString(host.host, containerDatabase.port, containerDatabase.service),
+				username: containerDatabase.username,
+				password: containerDatabase.password,
+			};
+
+			const pdbConnect = {
+				name: database.name,
+				connection: getConnectionString(host.host, database.port, database.service),
+				username: database.username,
+				password: database.password,
+			};
+
+			const newDatabase: databaseType = {
+				id: id++,
+				hostName: host.name,
+				databaseName: database.name,
+				cdbConnect,
+				pdbConnect,
+				schemas: [],
+				enabled: isDatabaseEnabled(host, database),
+			};
+			
+			databases.push(newDatabase);
+
 			// process all schemas
 			database.schemas.forEach((schema, schemaIndex) => {
 				const schemaErrorLocation = `${hostErrorLocation}.database[${databaseIndex}].schema[${schemaIndex}]`;
@@ -235,21 +267,6 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 					throw new Error(`"password" must be non-empty string: "${schemaErrorLocation}"`);
 				}
 
-				const containerDatabase = getContainerDatabase(database);
-				const cdbConnect = {
-					name: database.name,
-					connection: getConnectionString(host.host, containerDatabase.port, containerDatabase.service),
-					username: containerDatabase.username,
-					password: containerDatabase.password,
-				};
-
-				const pdbConnect = {
-					name: database.name,
-					connection: getConnectionString(host.host, database.port, database.service),
-					username: database.username,
-					password: database.password,
-				};
-
 				const schemaConnect = {
 					name: schema.name,
 					connection: getConnectionString(host.host, database.port, database.service),
@@ -257,18 +274,14 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 					password: schema.password,
 				};
 
-				const data: databaseType = {
-					id: id++,
-					hostName: host.name,
-					databaseName: database.name,
+				const newSchema: schemaType = {
 					schemaName: schema.name,
-					cdbConnect,
-					pdbConnect,
 					schemaConnect,
-					enabled: isEnabled(host, database, schema),
+					enabled: isSchemaEnabled(host, database, schema),
+
 				};
-				
-				databases.push(data);
+
+				newDatabase.schemas.push(newSchema);
 			});
 		});
 	});
@@ -296,7 +309,19 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 	return databases;
 }
 
-function isEnabled(host: externConfigHostType, database: externConfigDatabaseType, schema: externConfigSchemaType): boolean {
+function isDatabaseEnabled(host: externConfigHostType, database: externConfigDatabaseType): boolean {
+	if (typeof host.enabled === 'boolean' && host.enabled === false) {
+		return false;
+	}
+
+	if (typeof database.enabled === 'boolean' && database.enabled === false) {
+		return false;
+	}
+
+	return true;
+}
+
+function isSchemaEnabled(host: externConfigHostType, database: externConfigDatabaseType, schema: externConfigSchemaType): boolean {
 	if (typeof host.enabled === 'boolean' && host.enabled === false) {
 		return false;
 	}

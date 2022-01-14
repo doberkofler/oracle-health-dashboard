@@ -28,7 +28,7 @@ export async function gatherer(config: configType): Promise<void> {
 		id: result.id,
 		hostName: result.hostName,
 		databaseName: result.databaseName,
-		schemaName: result.schemaName,
+		//schemaName: result.schemaName,
 		status: result.status,
 		metric: result.metric,
 	}));

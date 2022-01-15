@@ -55,8 +55,8 @@ function renderDatabase(html: Array<string>, database: statsDatabaseType) {
 	const metric = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
 	const online = metric ? metric.success : false;
 	const timestamp = metric && isDate(metric.timestamp) ? distanceToString(metric.timestamp) : '';
-	const noOfSessions = metric && typeof metric.no_of_sessions === 'number' ? metric.no_of_sessions.toFixed() : '';
-	const cpu = metric && typeof metric.host_cpu_utilization === 'number' ? metric.host_cpu_utilization.toFixed() + '%' : '';
+	const noOfSessions = metric && typeof metric.no_of_sessions === 'number' ? metric.no_of_sessions.toFixed() : '-';
+	const cpu = metric && typeof metric.host_cpu_utilization === 'number' ? metric.host_cpu_utilization.toFixed() + '%' : '-';
 
 	debug('renderDatabase', inspect({host: database.hostName, database: database.databaseName/*, schema: database.schemaName*/, metric}));
 

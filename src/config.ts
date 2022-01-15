@@ -11,7 +11,7 @@ type externConfigSchemaType = {
 
 type externConfigContainerDatabaseType = {
 	port?: number,
-	service: string,
+	service?: string,
 	username?: string,
 	password?: string,
 };
@@ -199,8 +199,12 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 			}
 
 			// containerDatabase
-			if (typeof database.containerDatabase === 'object') {
-				const containerDatabaseErrorLocation = `${hostErrorLocation}.database[${databaseIndex}].containerDatabase`;
+			if ('containerDatabase' in database) {
+				if (typeof database.containerDatabase !== 'object') {
+					throw new Error(`"containerDatabase" must be an object: "${databaseErrorLocation}"`);
+				}
+
+				const containerDatabaseErrorLocation = `${databaseErrorLocation}.containerDatabase`;
 				const containerDatabase = database.containerDatabase;
 
 				// port
@@ -264,7 +268,7 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 
 			// process all schemas
 			database.schemas.forEach((schema, schemaIndex) => {
-				const schemaErrorLocation = `${hostErrorLocation}.database[${databaseIndex}].schemas[${schemaIndex}]`;
+				const schemaErrorLocation = `${databaseErrorLocation}.schemas[${schemaIndex}]`;
 
 				// enabled
 				if ('enabled' in schema) {

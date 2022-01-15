@@ -35,7 +35,7 @@ export type statsDatabaseType = databaseKeyType & {
 export type statsType = {
 	magic: string,
 	version: number,
-	database: statsDatabaseType[],
+	databases: statsDatabaseType[],
 };
 
 /*
@@ -109,7 +109,7 @@ export function statsLoad(): statsDatabaseType[] {
 		throw new Error(`Statistics database in file "${FILENAME}" has version "${stats.version}" instead of "${VERSION}".\n${inspect(stats)}`);
 	}
 
-	return stats.database;
+	return stats.databases;
 }
 
 /**
@@ -140,7 +140,7 @@ function statsSave(database: statsDatabaseType[]): void {
 	const stats: statsType = {
 		magic: MAGIC,
 		version: VERSION,
-		database,
+		databases: database,
 	};
 
 	jsonSave(FILENAME, stats);

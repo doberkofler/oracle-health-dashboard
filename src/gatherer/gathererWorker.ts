@@ -1,7 +1,7 @@
 import debugModule from 'debug';
 import {expose} from 'threads/worker';
 import {statsAdd} from '../statsStore.js';
-import {gatherPeriodic} from './database.js';
+import {gatherPeriodic} from './databaseWorker.js';
 import {inspect} from '../util/util.js';
 import type {configType} from '../config.js';
 
@@ -28,7 +28,6 @@ export async function gatherer(config: configType): Promise<void> {
 		id: result.id,
 		hostName: result.hostName,
 		databaseName: result.databaseName,
-		//schemaName: result.schemaName,
 		status: result.status,
 		metric: result.metric,
 	}));

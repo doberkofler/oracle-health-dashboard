@@ -5,8 +5,8 @@ import {isDate, distanceToString, numberToString, timestampToString, inspect} fr
 import {getHtmlPage} from '../html/html.js';
 
 import type {configType} from '../config.js';
-import type {sqlInitialType} from '../gatherer/databaseInitial.js';
-import type {statsDataType, statusMetricType} from '../statsStore';
+import type {sqlInitialType} from '../gatherer/initialize.js';
+import type {statsDatabaseType, statusMetricType} from '../statsStore';
 
 const debug = debugModule('oracle-health-dashboard:handlerDefault');
 
@@ -49,7 +49,7 @@ async function getPage(config: configType): Promise<string> {
 	return getHtmlPage(title, html, config.pollingSeconds);
 }
 
-function renderDatabase(html: Array<string>, database: statsDataType) {
+function renderDatabase(html: Array<string>, database: statsDatabaseType) {
 	debug('renderDatabase');
 
 	const metric = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
@@ -86,7 +86,7 @@ function renderDatabase(html: Array<string>, database: statsDataType) {
 	html.push('</div>');
 }
 
-function getDatabaseName(html: Array<string>, database: statsDataType): void {
+function getDatabaseName(html: Array<string>, database: statsDatabaseType): void {
 	html.push('<div class="card-title-grid">');
 	html.push(	'<div>host:</div>');
 	html.push(	`<div>${database.hostName}</div>`);

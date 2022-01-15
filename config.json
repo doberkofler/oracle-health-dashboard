@@ -1,6 +1,7 @@
 {
 	"http_port": 80,
 	"pollingSeconds": 60,
+	"pollSchema": true,
 	"hosts": [
 		{
 			"name": "localhost",

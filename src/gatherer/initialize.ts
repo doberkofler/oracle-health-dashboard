@@ -1,9 +1,10 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
-import {getStatus} from './database.js';
-import type {databaseKeyType, databaseType} from '../config';
-import type {statusType} from './database.js';
+import {getStatus} from './databaseWorker.js';
+import {statsInitial} from '../statsStore.js';
+import type {databaseKeyType, databaseType, configType} from '../config';
+import type {statusType} from './databaseWorker.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
 
@@ -70,9 +71,33 @@ BEGIN
 END;`;
 
 /**
+ * Initialize statistics gathering.
+ *
+ * @param {configType} config - The configuration object.
+ * @returns {Promise<void>} - A promise that resolves when done.
+ */
+export async function gathererInitial(config: configType): Promise<void> {
+	debug('gathererInitial');
+
+	const queryPromises = config.databases.filter(database => database.enabled).map(gatherInitialize);
+	const queryResults = await Promise.all(queryPromises);
+
+	const stats = queryResults.map(e => {
+		return {
+			id: e.id,
+			hostName: e.hostName,
+			databaseName: e.databaseName,
+			statics: e.statics,
+		};
+	});
+
+	statsInitial(stats);
+}
+
+/**
  * get statistics from CDB.
  */
-export async function gatherInitial(database: databaseType): Promise<initialGatherType> {
+async function gatherInitialize(database: databaseType): Promise<initialGatherType> {
 	const title = `Gathering initial data on host "${database.hostName}" with database "${database.databaseName}" as "${database.cdbConnect.username}" using "${database.cdbConnect.connection}"`;
 
 	debug(title);
@@ -81,7 +106,6 @@ export async function gatherInitial(database: databaseType): Promise<initialGath
 		id: database.id,
 		hostName: database.hostName,
 		databaseName: database.databaseName,
-		//schemaName: database.schemaName,
 		status: getStatus(true),
 	};
 

@@ -1,8 +1,8 @@
 import {jsonLoad, jsonSave} from './util/files.js';
 import {inspect} from './util/util.js';
 import type {databaseKeyType} from './config';
-import type {statusType, metricType} from './gatherer/database.js';
-import type {sqlInitialType} from './gatherer/databaseInitial.js';
+import type {statusType, metricType} from './gatherer/databaseWorker.js';
+import type {sqlInitialType} from './gatherer/initialize.js';
 
 const MAGIC = 'MAGIC';
 const VERSION = 1;
@@ -21,15 +21,21 @@ export type statsAddDataType = databaseKeyType & {
 
 export type statusMetricType = statusType & metricType;
 
-export type statsDataType = databaseKeyType & {
+export type statsSchemaType = {
+	schemaName: string,
+	status: statusType,
+};
+
+export type statsDatabaseType = databaseKeyType & {
 	statics?: sqlInitialType,
 	metrics: statusMetricType[],
+	schemas: statsSchemaType[],
 };
 
 export type statsType = {
 	magic: string,
 	version: number,
-	database: statsDataType[],
+	database: statsDatabaseType[],
 };
 
 /*
@@ -68,13 +74,13 @@ export type statsExportType = {
  * @param {initialGatherType} data - The stored statistics.
  */
 export function statsInitial(data: statsInitialType[]): void {
-	const database: statsDataType[] = data.map(e => ({
+	const database: statsDatabaseType[] = data.map(e => ({
 		id: e.id,
 		hostName: e.hostName,
 		databaseName: e.databaseName,
-		//schemaName: e.schemaName,
 		statics: e.statics,
 		metrics: [],
+		schemas: [],
 	}));
 
 	statsSave(database);
@@ -83,9 +89,9 @@ export function statsInitial(data: statsInitialType[]): void {
 /**
  * Load statistics.
  *
- * @return {statsDataType[]} - The stored statistics.
+ * @return {statsDatabaseType[]} - The stored statistics.
  */
-export function statsLoad(): statsDataType[] {
+export function statsLoad(): statsDatabaseType[] {
 	let stats: statsType;
 
 	try {
@@ -109,7 +115,7 @@ export function statsLoad(): statsDataType[] {
 /**
  * Add statistics.
  *
- * @param {statsDataType[]} newData - The data to store.
+ * @param {statsDatabaseType[]} newData - The data to store.
  */
 export function statsAdd(newData: statsAddDataType[]): void {
 	const oldDatabase = statsLoad();
@@ -130,7 +136,7 @@ export function statsAdd(newData: statsAddDataType[]): void {
 /*
  * Save statistics.
  */
-function statsSave(database: statsDataType[]): void {
+function statsSave(database: statsDatabaseType[]): void {
 	const stats: statsType = {
 		magic: MAGIC,
 		version: VERSION,
@@ -139,32 +145,3 @@ function statsSave(database: statsDataType[]): void {
 
 	jsonSave(FILENAME, stats);
 }
-
-/*
-*	Initialize stats
-*/
-/*
-function initStats(): statsType {
-	return {
-		magic: MAGIC,
-		version: VERSION,
-		dict: [
-			'timestamp',
-			'status',
-			'message',
-			'server_date',
-			'number_of_sessions',
-			'host_cpu_utilization',
-			'io_requests_per_second',
-			'buffer_cache_hit_ratio',
-			'executions_per_sec',
-			'flashback_percentage',
-			'last_successful_rman_backup_date_full_db',
-			'last_successful_rman_backup_date_archive_log',
-			'last_rman_backup_date_full_db',
-			'last_rman_backup_date_archive_log',
-		],
-		data: [],
-	};
-}
-*/

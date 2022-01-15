@@ -35,8 +35,9 @@ type externConfigHostType = {
 };
 
 type externConfigType = {
-	http_port: number,
-	pollingSeconds: number,
+	http_port?: number,
+	pollingSeconds?: number,
+	pollSchema?: boolean,
 	hosts: externConfigHostType[],
 };
 
@@ -62,6 +63,7 @@ export type databaseType = databaseKeyType & {
 export type configType = {
 	http_port: number,
 	pollingSeconds: number,
+	pollSchema: boolean,
 	databases: databaseType[],
 };
 
@@ -87,13 +89,14 @@ export function validateConfig(externalConfig: Partial<externConfigType>): confi
 	const config: configType = {
 		http_port: 80,
 		pollingSeconds: 60,
+		pollSchema: true,
 		databases: [],
 	};
 
 	// port
 	if ('http_port' in externalConfig) {
 		if (!isInteger(externalConfig.http_port) || externalConfig.http_port <= 0 || externalConfig.http_port > 65536) {
-			throw new Error('The configuration has an no valid property "port"');
+			throw new Error('The configuration has no valid property "port"');
 		} else {
 			config.http_port = externalConfig.http_port;
 		}
@@ -102,9 +105,18 @@ export function validateConfig(externalConfig: Partial<externConfigType>): confi
 	// pollingSeconds
 	if ('pollingSeconds' in externalConfig) {
 		if (!isInteger(externalConfig.pollingSeconds) || externalConfig.pollingSeconds <= 0) {
-			throw new Error('The configuration has an no valid property "pollingSeconds"');
+			throw new Error('The configuration has no valid property "pollingSeconds"');
 		} else {
 			config.pollingSeconds = externalConfig.pollingSeconds;
+		}
+	}
+
+	// pollSchema
+	if ('pollSchema' in externalConfig) {
+		if (typeof externalConfig.pollSchema !== 'boolean') {
+			throw new Error('The configuration has no valid property "pollSchema"');
+		} else {
+			config.pollSchema = externalConfig.pollSchema;
 		}
 	}
 
@@ -128,7 +140,7 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 
 	// process all hosts
 	hosts.forEach((host, hostIndex) => {
-		const hostErrorLocation = `host[${hostIndex}]`;
+		const hostErrorLocation = `hosts[${hostIndex}]`;
 
 		// enabled
 		if ('enabled' in host) {
@@ -141,14 +153,20 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 		if (typeof host.name !== 'string' || host.name.length === 0) {
 			throw new Error(`"name" must be non-empty string: "${hostErrorLocation}"`);
 		}
+
 		// host
 		if (typeof host.host !== 'string' || host.host.length === 0) {
 			throw new Error(`"host" must be non-empty string: "${hostErrorLocation}"`);
 		}
 
+		// hosts
+		if (!Array.isArray(host.databases)) {
+			throw new Error(`"databases" must be an array: "${hostErrorLocation}"`);
+		}
+
 		// process all databases
 		host.databases.forEach((database, databaseIndex) => {
-			const databaseErrorLocation = `${hostErrorLocation}.database[${databaseIndex}]`;
+			const databaseErrorLocation = `${hostErrorLocation}.databases[${databaseIndex}]`;
 
 			// enabled
 			if ('enabled' in database) {
@@ -216,14 +234,12 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 
 			const containerDatabase = getContainerDatabase(database);
 			const cdbConnect = {
-				name: database.name,
 				connection: getConnectionString(host.host, containerDatabase.port, containerDatabase.service),
 				username: containerDatabase.username,
 				password: containerDatabase.password,
 			};
 
 			const pdbConnect = {
-				name: database.name,
 				connection: getConnectionString(host.host, database.port, database.service),
 				username: database.username,
 				password: database.password,
@@ -241,9 +257,14 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 			
 			databases.push(newDatabase);
 
+			// schemas
+			if (!Array.isArray(database.schemas)) {
+				throw new Error(`"schemas" must be an array: "${databaseErrorLocation}"`);
+			}
+
 			// process all schemas
 			database.schemas.forEach((schema, schemaIndex) => {
-				const schemaErrorLocation = `${hostErrorLocation}.database[${databaseIndex}].schema[${schemaIndex}]`;
+				const schemaErrorLocation = `${hostErrorLocation}.database[${databaseIndex}].schemas[${schemaIndex}]`;
 
 				// enabled
 				if ('enabled' in schema) {
@@ -268,7 +289,6 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 				}
 
 				const schemaConnect = {
-					name: schema.name,
 					connection: getConnectionString(host.host, database.port, database.service),
 					username: schema.username,
 					password: schema.password,
@@ -285,26 +305,6 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 			});
 		});
 	});
-
-	/*
-	databases.sort((a: databaseType, b: databaseType) => {
-		if (a.hostName.toLowerCase() > b.hostName.toLowerCase()) {
-			return 1;
-		} else if (a.hostName.toLowerCase() < b.hostName.toLowerCase()) {
-			return -1;
-		} else if (a.databaseName.toLowerCase() > b.databaseName.toLowerCase()) {
-			return 1;
-		} else if (a.databaseName.toLowerCase() < b.databaseName.toLowerCase()) {
-			return -1;
-		} else if (a.schemaName.toLowerCase() > b.schemaName.toLowerCase()) {
-			return 1;
-		} else if (a.schemaName.toLowerCase() < b.schemaName.toLowerCase()) {
-			return -1;
-		} else {
-			return 0;
-		}
-	});
-	*/
 
 	return databases;
 }

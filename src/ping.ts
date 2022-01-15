@@ -1,6 +1,6 @@
 import debugModule from 'debug';
 import {configLoad} from './config.js';
-import {gathererInitial} from './gatherer/gathererInitial.js';
+import {gathererInitial} from './gatherer/initialize.js';
 
 import type {optionsType} from './options.js';
 

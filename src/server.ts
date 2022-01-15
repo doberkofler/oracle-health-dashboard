@@ -5,7 +5,7 @@ import compression from 'compression';
 import {configLoad} from './config.js';
 import {handlerDefault} from './router/handlerDefault.js';
 import {handlerDebug} from './router/handlerDebug.js';
-import {gathererInitial} from './gatherer/gathererInitial.js';
+import {gathererInitial} from './gatherer/initialize.js';
 
 import type {optionsType} from './options.js';
 import type {Gatherer} from './gatherer/gathererWorker';

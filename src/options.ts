@@ -6,8 +6,8 @@ export type optionsType = {
 	ping: boolean,
 };
 
-export function getOptions(): optionsType {
-	const argv = yargs(hideBin(process.argv))
+export function getOptions(args: string[]): optionsType {
+	const argv = yargs(hideBin(args))
 		.option('config', {
 			demandOption: false,
 			default: 'config.json',

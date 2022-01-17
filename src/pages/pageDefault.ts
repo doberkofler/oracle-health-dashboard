@@ -61,7 +61,7 @@ function renderDatabase(html: Array<string>, database: statsDatabaseType) {
 	html.push(				'</div>');
 	html.push(			'</div>');
 	html.push(		'</div>');
-	html.push('	</div>');
+	html.push(	'</div>');
 	html.push('</div>');
 }
 

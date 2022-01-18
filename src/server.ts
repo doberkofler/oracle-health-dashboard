@@ -1,68 +1,37 @@
 import debugModule from 'debug';
-import {spawn, Thread, Worker} from 'threads';
 import express from 'express';
 import compression from 'compression';
-import {configLoad} from './config.js';
 import {handlerDefault} from './router/handlerDefault.js';
 import {handlerDebug} from './router/handlerDebug.js';
-import {gathererInitial} from './gatherer/initialize.js';
+import * as http from 'http';
 
-import type {optionsType} from './options.js';
-import type {Gatherer} from './gatherer/gathererWorker';
+import type {configType} from './config.js';
 
 const debug = debugModule('oracle-health-dashboard:server');
 
-export async function runServer(options: optionsType) {
-	debug('runServer', options);
+export async function serverStart(config: configType): Promise<{app: express.Express, server: http.Server}> {
+	debug('startServer');
 
-	// install signal event handler
-	debug('install signal event handler');
-	process.on('SIGTERM', shutDown);
-	process.on('SIGINT', shutDown);
+	return new Promise(resolve => {
+		const app = express();
 
-	// load configuration
-	debug('load configuration');
-	const config = configLoad(options.config);
+		// compression
+		app.use(compression());
 
-	// initialize gatherer
-	debug('initialize gatherer');
-	await gathererInitial(config);
+		// "static" route
+		app.use('/static', express.static('static'));
 
-	// start gatherer thread
-	debug('start gatherer thread');
-	const gatherer = await spawn<Gatherer>(new Worker('./gatherer/gathererWorker'));
-	await gatherer(config);
+		// "default" route
+		app.get('/', handlerDefault.bind(null, config));
 
-	const app = express();
+		// "debug" route
+		app.get('/debug', handlerDebug.bind(null, config));
 
-	app.use(compression());
-
-	// "static" route
-	app.use('/static', express.static('static'));
-
-	// "default" route
-	app.get('/', handlerDefault.bind(null, config));
-
-	// "debug" route
-	app.get('/debug', handlerDebug.bind(null, config));
-
-	const server = app.listen(config.http_port, () => {
-		console.log(`Listening at http://127.0.0.1:${config.http_port}`);
+		// listen
+		const server = app.listen(config.http_port, () => resolve({app, server}));
 	});
+}
 
-	async function shutDown() {
-		console.log('Received kill signal, shutting down gracefully');
-
-		// terminate gataherer thread
-		console.log('Stopping gatherer thread...');
-		await Thread.terminate(gatherer);
-		console.log('Stopped gatherer thread.');
-
-		// close server
-		console.log('Closing server connection...');
-		server.close(() => {
-			console.log('Closed server connections.');
-			process.exit(0);
-		});
-	}
+export async function serverStop(server: http.Server): Promise<void> {
+	return new Promise(resolve => server.close(() => resolve()));
 }

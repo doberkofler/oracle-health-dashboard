@@ -1,6 +1,6 @@
 import debugModule from 'debug';
 import {getOptions} from './options.js';
-import {runServer} from './server.js';
+import {main} from './main.js';
 import {runPing} from './ping.js';
 
 const debug = debugModule('oracle-health-dashboard:index');
@@ -12,5 +12,5 @@ debug('getOptions', options);
 if (options.ping) {
 	void runPing(options);
 } else {
-	void runServer(options);
+	void main(options);
 }

@@ -1,5 +1,5 @@
-import debugModule from 'debug';
 import express from 'express';
+import debugModule from 'debug';
 import {statsLoad} from '../statsStore.js';
 import {getHtmlPage} from '../html/html.js';
 import {inspect} from '../util/util.js';

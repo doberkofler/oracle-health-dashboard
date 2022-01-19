@@ -31,7 +31,3 @@ tmp
 .DS_Store
 config
 db.json
-
-# ONLY TEMPORARY
-.github
-

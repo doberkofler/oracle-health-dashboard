@@ -4,7 +4,7 @@ import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {inspect} from '../util/util.js';
 import type {databaseType, databaseKeyType} from '../config.js';
 
-const debug = debugModule('oracle-health-dashboard:database');
+const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
 type sqlCdbType = {
 	server_date: Date | null,
@@ -314,7 +314,7 @@ async function gatherSchema(database: databaseType): Promise<periodicGatherSchem
 /*
 *	Is multitenant
 */
-function isMultitenant(database: databaseType): boolean {
+export function isMultitenant(database: databaseType): boolean {
 	return database.pdbConnect.connection !== database.cdbConnect.connection || database.pdbConnect.username !== database.cdbConnect.username || database.pdbConnect.password !== database.cdbConnect.password;
 }
 

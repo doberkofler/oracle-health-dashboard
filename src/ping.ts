@@ -1,6 +1,6 @@
 import debugModule from 'debug';
 import {configLoad} from './config.js';
-import {gathererInitial} from './gatherer/initialize.js';
+import {ping} from './gatherer/databasePing.js';
 
 import type {optionsType} from './options.js';
 
@@ -20,7 +20,7 @@ export async function runPing(options: optionsType) {
 
 	// initialize gatherer
 	debug('initialize gatherer');
-	await gathererInitial(config);
+	await ping(config);
 }
 
 async function shutDown() {

@@ -41,6 +41,10 @@ export type periodicGatherCdbType = databaseKeyType & {
 	metric: metricType,
 };
 
+export type periodicGatherSchemaType = databaseKeyType & {
+	status: statusType,
+};
+
 const bndCDB = [
 	{
 		id: 'server_date',
@@ -186,7 +190,7 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 	};
 
 	// are we dealing with a multitenant architecture
-	const multitenant = database.pdbConnect.connection !== database.cdbConnect.connection || database.pdbConnect.username !== database.cdbConnect.username || database.pdbConnect.password !== database.cdbConnect.password;
+	const multitenant = isMultitenant(database);
 
 	// connect with PDB
 	const connection = await connect(database.pdbConnect);
@@ -260,11 +264,58 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 		}
 	}
 
+	// eventually also gather information about the schema
+	if (database.schemaName.length > 0) {
+		const schemaInfo = await gatherSchema(database);
+		if (!schemaInfo.status.success) {
+			data.status = schemaInfo.status;
+			return data;
+		}
+	}
+
 	data.status = getStatus(true);
 
 	debug('gatherPeriodic', inspect({database, multitenant, data}));
 
 	return data;
+}
+
+/*
+* get statistics from schema.
+*/
+async function gatherSchema(database: databaseType): Promise<periodicGatherSchemaType> {
+	debug('gatherSchema', database.schemaName);
+
+	const data: periodicGatherSchemaType = {
+		id: database.id,
+		hostName: database.hostName,
+		databaseName: database.databaseName,
+		schemaName: database.schemaName,
+		status: getStatus(true, ''),
+	};
+
+	// connect with schema
+	const connection = await connect(database.schemaConnect);
+	if (typeof connection === 'string') {
+		data.status = getStatus(false, connection);
+		return data;
+	}
+
+	// disconnect from schema
+	const resultDisconnect = disconnect(connection, database.schemaConnect);
+	if (typeof resultDisconnect === 'string') {
+		data.status = getStatus(false, resultDisconnect);
+		return data;
+	}
+
+	return data;
+}
+
+/*
+*	Is multitenant
+*/
+function isMultitenant(database: databaseType): boolean {
+	return database.pdbConnect.connection !== database.cdbConnect.connection || database.pdbConnect.username !== database.cdbConnect.username || database.pdbConnect.password !== database.cdbConnect.password;
 }
 
 /**

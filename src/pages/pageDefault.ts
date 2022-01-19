@@ -1,6 +1,6 @@
-import debugModule from 'debug';
 import {isDate, distanceToString, numberToString, timestampToString, inspect} from '../util/util.js';
 import {getHtmlPage} from '../html/html.js';
+import debugModule from 'debug';
 
 import type {sqlInitialType} from '../gatherer/initialize.js';
 import type {statsDatabaseType, statusMetricType} from '../statsStore';
@@ -71,10 +71,10 @@ function getDatabaseName(html: Array<string>, database: statsDatabaseType): void
 	html.push(	`<div>${database.hostName}</div>`);
 	html.push(	'<div>database:</div>');
 	html.push(	`<div>${database.databaseName}</div>`);
-	/*
-	html.push(	'<div>schema:</div>');
-	html.push(	`<div>${database.schemaName}</div>`);
-	*/
+	if (database.schemaName !== '') {
+		html.push(	'<div>schema:</div>');
+		html.push(	`<div>${database.schemaName}</div>`);
+	}
 	html.push('</div>');
 }
 

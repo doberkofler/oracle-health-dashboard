@@ -168,6 +168,7 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 		id: database.id,
 		hostName: database.hostName,
 		databaseName: database.databaseName,
+		schemaName: database.schemaName,
 		status: getStatus(false),
 		metric: {
 			server_date: null,

@@ -10,6 +10,7 @@ describe('statsInitial', () => {
 			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 		}]);
 
 		const stats = jsonLoad(FILENAME);
@@ -20,8 +21,8 @@ describe('statsInitial', () => {
 				id: 1,
 				hostName: 'host',
 				databaseName: 'database',
+				schemaName: '',
 				metrics: [],
-				schemas: [],
 			}],
 		});
 	});
@@ -33,6 +34,7 @@ describe('statsLoad', () => {
 			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 		}]);
 
 		const stats = statsLoad();
@@ -40,8 +42,8 @@ describe('statsLoad', () => {
 			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			metrics: [],
-			schemas: [],
 		}]);
 	});
 
@@ -115,6 +117,7 @@ describe('statsAdd', () => {
 			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			statics,
 		}]);
 
@@ -122,6 +125,7 @@ describe('statsAdd', () => {
 			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			status,
 			metric,
 		}]);
@@ -131,8 +135,8 @@ describe('statsAdd', () => {
 			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			metrics: [Object.assign({}, metric, status)],
-			schemas: [],
 			statics,
 		}]);
 	});
@@ -173,6 +177,7 @@ describe('statsAdd', () => {
 			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			statics,
 		}]);
 
@@ -181,6 +186,7 @@ describe('statsAdd', () => {
 				id: 2,
 				hostName: 'host',
 				databaseName: 'database',
+				schemaName: '',
 				status,
 				metric,
 			}]);

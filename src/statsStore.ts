@@ -21,15 +21,9 @@ export type statsAddDataType = databaseKeyType & {
 
 export type statusMetricType = statusType & metricType;
 
-export type statsSchemaType = {
-	schemaName: string,
-	status: statusType,
-};
-
 export type statsDatabaseType = databaseKeyType & {
 	statics?: sqlInitialType,
 	metrics: statusMetricType[],
-	schemas: statsSchemaType[],
 };
 
 export type statsType = {
@@ -78,9 +72,9 @@ export function statsInitial(data: statsInitialType[]): void {
 		id: e.id,
 		hostName: e.hostName,
 		databaseName: e.databaseName,
+		schemaName: e.schemaName,
 		statics: e.statics,
 		metrics: [],
-		schemas: [],
 	}));
 
 	statsSave(database);

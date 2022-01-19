@@ -14,6 +14,7 @@ describe('getPage', () => {
 			id: 1,
 			hostName: 'host_name',
 			databaseName: 'database_name',
+			schemaName: '',
 			statics: {
 				oracle_version: 'oracle_version',
 				oracle_platform: 'oracle_platform',
@@ -38,7 +39,6 @@ describe('getPage', () => {
 				last_rman_backup_date_full_db: NOW,
 				last_rman_backup_date_archive_log: NOW,
 			}],
-			schemas: [],
 		};
 		expect(getPage([database], refreshSecs)).toBe(getDashboardPage(getDashboardCard(database), refreshSecs));
 	});

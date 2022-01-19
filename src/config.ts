@@ -37,7 +37,6 @@ type externConfigHostType = {
 type externConfigType = {
 	http_port?: number,
 	pollingSeconds?: number,
-	pollSchema?: boolean,
 	hosts: externConfigHostType[],
 };
 
@@ -45,25 +44,19 @@ export type databaseKeyType = {
 	id: number,
 	hostName: string,
 	databaseName: string,
-};
-
-export type schemaType = {
-	schemaName: string,
-	schemaConnect: connectionOptionsType,
-	enabled: boolean,
+	schemaName: string, // the schema name is empty of we only work on the database level
 };
 
 export type databaseType = databaseKeyType & {
 	cdbConnect: connectionOptionsType,
 	pdbConnect: connectionOptionsType,
-	schemas: schemaType[],
+	schemaConnect: connectionOptionsType,
 	enabled: boolean,
 };
 
 export type configType = {
 	http_port: number,
 	pollingSeconds: number,
-	pollSchema: boolean,
 	databases: databaseType[],
 };
 
@@ -89,7 +82,6 @@ export function validateConfig(externalConfig: Partial<externConfigType>): confi
 	const config: configType = {
 		http_port: 80,
 		pollingSeconds: 60,
-		pollSchema: true,
 		databases: [],
 	};
 
@@ -108,15 +100,6 @@ export function validateConfig(externalConfig: Partial<externConfigType>): confi
 			throw new Error('The configuration has no valid property "pollingSeconds"');
 		} else {
 			config.pollingSeconds = externalConfig.pollingSeconds;
-		}
-	}
-
-	// pollSchema
-	if ('pollSchema' in externalConfig) {
-		if (typeof externalConfig.pollSchema !== 'boolean') {
-			throw new Error('The configuration has no valid property "pollSchema"');
-		} else {
-			config.pollSchema = externalConfig.pollSchema;
 		}
 	}
 
@@ -236,6 +219,11 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 				}
 			}
 
+			// schemas
+			if (!Array.isArray(database.schemas)) {
+				throw new Error(`"schemas" must be an array: "${databaseErrorLocation}"`);
+			}
+
 			const containerDatabase = getContainerDatabase(database);
 			const cdbConnect = {
 				connection: getConnectionString(host.host, containerDatabase.port, containerDatabase.service),
@@ -249,21 +237,24 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 				password: database.password,
 			};
 
-			const newDatabase: databaseType = {
-				id: id++,
-				hostName: host.name,
-				databaseName: database.name,
-				cdbConnect,
-				pdbConnect,
-				schemas: [],
-				enabled: isDatabaseEnabled(host, database),
+			const schemaConnect = {
+				connection: getConnectionString(host.host, database.port, database.service),
+				username: database.username,
+				password: database.password,
 			};
-			
-			databases.push(newDatabase);
 
-			// schemas
-			if (!Array.isArray(database.schemas)) {
-				throw new Error(`"schemas" must be an array: "${databaseErrorLocation}"`);
+			// if we are only working on the database level but not all the way to the schema level
+			if (database.schemas.length === 0) {
+				databases.push({
+					id: id++,
+					hostName: host.name,
+					databaseName: database.name,
+					schemaName: '',
+					cdbConnect,
+					pdbConnect,
+					schemaConnect,
+					enabled: isDatabaseEnabled(host, database),
+				});
 			}
 
 			// process all schemas
@@ -292,20 +283,19 @@ function validateHosts(hosts: externConfigHostType[]): databaseType[] {
 					throw new Error(`"password" must be non-empty string: "${schemaErrorLocation}"`);
 				}
 
-				const schemaConnect = {
-					connection: getConnectionString(host.host, database.port, database.service),
-					username: schema.username,
-					password: schema.password,
-				};
+				schemaConnect.username = schema.username;
+				schemaConnect.password = schema.password;
 
-				const newSchema: schemaType = {
+				databases.push({
+					id: id++,
+					hostName: host.name,
+					databaseName: database.name,
 					schemaName: schema.name,
+					cdbConnect,
+					pdbConnect,
 					schemaConnect,
 					enabled: isSchemaEnabled(host, database, schema),
-
-				};
-
-				newDatabase.schemas.push(newSchema);
+				});
 			});
 		});
 	});

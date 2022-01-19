@@ -87,6 +87,7 @@ export async function gathererInitial(config: configType): Promise<void> {
 			id: e.id,
 			hostName: e.hostName,
 			databaseName: e.databaseName,
+			schemaName: e.schemaName,
 			statics: e.statics,
 		};
 	});
@@ -106,6 +107,7 @@ async function gatherInitialize(database: databaseType): Promise<initialGatherTy
 		id: database.id,
 		hostName: database.hostName,
 		databaseName: database.databaseName,
+		schemaName: database.schemaName,
 		status: getStatus(true),
 	};
 

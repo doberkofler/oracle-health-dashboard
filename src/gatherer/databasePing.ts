@@ -7,38 +7,74 @@ import type {connectionOptionsType} from './oracle.js';
 
 const debug = debugModule('oracle-health-dashboard:databasePing');
 
+export type pingStatusType = {
+	totalCount: number,
+	successCount: number,
+};
+
 /**
  * Ping all connections.
  *
  * @param {configType} config - The configuration object.
- * @returns {Promise<void>} - A promise that resolves when done.
+ * @returns {Promise<pingStatusType>} - A promise that resolves when done.
  */
-export async function ping(config: configType): Promise<void> {
+export async function ping(config: configType): Promise<pingStatusType> {
 	debug('ping');
 
 	const queryPromises = config.databases.filter(database => database.enabled).map(doPing);
-	await Promise.all(queryPromises);
+	const statuses = await Promise.all(queryPromises);
+
+	const status = {
+		totalCount: 0,
+		successCount: 0,
+	};
+	statuses.forEach(e => {
+		status.totalCount += e.totalCount;
+		status.successCount += e.successCount;
+	});
+
+	return status;
 }
 
 /**
  * Ping a connection.
  */
-export async function doPing(database: databaseType): Promise<void> {
+export async function doPing(database: databaseType): Promise<pingStatusType> {
+	let success = false;
+	const status = {
+		totalCount: 0,
+		successCount: 0,
+	};
+
 	// are we dealing with a multitenant architecture
 	const multitenant = isMultitenant(database);
 
 	// connect with CDB
 	if (multitenant) {
-		await doConnect(database.hostName, database.databaseName, database.cdbConnect);
+		status.totalCount++;
+		success = await doConnect(database.hostName, database.databaseName, database.cdbConnect);
+		if (success) {
+			status.successCount++;
+		}
 	}
 
 	// connect with PDB
-	await doConnect(database.hostName, database.databaseName, database.pdbConnect);
+	success = await doConnect(database.hostName, database.databaseName, database.pdbConnect);
+	status.totalCount++;
+	if (success) {
+		status.successCount++;
+	}
 
 	// connect with schema
 	if (database.schemaName.length > 0) {
-		await doConnect(database.hostName, database.databaseName, database.schemaConnect);
+		success = await doConnect(database.hostName, database.databaseName, database.schemaConnect);
+		status.totalCount++;
+		if (success) {
+			status.successCount++;
+		}
 	}
+
+	return status;
 }
 
 /*

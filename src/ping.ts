@@ -18,9 +18,12 @@ export async function runPing(options: optionsType) {
 	debug('load configuration');
 	const config = configLoad(options.config);
 
-	// initialize gatherer
+	// ping all databases
 	debug('initialize gatherer');
-	await ping(config);
+	const status = await ping(config);
+
+	// summary
+	console.log(`Total number of pings: ${status.totalCount}. Successful: ${status.successCount}. Failed: ${status.totalCount - status.successCount}.`);
 }
 
 async function shutDown() {

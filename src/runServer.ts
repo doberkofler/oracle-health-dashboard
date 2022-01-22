@@ -3,23 +3,21 @@ import {spawn, Thread, Worker} from 'threads';
 import {configLoad} from './config.js';
 import {gathererInitial} from './gatherer/initialize.js';
 import {serverStart, serverStop} from './server.js';
+import {installShutdown} from './shutdown.js';
 
-import type {optionsType} from './options.js';
 import type {Gatherer} from './gatherer/gathererWorker';
 
-const debug = debugModule('oracle-health-dashboard:main');
+const debug = debugModule('oracle-health-dashboard:runserver');
 
-export async function main(options: optionsType) {
-	debug('main', options);
+export async function runServer(configFilename: string) {
+	debug('runServer', configFilename);
 
-	// install signal event handler
-	debug('install signal event handler');
-	process.on('SIGTERM', shutDown);
-	process.on('SIGINT', shutDown);
+	// install shutdown handler
+	installShutdown(shutdownHandler);
 
 	// load configuration
 	debug('load configuration');
-	const config = configLoad(options.config);
+	const config = configLoad(configFilename);
 
 	// initialize gatherer
 	debug('initialize gatherer');
@@ -34,9 +32,7 @@ export async function main(options: optionsType) {
 	const {server} = await serverStart(config);
 	console.log(`Listening at http://127.0.0.1:${config.http_port}`);
 
-	async function shutDown() {
-		console.log('Received kill signal, shutting down gracefully');
-
+	async function shutdownHandler() {
 		// terminate gataherer thread
 		console.log('Stopping gatherer thread...');
 		await Thread.terminate(gatherer);
@@ -46,6 +42,5 @@ export async function main(options: optionsType) {
 		console.log('Closing server connection...');
 		await serverStop(server);
 		console.log('Closed server connections.');
-		process.exit(0);
 	}
 }

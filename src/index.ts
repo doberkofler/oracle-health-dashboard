@@ -1,16 +1,41 @@
-import debugModule from 'debug';
-import {getOptions} from './options.js';
-import {main} from './main.js';
-import {runPing} from './ping.js';
+import {runServer} from './runServer.js';
+import {runPing} from './runPing.js';
+import {runGenDoc} from './runGenDoc.js';
+import yargs from 'yargs';
+import {hideBin} from 'yargs/helpers';
 
-const debug = debugModule('oracle-health-dashboard:index');
+/*const argv = */yargs(hideBin(process.argv))
+	.command({
+		command: ['start', '$0'],
+		describe: 'Start the server',
+		//builder: (yargs) => yargs.default('value', 'true'),
+		handler: async argv => {
+			await runServer(argv.config as string);
+		}
+	})
+	.command({
+		command: 'ping',
+		describe: 'Ping all database connections and show results',
+		//builder: (yargs) => yargs.default('value', 'true'),
+		handler: async argv => {
+			await runPing(argv.config as string);
+		}
+	})
+	.command({
+		command: 'gendoc',
+		describe: 'Generate documentation of the configuration',
+		//builder: (yargs) => yargs.default('value', 'true'),
+		handler: async argv => {
+			await runGenDoc(argv.config as string);
+		}
+	})
+	.option('config', {
+		demandOption: false,
+		default: 'config.json',
+		describe: 'configuration file',
+		type: 'string',
+	})
+	.demandCommand()
+	.help()
+	.argv as Record<string, unknown>;
 
-// get options
-const options = getOptions(process.argv);
-debug('getOptions', options);
-
-if (options.ping) {
-	void runPing(options);
-} else {
-	void main(options);
-}

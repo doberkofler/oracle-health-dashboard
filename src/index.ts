@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import {runServer} from './runServer.js';
 import {runPing} from './runPing.js';
 import {runGenDoc} from './runGenDoc.js';

@@ -62,10 +62,13 @@ export type configType = {
 
 export type treeSchemaType = {
 	name: string,
+	schemaConnect: connectionOptionsType,
 };
 
 export type treeDatabaseType = {
 	name: string,
+	cdbConnect: connectionOptionsType,
+	pdbConnect: connectionOptionsType,
 	schemas: treeSchemaType[],
 };
 
@@ -147,13 +150,17 @@ export function buildTree(databases: databaseType[]): treeHostType[] {
 				// add schema
 				fd.schemas.push({
 					name: database.schemaName,
+					schemaConnect: database.schemaConnect,
 				});
 			} else {
 				// add database
 				fh.databases.push({
 					name: database.databaseName,
+					cdbConnect: database.cdbConnect,
+					pdbConnect: database.pdbConnect,
 					schemas: [{
 						name: database.schemaName,
+						schemaConnect: database.schemaConnect,
 					}],
 				});
 			}
@@ -163,8 +170,11 @@ export function buildTree(databases: databaseType[]): treeHostType[] {
 				name: database.hostName,
 				databases: [{
 					name: database.databaseName,
+					cdbConnect: database.cdbConnect,
+					pdbConnect: database.pdbConnect,
 					schemas: [{
 						name: database.schemaName,
+						schemaConnect: database.schemaConnect,
 					}],
 				}],
 			});

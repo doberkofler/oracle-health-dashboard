@@ -11,16 +11,15 @@ type optionsType = {
 */
 export function getHtmlPage(title: string, content: string | Array<string>, options?: optionsType): string {
 	const html = [];
+	const pageTitle = 'Oracle Health Dashboard' + (title.length > 0 ? ' - ' + title : '');
 
 	html.push('<html lang="en">');
 	html.push('<head>');
 	html.push('<meta charset="UTF-8">');
 	html.push('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
 	html.push('<meta http-equiv="X-UA-Compatible" content="ie=edge">');
-	if (title.length > 0) {
-		html.push(`<title>${title}</title>`);
-		html.push(`<meta name="description" content="${title}">`);
-	}
+	html.push(`<title>${pageTitle}</title>`);
+	html.push(`<meta name="description" content="${pageTitle}">`);
 	if (options && isInteger(options.refreshSecs) && options.refreshSecs > 0) {
 		html.push(`<meta http-equiv="refresh" content="${options.refreshSecs}" >`);
 	}

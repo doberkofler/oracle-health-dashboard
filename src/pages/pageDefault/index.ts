@@ -1,9 +1,9 @@
-import {isDate, distanceToString, numberToString, timestampToString, inspect} from '../util/util.js';
-import {getHtmlPage} from '../html/html.js';
+import {isDate, distanceToString, numberToString, timestampToString, inspect} from '../../util/util.js';
+import {getHtmlPage} from '../../html/html.js';
 import debugModule from 'debug';
 
-import type {sqlInitialType} from '../gatherer/initialize.js';
-import type {statsDatabaseType, statusMetricType} from '../statsStore';
+import type {sqlInitialType} from '../../gatherer/initialize.js';
+import type {statsDatabaseType, statusMetricType} from '../../statsStore';
 
 const debug = debugModule('oracle-health-dashboard:pageDefault');
 
@@ -13,7 +13,7 @@ const debug = debugModule('oracle-health-dashboard:pageDefault');
 export function getPage(stats: statsDatabaseType[], pollingSeconds: number): string {
 	debug('getPage');
 
-	const title = 'Oracle Health Dashboard';
+	const title = 'Status';
 
 	const html = [] as string[];
 	html.push('<div class="dashboard">');

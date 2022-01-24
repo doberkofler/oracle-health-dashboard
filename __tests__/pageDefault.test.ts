@@ -2,6 +2,8 @@ import {getPage} from '../src/pages/pageDefault';
 import {getHtmlPage} from '../src/html/html.js';
 import type {statsDatabaseType} from '../src/statsStore.js';
 
+const title = 'Status';
+
 describe('getPage', () => {
 	it('returns the markup for an empty dashboard page', () => {
 		const refreshSecs = 60;
@@ -52,7 +54,7 @@ describe('getPage', () => {
 });
 
 function getDashboardPage(content: string, refreshSecs: number): string {
-	return purify(getHtmlPage('Oracle Health Dashboard', `<div class="dashboard"><div class="page-header"><h2>Oracle Health Dashboard</h2></div><div class="dashboard-grid">${content}</div></div>`, {refreshSecs}));
+	return purify(getHtmlPage(title, `<div class="dashboard"><div class="page-header"><h2>Status</h2></div><div class="dashboard-grid">${content}</div></div>`, {refreshSecs}));
 }
 
 function getDashboardCardMetric(database: statsDatabaseType): string {

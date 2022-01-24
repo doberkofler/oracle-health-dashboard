@@ -2,6 +2,7 @@ import debugModule from 'debug';
 import express from 'express';
 import compression from 'compression';
 import {handlerDefault} from './router/handlerDefault.js';
+import {handlerConfig} from './router/handlerConfig.js';
 import {handlerDebug} from './router/handlerDebug.js';
 import * as http from 'http';
 
@@ -23,6 +24,9 @@ export async function serverStart(config: configType): Promise<{app: express.Exp
 
 		// "default" route
 		app.get('/', handlerDefault.bind(null, config));
+
+		// "config" route
+		app.get('/config', handlerConfig.bind(null, config));
 
 		// "debug" route
 		app.get('/debug', handlerDebug.bind(null, config));

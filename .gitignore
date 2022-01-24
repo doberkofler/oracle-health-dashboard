@@ -27,6 +27,8 @@ build/
 
 # Misc
 tmp
+temp
 .DS_Store
 config
 db.json
+config.html

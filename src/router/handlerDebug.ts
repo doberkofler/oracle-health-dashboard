@@ -50,5 +50,5 @@ async function getPage(config: configType): Promise<string> {
 	}));
 	content.push('</pre>');
 
-	return getHtmlPage(title, content, config.pollingSeconds);
+	return getHtmlPage(title, content, {refreshSecs: config.pollingSeconds});
 }

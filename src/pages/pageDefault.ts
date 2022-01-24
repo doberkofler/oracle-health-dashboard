@@ -25,7 +25,7 @@ export function getPage(stats: statsDatabaseType[], pollingSeconds: number): str
 	html.push(	'</div>');
 	html.push('</div>');
 
-	return getHtmlPage(title, html, pollingSeconds);
+	return getHtmlPage(title, html, {refreshSecs: pollingSeconds});
 }
 
 function renderDatabase(html: Array<string>, database: statsDatabaseType) {

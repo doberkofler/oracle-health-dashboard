@@ -60,6 +60,20 @@ export type configType = {
 	databases: databaseType[],
 };
 
+export type treeSchemaType = {
+	name: string,
+};
+
+export type treeDatabaseType = {
+	name: string,
+	schemas: treeSchemaType[],
+};
+
+export type treeHostType = {
+	name: string,
+	databases: treeDatabaseType[],
+};
+
 /**
  * Returns a configuration object.
  *
@@ -112,6 +126,52 @@ export function validateConfig(externalConfig: Partial<externConfigType>): confi
 	config.databases = validateHosts(externalConfig.hosts);
 
 	return config;
+}
+
+/*
+ * Validates and returns a configuration object.
+ *
+ * @param {databaseType[]} databases - - The databases.
+ * @returns {configTreeType} - The configuration as a tree.
+ */
+export function buildTree(databases: databaseType[]): treeHostType[] {
+	const tree = [] as treeHostType[];
+
+	databases.forEach(database => {
+		// find host name
+		const fh = tree.find(e => e.name === database.hostName);
+		if (fh) {
+			// find database name
+			const fd = fh.databases.find(e => e.name === database.databaseName);
+			if (fd) {
+				// add schema
+				fd.schemas.push({
+					name: database.schemaName,
+				});
+			} else {
+				// add database
+				fh.databases.push({
+					name: database.databaseName,
+					schemas: [{
+						name: database.schemaName,
+					}],
+				});
+			}
+		} else {
+			// add host
+			tree.push({
+				name: database.hostName,
+				databases: [{
+					name: database.databaseName,
+					schemas: [{
+						name: database.schemaName,
+					}],
+				}],
+			});
+		}
+	});
+
+	return tree;
 }
 
 /*

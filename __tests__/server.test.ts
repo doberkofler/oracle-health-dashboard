@@ -28,7 +28,7 @@ describe('server', () => {
 	it('handlerDefault', async () => {
 		const response = await request(app).get('').send({});
 		expect(response.statusCode).toBe(200);
-		expect(response.text).toBe('<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge"><title>Oracle Health Dashboard</title><meta name="description" content="Oracle Health Dashboard"><meta http-equiv="refresh" content="60" ><link rel="stylesheet" href="static/bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="static/index.css"></head><body><div class="dashboard"><div class="page-header"><h2>Oracle Health Dashboard</h2></div><div class="dashboard-grid"></div></div></body></html>');
+		expect(purify(response.text)).toBe('<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge"><title>Oracle Health Dashboard</title><meta name="description" content="Oracle Health Dashboard"><meta http-equiv="refresh" content="60" ><link rel="stylesheet" href="static/bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="static/index.css"></head><body><div class="dashboard"><div class="page-header"><h2>Oracle Health Dashboard</h2></div><div class="dashboard-grid"></div></div></body></html>');
 	});
 
 	it('handlerDebug', async () => {
@@ -36,3 +36,7 @@ describe('server', () => {
 		expect(response.statusCode).toBe(200);
 	});
 });
+
+function purify(s: string): string {
+	return s.replace(/\n/g, '');
+}

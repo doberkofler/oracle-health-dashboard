@@ -15,6 +15,8 @@ type enhancedDatabaseType = databaseType & {
 
 const debug = debugModule('oracle-health-dashboard:handlerConfig');
 
+const borderLine = '2px solid #ddd';
+
 /*
 *	get page
 */
@@ -34,14 +36,14 @@ const Page = ({databases}: {databases: enhancedDatabaseType[]}): JSX.Element => 
 	return (
 		<table className="main" style={{borderCollapse: 'collapse', width: '100%'}}>
 			<Header />
-			{databases.map(database => <Row database={database} />)}
+			{databases.map(database => <Row key={database.id.toString()} database={database} />)}
 		</table>
 	);
 };
 
 const Header = (): JSX.Element => {
 	return (
-		<tr key="0">
+		<tr>
 			<HeaderColumn title="Host" width="25%" />
 			<HeaderColumn title="Database" width="50%" />
 			<HeaderColumn title="Schema" width="25%" />
@@ -51,7 +53,7 @@ const Header = (): JSX.Element => {
 
 const HeaderColumn = ({title, width}: {title: string, width: string}): JSX.Element => {
 	return (
-		<th style={{width, padding: '8px', textAlign: 'left', backgroundColor: '#04AA6D', color: 'white', borderRight: 'border-right: 1px solid #ddd'}}>
+		<th style={{width, padding: '8px', textAlign: 'left', backgroundColor: '#04AA6D', color: 'white', borderRight: borderLine}}>
 			{title}
 		</th>
 	);
@@ -59,7 +61,7 @@ const HeaderColumn = ({title, width}: {title: string, width: string}): JSX.Eleme
 
 const Row = ({database}: {database: enhancedDatabaseType}): JSX.Element => {
 	return (
-		<tr key={database.id.toString()}>
+		<tr>
 			<Host database={database} />
 			<Database database={database} />
 			<Schema database={database} />
@@ -70,7 +72,7 @@ const Row = ({database}: {database: enhancedDatabaseType}): JSX.Element => {
 const Host = ({database}: {database: enhancedDatabaseType}): JSX.Element | null => {
 	if (database.hostSwitch) {
 		return (
-			<td key="host" rowSpan={database.hostSchemaCount} style={{borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', padding: '8px'}}>
+			<td rowSpan={database.hostSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
 				<h1>{database.hostName}</h1>
 			</td>
 		);
@@ -92,7 +94,7 @@ const Database = ({database}: {database: enhancedDatabaseType}): JSX.Element | n
 		}
 
 		return (
-			<td key="database" rowSpan={database.databaseSchemaCount} style={{borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', padding: '8px'}}>
+			<td rowSpan={database.databaseSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
 				<h2>{database.databaseName}</h2>
 				{connection.toLocaleLowerCase()}
 			</td>
@@ -106,7 +108,7 @@ const Schema = ({database}: {database: enhancedDatabaseType}): JSX.Element => {
 	const connection = getConnection(database.schemaConnect); 
 
 	return (
-		<td key="schema" style={{borderBottom: '1px solid #ddd', padding: '8px'}}>
+		<td style={{borderBottom: borderLine, padding: '8px'}}>
 			<h3>{database.schemaName}</h3>
 			{connection.toLocaleLowerCase()}
 		</td>

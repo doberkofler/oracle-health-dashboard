@@ -26,9 +26,9 @@ build/
 .eslintcache
 
 # Misc
+.DS_Store
 tmp
 temp
-.DS_Store
-config
+test-configs
 db.json
-config.html
+config.*

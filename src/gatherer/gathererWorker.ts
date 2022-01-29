@@ -3,7 +3,9 @@ import {expose} from 'threads/worker';
 import {statsAdd} from '../statsStore.js';
 import {gatherPeriodic} from './databaseWorker.js';
 import {inspect} from '../util/util.js';
-import type {configType} from '../config.js';
+
+import type {configType} from '../config/config.js';
+import type {periodicGatherType} from './databaseWorker.js';
 
 const debug = debugModule('oracle-health-dashboard:gatherer');
 
@@ -20,15 +22,23 @@ expose(gatherer);
 export async function gatherer(config: configType): Promise<void> {
 	debug('gatherer');
 
+	const promises = [] as Promise<periodicGatherType>[];
+
+	// process hosts
+	config.hosts.filter(host => host.enabled).forEach(host => {
+		// container database
+		host.databases.filter(database => database.enabled).forEach(database => {
+			// gather
+			promises.push(gatherPeriodic(host, database));
+		});
+	});
 	// quere all databases and and wait until we got results from all of them
-	const results = await Promise.all(config.databases.filter(e => e.enabled).map(gatherPeriodic));
+	const results = await Promise.all(promises);
 
 	// process the results and prepare the statics to add
 	const stats = results.map(result => ({
-		id: result.id,
 		hostName: result.hostName,
 		databaseName: result.databaseName,
-		schemaName: result.schemaName,
 		status: result.status,
 		metric: result.metric,
 	}));

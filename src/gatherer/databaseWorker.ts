@@ -1,8 +1,11 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
+import {getConnectionDatabase, getConnectionContainerDatabase/*, getConnectionSchema*/} from '../config/connection.js';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {inspect} from '../util/util.js';
-import type {databaseType, databaseKeyType} from '../config.js';
+
+import type {statsKeyType} from '../statsStore.js';
+import type {configHostType, configDatabaseType/*, configSchemaType*/} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
@@ -36,12 +39,12 @@ export type initialGatherType = {
 
 export type metricType = sqlCdbType & sqlPdbType;
 
-export type periodicGatherCdbType = databaseKeyType & {
+export type periodicGatherType = statsKeyType & {
 	status: statusType,
 	metric: metricType,
 };
 
-export type periodicGatherSchemaType = databaseKeyType & {
+export type periodicGatherSchemaType = statsKeyType & {
 	status: statusType,
 };
 
@@ -167,12 +170,10 @@ Oracle - Tablespace Usage
 /**
  * get statistics from CDB.
  */
-export async function gatherPeriodic(database: databaseType): Promise<periodicGatherCdbType> {
-	const data: periodicGatherCdbType = {
-		id: database.id,
-		hostName: database.hostName,
-		databaseName: database.databaseName,
-		schemaName: database.schemaName,
+export async function gatherPeriodic(host: configHostType, database: configDatabaseType): Promise<periodicGatherType> {
+	const data: periodicGatherType = {
+		hostName: host.name,
+		databaseName: database.name,
 		status: getStatus(false),
 		metric: {
 			server_date: null,
@@ -189,11 +190,11 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 		},
 	};
 
-	// are we dealing with a multitenant architecture
-	const multitenant = isMultitenant(database);
+	const connectDatabase = getConnectionDatabase(host, database);
+	const connectContainerDatabase = getConnectionContainerDatabase(host, database);
 
 	// connect with PDB
-	const connection = await connect(database.pdbConnect);
+	const connection = await connect(connectDatabase);
 	if (typeof connection === 'string') {
 		data.status = getStatus(false, connection);
 		return data;
@@ -202,7 +203,7 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 	// get information for PDB
 	const infoPDB = await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB);
 	if (typeof infoPDB === 'string') {
-		disconnect(connection, database.pdbConnect);
+		disconnect(connection, connectDatabase);
 		data.status = getStatus(false, infoPDB);
 		return data;
 	}
@@ -213,7 +214,7 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 	data.metric.last_rman_backup_date_full_db = infoPDB.last_rman_backup_date_full_db;
 	data.metric.last_rman_backup_date_archive_log = infoPDB.last_rman_backup_date_archive_log;
 
-	if (!multitenant) {
+	if (!connectContainerDatabase) {
 		// get information for CDB
 		const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
 		if (typeof infoCDB === 'string') {
@@ -229,15 +230,15 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 	}
 
 	// disconnect from PDB
-	let resultCDB = disconnect(connection, database.pdbConnect);
+	let resultCDB = disconnect(connection, connectDatabase);
 	if (typeof resultCDB === 'string') {
 		data.status = getStatus(false, resultCDB);
 		return data;
 	}
 
-	if (multitenant) {
+	if (connectContainerDatabase) {
 		// connect to CDB
-		const connection = await connect(database.cdbConnect);
+		const connection = await connect(connectContainerDatabase);
 		if (typeof connection === 'string') {
 			data.status = getStatus(false, connection);
 			return data;
@@ -257,25 +258,29 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 		data.metric.executions_per_sec = infoCDB.executions_per_sec;
 
 		// disconnect from CDB
-		resultCDB = disconnect(connection, database.cdbConnect);
+		resultCDB = disconnect(connection, connectContainerDatabase);
 		if (typeof resultCDB === 'string') {
 			data.status = getStatus(false, resultCDB);
 			return data;
 		}
 	}
 
+	/* TODO:
 	// eventually also gather information about the schema
-	if (database.schemaName.length > 0) {
+	if (schema) {
+		const connectSchema = getConnectionSchema(host, database, schema);
+		debug({schema, connectSchema});
 		const schemaInfo = await gatherSchema(database);
 		if (!schemaInfo.status.success) {
 			data.status = schemaInfo.status;
 			return data;
 		}
 	}
+	*/
 
 	data.status = getStatus(true);
 
-	debug('gatherPeriodic', inspect({database, multitenant, data}));
+	debug('gatherPeriodic', inspect({database, data}));
 
 	return data;
 }
@@ -283,6 +288,7 @@ export async function gatherPeriodic(database: databaseType): Promise<periodicGa
 /*
 * get statistics from schema.
 */
+/* TODO:
 async function gatherSchema(database: databaseType): Promise<periodicGatherSchemaType> {
 	debug('gatherSchema', database.schemaName);
 
@@ -310,13 +316,7 @@ async function gatherSchema(database: databaseType): Promise<periodicGatherSchem
 
 	return data;
 }
-
-/*
-*	Is multitenant
 */
-export function isMultitenant(database: databaseType): boolean {
-	return database.pdbConnect.connection !== database.cdbConnect.connection || database.pdbConnect.username !== database.cdbConnect.username || database.pdbConnect.password !== database.cdbConnect.password;
-}
 
 /**
  * get status object.

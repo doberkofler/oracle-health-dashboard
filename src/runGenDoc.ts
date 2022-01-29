@@ -1,6 +1,6 @@
 import debugModule from 'debug';
 import { textSave } from './util/files.js';
-import {configLoad} from './config.js';
+import {configLoad} from './config/config.js';
 import {installShutdown} from './shutdown.js';
 import {getPage} from './pages/pageConfig/index.js';
 

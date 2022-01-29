@@ -5,7 +5,7 @@ import {isDate, inspect} from '../util/util.js';
 const debug = debugModule('oracle-health-dashboard:oracle');
 
 export type connectionOptionsType = {
-	connection: string,
+	connectionString: string,
 	username: string,
 	password: string,
 };
@@ -16,13 +16,27 @@ export type bindingsType = Array<{
 }>;
 
 /*
+ * Get connection string
+ */
+export function getConnectionString(address: string, port: number, service: string): string {
+	return `${address}:${port}/${service}`;
+}
+
+/*
+ * Get a connection as string
+ */
+export function getConnectionAsString(connection: connectionOptionsType): string {
+	return `${connection.username}/${connection.password}@${connection.connectionString}`;
+}
+
+/*
 *	Connect with database
 */
 export async function connect(options: connectionOptionsType): Promise<oracledb.Connection | string> {
-	debug(`Connect with "${options.connection}" as "${options.username}"`);
+	debug(`Connect with "${options.connectionString}" as "${options.username}"`);
 
 	const connectionAttributes: oracledb.ConnectionAttributes = {
-		connectionString: options.connection,
+		connectionString: options.connectionString,
 		user: options.username,
 		password: options.password,
 	};
@@ -35,7 +49,7 @@ export async function connect(options: connectionOptionsType): Promise<oracledb.
 	try {
 		connection = await oracledb.getConnection(connectionAttributes);
 	} catch (e: unknown) {
-		const message = `Unable to connect with "${options.connection}" as "${options.username}"`;
+		const message = `Unable to connect with "${options.connectionString}" as "${options.username}"`;
 		debug(message, e);
 		return message + '\n' + (e as Error).message;
 	}
@@ -47,12 +61,12 @@ export async function connect(options: connectionOptionsType): Promise<oracledb.
 *	Disconnect from database
 */
 export async function disconnect(connection: oracledb.Connection, options: connectionOptionsType): Promise<string | undefined> {
-	debug(`Disconnect from "${options.connection}" as "${options.username}"`);
+	debug(`Disconnect from "${options.connectionString}" as "${options.username}"`);
 
 	try {
 		connection.close();
 	} catch (e: unknown) {
-		const message = `Unable to disconnect from "${options.connection}" as "${options.username}"`;
+		const message = `Unable to disconnect from "${options.connectionString}" as "${options.username}"`;
 		debug(message, e);
 		return message + '\n' + (e as Error).message;
 	}

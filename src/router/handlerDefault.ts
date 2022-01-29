@@ -3,7 +3,7 @@ import debugModule from 'debug';
 import {statsLoad} from '../statsStore.js';
 import {getPage} from '../pages/pageDefault/index.js';
 
-import type {configType} from '../config.js';
+import type {configType} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:handlerDefault');
 

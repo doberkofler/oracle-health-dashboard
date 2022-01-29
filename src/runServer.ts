@@ -1,9 +1,9 @@
 import debugModule from 'debug';
 import {spawn, Thread, Worker} from 'threads';
-import {configLoad} from './config.js';
+import {configLoad} from './config/config.js';
+import {installShutdown} from './shutdown.js';
 import {gathererInitial} from './gatherer/initialize.js';
 import {serverStart, serverStop} from './server.js';
-import {installShutdown} from './shutdown.js';
 
 import type {Gatherer} from './gatherer/gathererWorker';
 

@@ -35,5 +35,6 @@ yargs(hideBin(process.argv))
 		type: 'string',
 	})
 	.demandCommand()
+	.strict()
 	.help()
 	.argv;

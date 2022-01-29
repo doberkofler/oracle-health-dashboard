@@ -1,13 +1,19 @@
 import debugModule from 'debug';
-import {connect, disconnect} from './oracle.js';
-import {isMultitenant} from './databaseWorker.js';
+import {probe} from '../util/probe.js';
+import {getConnectionString, connect, disconnect} from './oracle.js';
 
-import type {databaseType, configType} from '../config';
+import type {configType} from '../config/config';
 import type {connectionOptionsType} from './oracle.js';
 
 const debug = debugModule('oracle-health-dashboard:databasePing');
 
-export type pingStatusType = {
+type pingType = {
+	title: string,
+	address: string,
+	connection: connectionOptionsType,
+};
+
+export type pingResultType = {
 	totalCount: number,
 	successCount: number,
 };
@@ -16,63 +22,90 @@ export type pingStatusType = {
  * Ping all connections.
  *
  * @param {configType} config - The configuration object.
- * @returns {Promise<pingStatusType>} - A promise that resolves when done.
+ * @returns {Promise<pingResultType>} - A promise that resolves when done.
  */
-export async function ping(config: configType): Promise<pingStatusType> {
+export async function ping(config: configType): Promise<pingResultType> {
 	debug('ping');
 
-	const queryPromises = config.databases.filter(database => database.enabled).map(doPing);
-	const statuses = await Promise.all(queryPromises);
+	const pings = [] as pingType[];
 
-	const status = {
-		totalCount: 0,
-		successCount: 0,
-	};
-	statuses.forEach(e => {
-		status.totalCount += e.totalCount;
-		status.successCount += e.successCount;
+	// process hosts
+	config.hosts.filter(host => host.enabled).forEach(host => {
+		// container database
+		host.databases.filter(database => database.enabled).forEach(database => {
+			if (database.containerDatabase) {
+				const connectionString = getConnectionString(host.address, database.containerDatabase.port, database.containerDatabase.service);
+				pings.push({
+					title:  `Attempting to connect with database "${database.name}" as "${database.containerDatabase.username}" using "${connectionString}"`,
+					address: host.address,
+					connection: {
+						connectionString,
+						username: database.containerDatabase.username,
+						password: database.containerDatabase.password,
+					},
+				});
+			}
+
+			// single or pluggable database
+			const connectionString = getConnectionString(host.address, database.port, database.service);
+			pings.push({
+				title:  `Attempting to connect with database "${database.name}" as "${database.username}" using "${connectionString}"`,
+				address: host.address,
+				connection: {
+					connectionString,
+					username: database.username,
+					password: database.password,
+				},
+			});
+
+			// process schemas
+			database.schemas.filter(schema => schema.enabled).forEach(schema => {
+				const connectionString = getConnectionString(host.address, database.port, database.service);
+				pings.push({
+					title:  `Attempting to connect with database "${database.name}" as "${schema.username}" using "${connectionString}"`,
+					address: host.address,
+					connection: {
+						connectionString,
+						username: schema.username,
+						password: schema.password,
+					},
+				});
+			});
+		});
 	});
 
-	return status;
-}
-
-/**
- * Ping a connection.
- */
-export async function doPing(database: databaseType): Promise<pingStatusType> {
-	let success = false;
+	// process all pings sequencially
 	const status = {
-		totalCount: 0,
+		totalCount: pings.length,
 		successCount: 0,
 	};
+	for (let i = 0; i < pings.length; i++) {
+		const ping = pings[i];
 
-	// are we dealing with a multitenant architecture
-	const multitenant = isMultitenant(database);
+		process.stdout.write('\n');
+		process.stdout.write(ping.title);
 
-	// connect with CDB
-	if (multitenant) {
-		status.totalCount++;
-		success = await doConnect(database.hostName, database.databaseName, database.cdbConnect);
-		if (success) {
-			status.successCount++;
+		let message = 'success';
+
+		// probe the host
+		ttyWrite(ping.title.length, ' - probing ...');
+		const hostAlive = await probe(ping.address);
+		if (!hostAlive) {
+			message = `error connecting to host "${ping.address}"`;
+		} else {
+			ttyWrite(ping.title.length, ' - connecting ...');
+			const success = await connectionTest(ping.connection);
+			if (success) {
+				status.successCount++;
+			} else {
+				message = 'error';
+			}
 		}
+
+		ttyWrite(ping.title.length, ' - ' + message);
 	}
 
-	// connect with PDB
-	success = await doConnect(database.hostName, database.databaseName, database.pdbConnect);
-	status.totalCount++;
-	if (success) {
-		status.successCount++;
-	}
-
-	// connect with schema
-	if (database.schemaName.length > 0) {
-		success = await doConnect(database.hostName, database.databaseName, database.schemaConnect);
-		status.totalCount++;
-		if (success) {
-			status.successCount++;
-		}
-	}
+	process.stdout.write('\n');
 
 	return status;
 }
@@ -80,18 +113,19 @@ export async function doPing(database: databaseType): Promise<pingStatusType> {
 /*
 *	Connect test
 */
-async function doConnect(hostName: string, databaseName: string, connectOptions: connectionOptionsType): Promise<boolean> {
-	const message = `Ping host "${hostName}" with database "${databaseName}" as "${connectOptions.username}" using "${connectOptions.connection}"`;
-
-	const connection = await connect(connectOptions);
+async function connectionTest(options: connectionOptionsType): Promise<boolean> {
+	const connection = await connect(options);
 	if (typeof connection === 'string') {
-		console.log(`${message} - error`);
 		return false;
 	}
 	
-	await disconnect(connection, connectOptions);
-
-	console.log(`${message} - success`);
+	await disconnect(connection, options);
 
 	return true;
 }
+
+const ttyWrite = (x: number, text: string): void => {
+	process.stdout.cursorTo(x);
+	process.stdout.clearLine(1);
+	process.stdout.write(text);
+};

@@ -3,7 +3,10 @@ import oracledb from 'oracledb';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {getStatus} from './databaseWorker.js';
 import {statsInitial} from '../statsStore.js';
-import type {databaseKeyType, databaseType, configType} from '../config';
+import {getConnectionDatabase} from '../config/connection.js';
+
+import type {configType, configHostType, configDatabaseType} from '../config/config.js';
+import type {statsKeyType} from '../statsStore.js';
 import type {statusType} from './databaseWorker.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
@@ -17,7 +20,7 @@ export type sqlInitialType = {
 	oracle_pga_aggregate_target: string,
 };
 
-export type initialGatherType = databaseKeyType & {
+export type initialGatherType = statsKeyType & {
 	status: statusType,
 	statics?: sqlInitialType,
 };
@@ -77,17 +80,21 @@ END;`;
  * @returns {Promise<void>} - A promise that resolves when done.
  */
 export async function gathererInitial(config: configType): Promise<void> {
-	debug('gathererInitial');
+	debug('gathererInitial', config);
 
-	const queryPromises = config.databases.filter(database => database.enabled).map(gatherInitialize);
+	const queryPromises: Promise<initialGatherType>[] = [];
+	config.hosts.forEach(host => {
+		host.databases.forEach(database => {
+			queryPromises.push(gatherInitialize(host, database));
+		});
+	});
+
 	const queryResults = await Promise.all(queryPromises);
 
 	const stats = queryResults.map(e => {
 		return {
-			id: e.id,
 			hostName: e.hostName,
 			databaseName: e.databaseName,
-			schemaName: e.schemaName,
 			statics: e.statics,
 		};
 	});
@@ -95,24 +102,23 @@ export async function gathererInitial(config: configType): Promise<void> {
 	statsInitial(stats);
 }
 
-/**
+/*
  * get statistics from CDB.
  */
-async function gatherInitialize(database: databaseType): Promise<initialGatherType> {
-	const title = `Gathering initial data on host "${database.hostName}" with database "${database.databaseName}" as "${database.cdbConnect.username}" using "${database.cdbConnect.connection}"`;
+async function gatherInitialize(host: configHostType, database: configDatabaseType): Promise<initialGatherType> {
+	const connectionOptions = getConnectionDatabase(host, database);
+	const title = `Gathering initial data on host "${host.name}" with database "${database.name}" as "${connectionOptions.username}" using "${connectionOptions.connectionString}"`;
 
 	debug(title);
 
 	const data: initialGatherType = {
-		id: database.id,
-		hostName: database.hostName,
-		databaseName: database.databaseName,
-		schemaName: database.schemaName,
+		hostName: host.name,
+		databaseName: database.name,
 		status: getStatus(true),
 	};
 
 	// connect
-	const connection = await connect(database.cdbConnect);
+	const connection = await connect(connectionOptions);
 	if (typeof connection === 'string') {
 		console.log(`${title}: error`);
 		data.status = getStatus(false, connection);
@@ -128,7 +134,7 @@ async function gatherInitialize(database: databaseType): Promise<initialGatherTy
 	}
 
 	// disconnect
-	const result = disconnect(connection, database.cdbConnect);
+	const result = disconnect(connection, connectionOptions);
 	if (typeof result === 'string') {
 		console.log(`${title}: cannot disconnect`);
 		data.status = getStatus(false, result);

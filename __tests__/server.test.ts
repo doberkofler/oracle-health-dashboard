@@ -12,8 +12,7 @@ describe('server', () => {
 		const config = {
 			http_port: 12345,
 			pollingSeconds: 60,
-			pollSchema: true,
-			databases: [],
+			hosts: [],
 		};
 
 		statsInitial([]);
@@ -30,8 +29,8 @@ describe('server', () => {
 		expect(response.statusCode).toBe(200);
 	});
 
-	it('handlerDebug', async () => {
-		const response = await request(app).get('/debug').send({});
+	it('handlerConfig', async () => {
+		const response = await request(app).get('/config').send({});
 		expect(response.statusCode).toBe(200);
 	});
 });

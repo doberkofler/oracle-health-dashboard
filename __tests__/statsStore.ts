@@ -7,10 +7,8 @@ const FILENAME = 'db.json';
 describe('statsInitial', () => {
 	it('initializes the statistics database', () => {
 		statsInitial([{
-			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
-			schemaName: '',
 		}]);
 
 		const stats = jsonLoad(FILENAME);
@@ -18,10 +16,8 @@ describe('statsInitial', () => {
 			magic: 'MAGIC',
 			version: 1,
 			databases: [{
-				id: 1,
 				hostName: 'host',
 				databaseName: 'database',
-				schemaName: '',
 				metrics: [],
 			}],
 		});
@@ -31,18 +27,14 @@ describe('statsInitial', () => {
 describe('statsLoad', () => {
 	it('loads the statistics from the database', () => {
 		statsInitial([{
-			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
-			schemaName: '',
 		}]);
 
 		const stats = statsLoad();
 		expect(stats).toStrictEqual([{
-			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
-			schemaName: '',
 			metrics: [],
 		}]);
 	});
@@ -114,28 +106,22 @@ describe('statsAdd', () => {
 		};
 
 		statsInitial([{
-			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
-			schemaName: '',
 			statics,
 		}]);
 
 		statsAdd([{
-			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
-			schemaName: '',
 			status,
 			metric,
 		}]);
 
 		const stats = statsLoad();
 		expect(stats).toStrictEqual([{
-			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
-			schemaName: '',
 			metrics: [Object.assign({}, metric, status)],
 			statics,
 		}]);
@@ -174,19 +160,15 @@ describe('statsAdd', () => {
 		};
 
 		statsInitial([{
-			id: 1,
 			hostName: 'host',
 			databaseName: 'database',
-			schemaName: '',
 			statics,
 		}]);
 
 		expect(() => {
 			statsAdd([{
-				id: 2,
 				hostName: 'host',
-				databaseName: 'database',
-				schemaName: '',
+				databaseName: 'Tatabase',
 				status,
 				metric,
 			}]);

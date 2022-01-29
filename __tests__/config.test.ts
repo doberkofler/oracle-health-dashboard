@@ -1,10 +1,8 @@
-import {configLoad, validateConfig} from '../src/config.js';
-import type {configType} from '../src/config.js';
+import {configLoad, validateConfig} from '../src/config/config.js';
 
 describe('configLoad', () => {
 	it('loads the configuration and returns a validated configuration object or throws an error', () => {
-		expect(() => configLoad()).not.toThrow();
-		expect(configLoad('./__tests__/config.test.json')).toStrictEqual({http_port: 80, pollingSeconds: 60, databases: []});
+		expect(configLoad('./__tests__/config.test.json')).toStrictEqual({http_port: 80, pollingSeconds: 60, hosts: []});
 	});
 });
 
@@ -12,29 +10,34 @@ describe('validateConfig', () => {
 	it('returns a validated configuration object', () => {
 		expect(validateConfig({
 			hosts: [],
-		})).toStrictEqual({http_port: 80, pollingSeconds: 60, databases: []});
+		})).toStrictEqual({http_port: 80, pollingSeconds: 60, hosts: []});
 
 		expect(validateConfig({
 			http_port: 9090,
 			pollingSeconds: 90,
 			hosts: [],
-		})).toStrictEqual({http_port: 9090, pollingSeconds: 90, databases: []});
+		})).toStrictEqual({http_port: 9090, pollingSeconds: 90, hosts: []});
 
 		expect(validateConfig({
 			hosts: [{
 				enabled: true,
 				name: 'name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [],
 			}]
-		})).toStrictEqual({http_port: 80, pollingSeconds: 60, databases: []});
+		})).toStrictEqual({http_port: 80, pollingSeconds: 60, hosts: [{
+			enabled: true,
+			name: 'name',
+			address: '127.0.0.1',
+			databases: [],
+		}]});
 
-		// without schemas
+		// without container database
 		expect(validateConfig({
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -44,38 +47,14 @@ describe('validateConfig', () => {
 					password: 'database_password',
 					schemas: [],
 				}],
-			}]
+			}],
 		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				enabled: true,
-			}]
-		});
-
-		// without container database
-		expect(validateConfig({
+			http_port: 80,
+			pollingSeconds: 60,
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -83,38 +62,10 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					schemas: [{
-						enabled: true,
-						name: 'schema_name',
-						username: 'schema_username',
-						password: 'schema_password',
-					}],
-				
+					containerDatabase: null,
+					schemas: [],
 				}],
-			}]
-		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: 'schema_name',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'schema_username',
-					password: 'schema_password',
-				},
-				enabled: true,
-			}]
+			}],
 		});
 
 		// with container database
@@ -122,7 +73,7 @@ describe('validateConfig', () => {
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -138,30 +89,30 @@ describe('validateConfig', () => {
 					},
 					schemas: [],
 				}],
-			}]
+			}],
 		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/container_service',
-					username: 'container_username',
-					password: 'container_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
+			http_port: 80,
+			pollingSeconds: 60,
+			hosts: [{
 				enabled: true,
-			}]
+				name: 'host_name',
+				address: '127.0.0.1',
+				databases: [{
+					enabled: true,
+					name: 'database_name',
+					port: 1521,
+					service: 'database_service',
+					username: 'database_username',
+					password: 'database_password',
+					containerDatabase: {
+						port: 1521,
+						service: 'container_service',
+						username: 'container_username',
+						password: 'container_password',
+					},
+					schemas: [],
+				}],
+			}],
 		});
 
 		// with container database port
@@ -169,7 +120,7 @@ describe('validateConfig', () => {
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -184,28 +135,28 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1522/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
+			http_port: 80,
+			pollingSeconds: 60,
+			hosts: [{
 				enabled: true,
-			}]
+				name: 'host_name',
+				address: '127.0.0.1',
+				databases: [{
+					enabled: true,
+					name: 'database_name',
+					port: 1521,
+					service: 'database_service',
+					username: 'database_username',
+					password: 'database_password',
+					containerDatabase: {
+						port: 1522,
+						service: 'database_service',
+						username: 'database_username',
+						password: 'database_password',
+					},
+					schemas: [],
+				}],
+			}],
 		});
 
 		// with container database service
@@ -213,7 +164,7 @@ describe('validateConfig', () => {
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -228,28 +179,28 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/container_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
+			http_port: 80,
+			pollingSeconds: 60,
+			hosts: [{
 				enabled: true,
-			}]
+				name: 'host_name',
+				address: '127.0.0.1',
+				databases: [{
+					enabled: true,
+					name: 'database_name',
+					port: 1521,
+					service: 'database_service',
+					username: 'database_username',
+					password: 'database_password',
+					containerDatabase: {
+						port: 1521,
+						service: 'container_service',
+						username: 'database_username',
+						password: 'database_password',
+					},
+					schemas: [],
+				}],
+			}],
 		});
 
 		// with container database username
@@ -257,7 +208,7 @@ describe('validateConfig', () => {
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -272,28 +223,28 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'container_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
+			http_port: 80,
+			pollingSeconds: 60,
+			hosts: [{
 				enabled: true,
-			}]
+				name: 'host_name',
+				address: '127.0.0.1',
+				databases: [{
+					enabled: true,
+					name: 'database_name',
+					port: 1521,
+					service: 'database_service',
+					username: 'database_username',
+					password: 'database_password',
+					containerDatabase: {
+						port: 1521,
+						service: 'database_service',
+						username: 'container_username',
+						password: 'database_password',
+					},
+					schemas: [],
+				}],
+			}],
 		});
 
 		// with container database password
@@ -301,7 +252,7 @@ describe('validateConfig', () => {
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -316,36 +267,12 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'container_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				enabled: true,
-			}]
-		});
-
-		// host not enabled
-		expect(validateConfig({
+			http_port: 80,
+			pollingSeconds: 60,
 			hosts: [{
-				enabled: false,
+				enabled: true,
 				name: 'host_name',
-				host: '127.0.0.1',
+				address: '127.0.0.1',
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -353,117 +280,15 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
+					containerDatabase: {
+						port: 1521,
+						service: 'database_service',
+						username: 'database_username',
+						password: 'container_password',
+					},
 					schemas: [],
 				}],
-			}]
-		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				enabled: false,
-			}]
-		});
-
-		// database not enabled
-		expect(validateConfig({
-			hosts: [{
-				name: 'host_name',
-				host: '127.0.0.1',
-				databases: [{
-					enabled: false,
-					name: 'database_name',
-					port: 1521,
-					service: 'database_service',
-					username: 'database_username',
-					password: 'database_password',
-					schemas: [],
-				}],
-			}]
-		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: '',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				enabled: false,
-			}]
-		});
-
-		// schema not enabled
-		expect(validateConfig({
-			hosts: [{
-				name: 'host_name',
-				host: '127.0.0.1',
-				databases: [{
-					name: 'database_name',
-					port: 1521,
-					service: 'database_service',
-					username: 'database_username',
-					password: 'database_password',
-					schemas: [{
-						enabled: false,
-						name: 'schema_name',
-						username: 'schema_username',
-						password: 'schema_password',
-					}],
-				
-				}],
-			}]
-		})).toStrictEqual({
-			http_port: 80, pollingSeconds: 60, databases: [{
-				id: 1,
-				hostName: 'host_name',
-				databaseName: 'database_name',
-				schemaName: 'schema_name',
-				cdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				pdbConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'database_username',
-					password: 'database_password',
-				},
-				schemaConnect: {
-					connection: '127.0.0.1:1521/database_service',
-					username: 'schema_username',
-					password: 'schema_password',
-				},
-				enabled: false,
-			}]
+			}],
 		});
 	});
 
@@ -474,28 +299,29 @@ describe('validateConfig', () => {
 			[{hosts: ''}, 'The configuration has no property "hosts" of type array'],
 			[{hosts: [{enabled: ''}]}, '"enabled" must be boolean: "hosts[0]"'],
 			[{hosts: [{name: ''}]}, '"name" must be non-empty string: "hosts[0]"'],
-			[{hosts: [{name: 'n', host: '', databases: []}]}, '"host" must be non-empty string: "hosts[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: ''}]}, '"databases" must be an array: "hosts[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: ''}]}]}, '"enabled" must be boolean: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: ''}]}]}, '"name" must be non-empty string: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: ''}]}]}, '"port" must be integer between 1 and 65536: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: ''}]}]}, '"service" must be non-empty string: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: ''}]}]}, '"username" must be non-empty string: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: ''}]}]}, '"password" must be non-empty string: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p'}]}]}, '"schemas" must be an array: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: ''}]}]}]}, '"enabled" must be boolean: "hosts[0].databases[0].schemas[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: true, name: ''}]}]}]}, '"name" must be non-empty string: "hosts[0].databases[0].schemas[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: true, name: 'n', username: ''}]}]}]}, '"username" must be non-empty string: "hosts[0].databases[0].schemas[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: true, name: 'n', username: 'u', password: ''}]}]}]}, '"password" must be non-empty string: "hosts[0].databases[0].schemas[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: ''}]}]}, '"containerDatabase" must be an object: "hosts[0].databases[0]"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: ''}}]}]}, '"port" must be integer between 1 and 65536: "hosts[0].databases[0].containerDatabase"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: 1521, service: ''}}]}]}, '"service" must be non-empty string: "hosts[0].databases[0].containerDatabase"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: 1521, service: 's', username: ''}}]}]}, '"username" must be non-empty string: "hosts[0].databases[0].containerDatabase"'],
-			[{hosts: [{name: 'n', host: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: 1521, service: 's', username: 'u', password: ''}}]}]}, '"password" must be non-empty string: "hosts[0].databases[0].containerDatabase"'],
+			[{hosts: [{name: 'n', address: '', databases: []}]}, '"address" must be non-empty string: "hosts[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: ''}]}, '"databases" must be an array: "hosts[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: ''}]}]}, '"enabled" must be boolean: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: ''}]}]}, '"name" must be non-empty string: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: ''}]}]}, '"port" must be integer between 1 and 65536: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: ''}]}]}, '"service" must be non-empty string: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: ''}]}]}, '"username" must be non-empty string: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: ''}]}]}, '"password" must be non-empty string: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p'}]}]}, '"schemas" must be an array: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: ''}]}]}]}, '"enabled" must be boolean: "hosts[0].databases[0].schemas[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: true, name: ''}]}]}]}, '"name" must be non-empty string: "hosts[0].databases[0].schemas[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: true, name: 'n', username: ''}]}]}]}, '"username" must be non-empty string: "hosts[0].databases[0].schemas[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [{enabled: true, name: 'n', username: 'u', password: ''}]}]}]}, '"password" must be non-empty string: "hosts[0].databases[0].schemas[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: ''}]}]}, '"containerDatabase" must be an object: "hosts[0].databases[0]"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: ''}}]}]}, '"port" must be integer between 1 and 65536: "hosts[0].databases[0].containerDatabase"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: 1521, service: ''}}]}]}, '"service" must be non-empty string: "hosts[0].databases[0].containerDatabase"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: 1521, service: 's', username: ''}}]}]}, '"username" must be non-empty string: "hosts[0].databases[0].containerDatabase"'],
+			[{hosts: [{name: 'n', address: 'h', databases: [{enabled: true, name: 'n', port: 1, service: 's', username: 'u', password: 'p', schemas: [], containerDatabase: {port: 1521, service: 's', username: 'u', password: ''}}]}]}, '"password" must be non-empty string: "hosts[0].databases[0].containerDatabase"'],
 		];
 
 		tests.forEach(test => {
-			expect(() => validateConfig(test[0] as unknown as configType)).toThrow(test[1]);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			expect(() => validateConfig(test[0] as any)).toThrow(test[1]);
 		});
 	});
 });

@@ -1,42 +1,36 @@
 import debugModule from 'debug';
 import {getHtmlPage} from '../../html/html.js';
+import {flatten} from '../../config/flatten.js';
+import {getConnectionAsString} from '../../gatherer/oracle.js';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server.js';
 
-import type {configType, databaseType} from '../../config.js';
-import type {connectionOptionsType} from '../../gatherer/oracle.js';
-
-type enhancedDatabaseType = databaseType & {
-	hostSwitch: boolean,
-	hostSchemaCount: number,
-	databaseSwitch: boolean,
-	databaseSchemaCount: number,
-};
+import type {configType} from '../../config/config.js';
+import type {flattenedType} from '../../config/flatten.js';
 
 const debug = debugModule('oracle-health-dashboard:handlerConfig');
 
 const borderLine = '2px solid #ddd';
 
-/*
-*	get page
-*/
 export function getPage(config: configType): string {
 	debug('getPage');
 
-	const databases = enhanceDatabases(config.databases);
-	const app = ReactDOMServer.renderToString(<Page databases={databases} />);
+	const rows = flatten(config.hosts);
+	const app = ReactDOMServer.renderToString(<Page rows={rows} />);
 	const html = getHtmlPage('Configuration', `<div id="root">${app}</div>`, {
 		includeBootstrap: false,
 	});
 
 	return html;
+
+	return getHtmlPage('Configuration', JSON.stringify(config));
 }
 
-const Page = ({databases}: {databases: enhancedDatabaseType[]}): JSX.Element => {
+const Page = ({rows}: {rows: flattenedType[]}): JSX.Element => {
 	return (
 		<table className="main" style={{borderCollapse: 'collapse', width: '100%'}}>
 			<Header />
-			{databases.map(database => <Row key={database.id.toString()} database={database} />)}
+			{rows.map(row => <Row key={row.id.toString()} row={row} />)}
 		</table>
 	);
 };
@@ -59,21 +53,21 @@ const HeaderColumn = ({title, width}: {title: string, width: string}): JSX.Eleme
 	);
 };
 
-const Row = ({database}: {database: enhancedDatabaseType}): JSX.Element => {
+const Row = ({row}: {row: flattenedType}): JSX.Element => {
 	return (
 		<tr>
-			<Host database={database} />
-			<Database database={database} />
-			<Schema database={database} />
+			<Host row={row} />
+			<Database row={row} />
+			<Schema row={row} />
 		</tr>
 	);
 };
 
-const Host = ({database}: {database: enhancedDatabaseType}): JSX.Element | null => {
-	if (database.hostSwitch) {
+const Host = ({row}: {row: flattenedType}): JSX.Element | null => {
+	if (row.hostSwitch) {
 		return (
-			<td rowSpan={database.hostSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
-				<h1>{database.hostName}</h1>
+			<td rowSpan={row.hostSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
+				<h1>{row.hostName}</h1>
 			</td>
 		);
 	} else {
@@ -81,21 +75,13 @@ const Host = ({database}: {database: enhancedDatabaseType}): JSX.Element | null 
 	}
 };
 
-const Database = ({database}: {database: enhancedDatabaseType}): JSX.Element | null => {
-	if (database.databaseSwitch) {
-		const cdb = getConnection(database.cdbConnect);
-		const pdb = getConnection(database.pdbConnect);
-	
-		let connection;
-		if (cdb === pdb) {
-			connection = cdb;
-		} else {
-			connection = 'CDB:&nbsp;' + cdb + '<br/>' + 'PDB:&nbsp;' + pdb;
-		}
+const Database = ({row}: {row: flattenedType}): JSX.Element | null => {
+	if (row.databaseSwitch) {
+		const connection = row.containerConnection ? `CDB:&nbsp;${getConnectionAsString(row.containerConnection)}<br/>PDB:&nbsp;${getConnectionAsString(row.databaseConnection)}` : getConnectionAsString(row.databaseConnection);
 
 		return (
-			<td rowSpan={database.databaseSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
-				<h2>{database.databaseName}</h2>
+			<td rowSpan={row.databaseSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
+				<h2>{row.databaseName}</h2>
 				{connection.toLocaleLowerCase()}
 			</td>
 		);
@@ -104,58 +90,13 @@ const Database = ({database}: {database: enhancedDatabaseType}): JSX.Element | n
 	}
 };
 
-const Schema = ({database}: {database: enhancedDatabaseType}): JSX.Element => {
-	const connection = getConnection(database.schemaConnect); 
+const Schema = ({row}: {row: flattenedType}): JSX.Element => {
+	const connection = getConnectionAsString(row.schemaConnection); 
 
 	return (
 		<td style={{borderBottom: borderLine, padding: '8px'}}>
-			<h3>{database.schemaName}</h3>
+			<h3>{row.schemaName}</h3>
 			{connection.toLocaleLowerCase()}
 		</td>
 	);
-};
-
-const getConnection = (connection: connectionOptionsType): string => {
-	return `${connection.username}/${connection.password}@${connection.connection}`;
-};
-
-const enhanceDatabases = (databases: databaseType[]): enhancedDatabaseType[] => {
-	const sortedDatabases = databases.sort(compareDatabase);
-
-	let lastHostName = '';
-	let lastDatabaseName = '';
-
-	return sortedDatabases.map(database => {
-		let hostSwitch = false;
-		let hostSchemaCount = 0;
-		let databaseSwitch = false;
-		let databaseSchemaCount = 0;
-
-		if (database.hostName !== lastHostName) {
-			lastHostName = database.hostName;
-			lastDatabaseName = '';
-
-			hostSwitch = true;
-			hostSchemaCount = sortedDatabases.filter(e => e.hostName === database.hostName).length;
-		}
-		
-		if (database.databaseName !== lastDatabaseName) {
-			lastDatabaseName = database.databaseName;
-
-			databaseSwitch = true;
-			databaseSchemaCount = sortedDatabases.filter(e => e.hostName === database.hostName && e.databaseName === database.databaseName).length;
-		}
-
-		return {...database, hostSwitch, hostSchemaCount, databaseSwitch, databaseSchemaCount};
-	});
-};
-
-const compareDatabase = (a: databaseType, b: databaseType): number => {
-	if (a.hostName != b.hostName) {
-		return a.hostName.localeCompare(b.hostName);
-	} if (a.databaseName != b.databaseName) {
-		return a.databaseName.localeCompare(b.databaseName);
-	} else {
-		return a.schemaName.localeCompare(b.schemaName);
-	}
 };

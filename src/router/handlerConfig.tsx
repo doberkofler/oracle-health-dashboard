@@ -2,7 +2,7 @@ import express from 'express';
 import debugModule from 'debug';
 import {getPage} from '../pages/pageConfig/index.js';
 
-import type {configType} from '../config.js';
+import type {configType} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:handlerConfig');
 

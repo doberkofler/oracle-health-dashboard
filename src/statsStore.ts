@@ -1,6 +1,5 @@
 import {jsonLoad, jsonSave} from './util/files.js';
 import {inspect} from './util/util.js';
-import type {databaseKeyType} from './config';
 import type {statusType, metricType} from './gatherer/databaseWorker.js';
 import type {sqlInitialType} from './gatherer/initialize.js';
 
@@ -10,18 +9,23 @@ const VERSION = 1;
 // Use JSON file for storage
 const FILENAME = 'db.json';
 
-export type statsInitialType = databaseKeyType & {
+export type statsKeyType = {
+	hostName: string,
+	databaseName: string,
+};
+
+export type statsInitialType = statsKeyType & {
 	statics?: sqlInitialType,
 };
 
-export type statsAddDataType = databaseKeyType & {
+export type statsAddDataType = statsKeyType & {
 	status: statusType,
 	metric: metricType,
 };
 
 export type statusMetricType = statusType & metricType;
 
-export type statsDatabaseType = databaseKeyType & {
+export type statsDatabaseType = statsKeyType & {
 	statics?: sqlInitialType,
 	metrics: statusMetricType[],
 };
@@ -32,36 +36,6 @@ export type statsType = {
 	databases: statsDatabaseType[],
 };
 
-/*
-export type cdbStatsExportType = {
-	name: string,
-	database_version: string,
-	values: [
-		Date, 			// timestamp
-		boolean,		// status
-		string,			// message
-		Date | null,	// server_date
-		number | null,	// number_of_sessions
-		number | null,	// host_cpu_utilization
-		number | null,	// io_requests_per_second
-		number | null,	// buffer_cache_hit_ratio
-		number | null,	// executions_per_sec
-		number | null,	// flashback_percentage
-		Date | null,	// last_successful_rman_backup_date_full_db
-		Date | null,	// last_successful_rman_backup_date_archive_log
-		Date | null,	// last_rman_backup_date_full_db
-		Date | null,	// last_rman_backup_date_archive_log
-	],
-};
-
-export type statsExportType = {
-	magic: string,
-	version: number,
-	dict: string[],
-	data: cdbStatsExportType[],
-};
-*/
-
 /**
  * Initialize statistics.
  *
@@ -69,10 +43,8 @@ export type statsExportType = {
  */
 export function statsInitial(data: statsInitialType[]): void {
 	const database: statsDatabaseType[] = data.map(e => ({
-		id: e.id,
 		hostName: e.hostName,
 		databaseName: e.databaseName,
-		schemaName: e.schemaName,
 		statics: e.statics,
 		metrics: [],
 	}));
@@ -115,9 +87,9 @@ export function statsAdd(newData: statsAddDataType[]): void {
 	const oldDatabase = statsLoad();
 
 	newData.forEach(e => {
-		const database = oldDatabase.find(ee => ee.id === e.id);
+		const database = oldDatabase.find(ee => ee.hostName === e.hostName && ee.databaseName === e.databaseName);
 		if (!database) {
-			throw new Error(`Unable to find database with id "${e.id}" in "${inspect(oldDatabase)}"`);
+			throw new Error(`Unable to find database with hostName "${e.hostName}" and databaseName ${e.databaseName} in "${inspect(oldDatabase)}"`);
 		}
 
 		const metric = Object.assign({}, e.metric, e.status);

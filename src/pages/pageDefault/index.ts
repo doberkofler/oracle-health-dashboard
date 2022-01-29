@@ -37,7 +37,7 @@ function renderDatabase(html: Array<string>, database: statsDatabaseType) {
 	const noOfSessions = metric && typeof metric.no_of_sessions === 'number' ? metric.no_of_sessions.toFixed() : '-';
 	const cpu = metric && typeof metric.host_cpu_utilization === 'number' ? metric.host_cpu_utilization.toFixed() + '%' : '-';
 
-	debug('renderDatabase', inspect({host: database.hostName, database: database.databaseName/*, schema: database.schemaName*/, metric}));
+	debug('renderDatabase', inspect({host: database.hostName, database: database.databaseName, metric}));
 
 	html.push('<div class="dashboard-card">');
 	html.push(	'<div class="card support-bar overflow-hidden card-height">');
@@ -71,10 +71,12 @@ function getDatabaseName(html: Array<string>, database: statsDatabaseType): void
 	html.push(	`<div>${database.hostName}</div>`);
 	html.push(	'<div>database:</div>');
 	html.push(	`<div>${database.databaseName}</div>`);
+	/* TODO:
 	if (database.schemaName !== '') {
 		html.push(	'<div>schema:</div>');
 		html.push(	`<div>${database.schemaName}</div>`);
 	}
+	*/
 	html.push('</div>');
 }
 

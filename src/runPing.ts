@@ -1,5 +1,5 @@
 import debugModule from 'debug';
-import {configLoad} from './config.js';
+import {configLoad} from './config/config.js';
 import {ping} from './gatherer/databasePing.js';
 import {installShutdown} from './shutdown.js';
 

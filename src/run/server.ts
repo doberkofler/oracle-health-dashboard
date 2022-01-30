@@ -1,11 +1,11 @@
 import debugModule from 'debug';
 import {spawn, Thread, Worker} from 'threads';
-import {configLoad} from './config/config.js';
-import {installShutdown} from './shutdown.js';
-import {gathererInitial} from './gatherer/initialize.js';
-import {serverStart, serverStop} from './server.js';
+import {configLoad} from '../config/config.js';
+import {installShutdown} from '../shutdown.js';
+import {gathererInitial} from '../database/initialize.js';
+import {serverStart, serverStop} from '../server.js';
 
-import type {Gatherer} from './gatherer/gathererWorker';
+import type {Gatherer} from '../gatherer/gatherer';
 
 const debug = debugModule('oracle-health-dashboard:runserver');
 
@@ -25,7 +25,7 @@ export async function runServer(configFilename: string) {
 
 	// start gatherer thread
 	debug('start gatherer thread');
-	const gatherer = await spawn<Gatherer>(new Worker('./gatherer/gathererWorker'));
+	const gatherer = await spawn<Gatherer>(new Worker('../gatherer/gatherer'));
 	await gatherer(config);
 
 	// start srever

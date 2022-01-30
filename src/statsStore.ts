@@ -1,7 +1,7 @@
 import {jsonLoad, jsonSave} from './util/files.js';
 import {inspect} from './util/util.js';
-import type {statusType, metricType} from './gatherer/databaseWorker.js';
-import type {sqlInitialType} from './gatherer/initialize.js';
+import type {statusType, metricType} from './database/worker.js';
+import type {sqlInitialType} from './database/initialize.js';
 
 const MAGIC = 'MAGIC';
 const VERSION = 1;

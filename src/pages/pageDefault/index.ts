@@ -2,7 +2,7 @@ import {isDate, distanceToString, numberToString, timestampToString, inspect} fr
 import {getHtmlPage} from '../../html/html.js';
 import debugModule from 'debug';
 
-import type {sqlInitialType} from '../../gatherer/initialize.js';
+import type {sqlInitialType} from '../../database/initialize.js';
 import type {statsDatabaseType, statusMetricType} from '../../statsStore';
 
 const debug = debugModule('oracle-health-dashboard:pageDefault');

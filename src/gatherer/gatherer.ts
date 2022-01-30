@@ -1,11 +1,11 @@
 import debugModule from 'debug';
 import {expose} from 'threads/worker';
 import {statsAdd} from '../statsStore.js';
-import {gatherPeriodic} from './databaseWorker.js';
+import {gatherPeriodic} from '../database/worker.js';
 import {inspect} from '../util/util.js';
 
 import type {configType} from '../config/config.js';
-import type {periodicGatherType} from './databaseWorker.js';
+import type {periodicGatherType} from '../database/worker.js';
 
 const debug = debugModule('oracle-health-dashboard:gatherer');
 

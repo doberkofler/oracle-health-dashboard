@@ -1,6 +1,7 @@
 import debugModule from 'debug';
 import {probe} from '../util/probe.js';
 import {getConnectionString, connect, disconnect} from './oracle.js';
+import {write, writeNewLine, writeStrtingOnColumn} from '../util/tty.js';
 
 import type {configType} from '../config/config';
 import type {connectionOptionsType} from './oracle.js';
@@ -82,18 +83,17 @@ export async function ping(config: configType): Promise<pingResultType> {
 	for (let i = 0; i < pings.length; i++) {
 		const ping = pings[i];
 
-		process.stdout.write('\n');
-		process.stdout.write(ping.title);
+		write('\n' + ping.title);
 
 		let message = 'success';
 
 		// probe the host
-		ttyWrite(ping.title.length, ' - probing ...');
+		writeStrtingOnColumn(' - probing ...', ping.title.length);
 		const hostAlive = await probe(ping.address);
 		if (!hostAlive) {
-			message = `error connecting to host "${ping.address}"`;
+			message = 'host not alive';
 		} else {
-			ttyWrite(ping.title.length, ' - connecting ...');
+			writeStrtingOnColumn(' - connecting ...', ping.title.length);
 			const success = await connectionTest(ping.connection);
 			if (success) {
 				status.successCount++;
@@ -102,10 +102,10 @@ export async function ping(config: configType): Promise<pingResultType> {
 			}
 		}
 
-		ttyWrite(ping.title.length, ' - ' + message);
+		writeStrtingOnColumn(' - ' + message, ping.title.length);
 	}
 
-	process.stdout.write('\n');
+	writeNewLine();
 
 	return status;
 }
@@ -123,9 +123,3 @@ async function connectionTest(options: connectionOptionsType): Promise<boolean> 
 
 	return true;
 }
-
-const ttyWrite = (x: number, text: string): void => {
-	process.stdout.cursorTo(x);
-	process.stdout.clearLine(1);
-	process.stdout.write(text);
-};

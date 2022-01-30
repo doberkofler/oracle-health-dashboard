@@ -1,8 +1,8 @@
 //import debugModule from 'debug';
-import {getConnectionString} from '../gatherer/oracle.js';
+import {getConnectionString} from '../database/oracle.js';
 
 import type {configDatabaseType, configHostType, configSchemaType} from './config.js';
-import type {connectionOptionsType} from '../gatherer/oracle.js';
+import type {connectionOptionsType} from '../database/oracle.js';
 
 //const debug = debugModule('oracle-health-dashboard:connection');
 

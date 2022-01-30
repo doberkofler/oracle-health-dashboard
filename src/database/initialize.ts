@@ -1,13 +1,13 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
-import {getStatus} from './databaseWorker.js';
+import {getStatus} from './worker.js';
 import {statsInitial} from '../statsStore.js';
 import {getConnectionDatabase} from '../config/connection.js';
 
 import type {configType, configHostType, configDatabaseType} from '../config/config.js';
 import type {statsKeyType} from '../statsStore.js';
-import type {statusType} from './databaseWorker.js';
+import type {statusType} from './worker.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
 

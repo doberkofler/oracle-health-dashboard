@@ -1,7 +1,7 @@
 import debugModule from 'debug';
 import {getHtmlPage} from '../../html/html.js';
 import {flatten} from '../../config/flatten.js';
-import {getConnectionAsString} from '../../gatherer/oracle.js';
+import {getConnectionAsString} from '../../database/oracle.js';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server.js';
 

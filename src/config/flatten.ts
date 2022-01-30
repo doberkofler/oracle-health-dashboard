@@ -2,7 +2,7 @@ import debugModule from 'debug';
 import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from './connection.js';
 
 import type {configHostType} from './config.js';
-import type {connectionOptionsType} from '../gatherer/oracle.js';
+import type {connectionOptionsType} from '../database/oracle.js';
 
 export type flattenedType = {
 	id: number,

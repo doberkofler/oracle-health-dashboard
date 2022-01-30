@@ -1,8 +1,8 @@
 /* istanbul ignore file */
 
-import {runServer} from './runServer.js';
-import {runPing} from './runPing.js';
-import {runGenDoc} from './runGenDoc.js';
+import {runServer} from './run/server.js';
+import {runPing} from './run/ping.js';
+import {runGenDoc} from './run/gendoc.js';
 import yargs from 'yargs';
 import {hideBin} from 'yargs/helpers';
 

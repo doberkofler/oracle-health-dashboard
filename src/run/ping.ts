@@ -1,7 +1,7 @@
 import debugModule from 'debug';
-import {configLoad} from './config/config.js';
-import {ping} from './gatherer/databasePing.js';
-import {installShutdown} from './shutdown.js';
+import {configLoad} from '../config/config.js';
+import {ping} from '../database/ping.js';
+import {installShutdown} from '../shutdown.js';
 
 const debug = debugModule('oracle-health-dashboard:runping');
 

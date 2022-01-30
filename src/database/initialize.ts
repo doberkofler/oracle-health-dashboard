@@ -121,13 +121,15 @@ async function gatherInitialize(flat: flatType): Promise<initialGatherType> {
 	};
 
 	// probe the host
-	writeStrtingOnColumn(' - probing ...', title.length);
-	const hostAlive = await probe(flat.host.address);
-	if (!hostAlive) {
-		const message = 'host not alive';
-		writeStrtingOnColumn(' - ' + message, title.length);
-		data.status = getStatus(false, message);
-		return data;
+	if (flat.host.probe) {
+		writeStrtingOnColumn(' - probing ...', title.length);
+		const hostAlive = await probe(flat.host.address);
+		if (!hostAlive) {
+			const message = 'host not alive';
+			writeStrtingOnColumn(' - ' + message, title.length);
+			data.status = getStatus(false, message);
+			return data;
+		}
 	}
 
 	// connect

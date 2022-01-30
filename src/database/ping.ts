@@ -11,6 +11,7 @@ const debug = debugModule('oracle-health-dashboard:databasePing');
 type pingType = {
 	title: string,
 	address: string,
+	probe: boolean,
 	connection: connectionOptionsType,
 };
 
@@ -39,6 +40,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 				pings.push({
 					title:  `Attempting to connect with database "${database.name}" as "${database.containerDatabase.username}" using "${connectionString}"`,
 					address: host.address,
+					probe: host.probe,
 					connection: {
 						connectionString,
 						username: database.containerDatabase.username,
@@ -52,6 +54,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 			pings.push({
 				title:  `Attempting to connect with database "${database.name}" as "${database.username}" using "${connectionString}"`,
 				address: host.address,
+				probe: host.probe,
 				connection: {
 					connectionString,
 					username: database.username,
@@ -65,6 +68,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 				pings.push({
 					title:  `Attempting to connect with database "${database.name}" as "${schema.username}" using "${connectionString}"`,
 					address: host.address,
+					probe: host.probe,
 					connection: {
 						connectionString,
 						username: schema.username,
@@ -88,11 +92,16 @@ export async function ping(config: configType): Promise<pingResultType> {
 		let message = 'success';
 
 		// probe the host
-		writeStrtingOnColumn(' - probing ...', ping.title.length);
-		const hostAlive = await probe(ping.address);
-		if (!hostAlive) {
-			message = 'host not alive';
-		} else {
+		let hostAlive = true;
+		if (ping.probe) {
+			writeStrtingOnColumn(' - probing ...', ping.title.length);
+			hostAlive = await probe(ping.address);
+			if (!hostAlive) {
+				message = 'host not alive';
+			}
+		}
+
+		if (hostAlive) {
 			writeStrtingOnColumn(' - connecting ...', ping.title.length);
 			const success = await connectionTest(ping.connection);
 			if (success) {

@@ -68,6 +68,7 @@ const Host = ({row}: {row: flattenedType}): JSX.Element | null => {
 		return (
 			<td rowSpan={row.hostSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
 				<h1>{row.hostName}</h1>
+				<h3>Probing:&nbsp;{row.hostProbe ? 'On' : 'Off'}</h3>
 			</td>
 		);
 	} else {

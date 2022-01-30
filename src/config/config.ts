@@ -28,6 +28,7 @@ export type configHostType = {
 	enabled: boolean,
 	name: string,
 	address: string,
+	probe: boolean,
 	databases: configDatabaseType[],
 };
 export type configType = {
@@ -71,6 +72,7 @@ export function getFlat(host: configHostType, database: configDatabaseType, sche
 			enabled: host.enabled,
 			name: host.name,
 			address: host.address,
+			probe: host.probe,
 		},
 		database : {
 			enabled: database.enabled,
@@ -156,6 +158,7 @@ function validateHost(host: partialConfigHostType, hostIndex: number): configHos
 		enabled: true,
 		name: '',
 		address: '',
+		probe: true,
 		databases: [],
 	};
 
@@ -182,6 +185,15 @@ function validateHost(host: partialConfigHostType, hostIndex: number): configHos
 		throw new Error(`"address" must be non-empty string: "${hostErrorLocation}"`);
 	} else {
 		newHost.address = host.address;
+	}
+
+	// probe
+	if ('probe' in host) {
+		if (typeof host.probe !== 'boolean') {
+			throw new Error(`"probe" must be boolean: "${hostErrorLocation}"`);
+		} else {
+			newHost.probe = host.probe;
+		}
 	}
 
 	// databases

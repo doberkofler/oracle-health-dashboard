@@ -10,13 +10,21 @@ describe('validateConfig', () => {
 	it('returns a validated configuration object', () => {
 		expect(validateConfig({
 			hosts: [],
-		})).toStrictEqual({http_port: 80, pollingSeconds: 60, hosts: []});
+		})).toStrictEqual({
+			http_port: 80,
+			pollingSeconds: 60,
+			hosts: [],
+		});
 
 		expect(validateConfig({
 			http_port: 9090,
 			pollingSeconds: 90,
 			hosts: [],
-		})).toStrictEqual({http_port: 9090, pollingSeconds: 90, hosts: []});
+		})).toStrictEqual({
+			http_port: 9090,
+			pollingSeconds: 90,
+			hosts: [],
+		});
 
 		expect(validateConfig({
 			hosts: [{
@@ -29,6 +37,7 @@ describe('validateConfig', () => {
 			enabled: true,
 			name: 'name',
 			address: '127.0.0.1',
+			probe: true,
 			databases: [],
 		}]});
 
@@ -55,6 +64,7 @@ describe('validateConfig', () => {
 				enabled: true,
 				name: 'host_name',
 				address: '127.0.0.1',
+				probe: true,
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -97,6 +107,7 @@ describe('validateConfig', () => {
 				enabled: true,
 				name: 'host_name',
 				address: '127.0.0.1',
+				probe: true,
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -141,6 +152,7 @@ describe('validateConfig', () => {
 				enabled: true,
 				name: 'host_name',
 				address: '127.0.0.1',
+				probe: true,
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -185,6 +197,7 @@ describe('validateConfig', () => {
 				enabled: true,
 				name: 'host_name',
 				address: '127.0.0.1',
+				probe: true,
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -229,6 +242,7 @@ describe('validateConfig', () => {
 				enabled: true,
 				name: 'host_name',
 				address: '127.0.0.1',
+				probe: true,
 				databases: [{
 					enabled: true,
 					name: 'database_name',
@@ -273,6 +287,7 @@ describe('validateConfig', () => {
 				enabled: true,
 				name: 'host_name',
 				address: '127.0.0.1',
+				probe: true,
 				databases: [{
 					enabled: true,
 					name: 'database_name',

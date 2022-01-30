@@ -8,6 +8,7 @@ import type {connectionOptionsType} from '../database/oracle.js';
 export type flattenedType = {
 	id: number,
 	hostName: string,
+	hostProbe: boolean,
 	hostSwitch: boolean,
 	hostSchemaCount: number,
 	databaseName: string,
@@ -40,6 +41,7 @@ export const flatten = (hosts: configHostType[]): flattenedType[] => {
 				flattened.push({
 					id: id++,
 					hostName: host.name,
+					hostProbe: host.probe,
 					hostSwitch,
 					hostSchemaCount,
 					databaseName: database.name,

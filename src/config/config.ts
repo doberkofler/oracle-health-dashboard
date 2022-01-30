@@ -1,20 +1,19 @@
 import {jsonLoad} from '../util/files.js';
 import {isInteger} from '../util/util.js';
 
+// types used for the configuration
 export type configSchemaType = {
 	enabled: boolean,
 	name: string,
 	username: string,
 	password: string,
 };
-
 export type configContainerDatabaseType = {
 	port: number,
 	service: string,
 	username: string,
 	password: string,
 };
-
 export type configDatabaseType = {
 	enabled: boolean,
 	name: string,
@@ -25,41 +24,71 @@ export type configDatabaseType = {
 	containerDatabase: configContainerDatabaseType | null,
 	schemas: configSchemaType[],
 };
-
 export type configHostType = {
 	enabled: boolean,
 	name: string,
 	address: string,
 	databases: configDatabaseType[],
 };
-
 export type configType = {
 	http_port: number,
 	pollingSeconds: number,
 	hosts: configHostType[],
 };
 
-type partialConfigDatabaseType = {
-	enabled?: boolean,
-	name?: string,
-	port?: number,
-	service?: string,
-	username?: string,
-	password?: string,
+// types used when validating the configuration
+type partialConfigDatabaseType = Partial<Omit<configDatabaseType, 'containerDatabase' | 'schemas'>> & {
 	containerDatabase?: Partial<configContainerDatabaseType>,
 	schemas?: Partial<configSchemaType>[],
 };
-type partialConfigHostType = {
-	enabled?: boolean,
-	name?: string,
-	address?: string,
+type partialConfigHostType = Partial<Omit<configHostType, 'databases'>> & {
 	databases?: partialConfigDatabaseType[],
 };
-type partialConfigType = {
-	http_port?: number,
-	pollingSeconds?: number,
+type partialConfigType = Partial<Omit<configType, 'hosts'>> & {
 	hosts?: partialConfigHostType[],
 };
+
+// types used when using an individual host/database/schema
+export type flatDatabaseType = Omit<configDatabaseType, 'schemas'>;
+export type flatHostType = Omit<configHostType, 'databases'>;
+export type flatType = {
+	host: flatHostType,
+	database: flatDatabaseType,
+	schema?: configSchemaType,
+};
+
+/**
+ * Returns a flat host/database/schema object.
+ *
+ * @param {configHostType} host - The host.
+ * @param {configDatabaseType} database - The database.
+ * @param {configSchemaType | null | undefined} [schema] - The optional schema.
+ * @returns {flatType} - A flat host/database/schema type.
+ */
+export function getFlat(host: configHostType, database: configDatabaseType, schema?: configSchemaType | null | undefined): flatType {
+	const flat: flatType = {
+		host: {
+			enabled: host.enabled,
+			name: host.name,
+			address: host.address,
+		},
+		database : {
+			enabled: database.enabled,
+			name: database.name,
+			port: database.port,
+			service: database.service,
+			username: database.username,
+			password: database.password,
+			containerDatabase: database.containerDatabase,
+		},
+	};
+
+	if (schema) {
+		flat.schema = schema;
+	}
+
+	return flat;
+}
 
 /**
  * Returns a configuration object.

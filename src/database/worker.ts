@@ -5,7 +5,7 @@ import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {inspect} from '../util/util.js';
 
 import type {statsKeyType} from '../statsStore.js';
-import type {configHostType, configDatabaseType/*, configSchemaType*/} from '../config/config.js';
+import type {flatType} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
@@ -170,10 +170,10 @@ Oracle - Tablespace Usage
 /**
  * get statistics from CDB.
  */
-export async function gatherPeriodic(host: configHostType, database: configDatabaseType): Promise<periodicGatherType> {
+export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType> {
 	const data: periodicGatherType = {
-		hostName: host.name,
-		databaseName: database.name,
+		hostName: flat.host.name,
+		databaseName: flat.database.name,
 		status: getStatus(false),
 		metric: {
 			server_date: null,
@@ -190,8 +190,8 @@ export async function gatherPeriodic(host: configHostType, database: configDatab
 		},
 	};
 
-	const connectDatabase = getConnectionDatabase(host, database);
-	const connectContainerDatabase = getConnectionContainerDatabase(host, database);
+	const connectDatabase = getConnectionDatabase(flat);
+	const connectContainerDatabase = getConnectionContainerDatabase(flat);
 
 	// connect with PDB
 	const connection = await connect(connectDatabase);
@@ -280,7 +280,7 @@ export async function gatherPeriodic(host: configHostType, database: configDatab
 
 	data.status = getStatus(true);
 
-	debug('gatherPeriodic', inspect({database, data}));
+	debug('gatherPeriodic', inspect(flat));
 
 	return data;
 }

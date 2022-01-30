@@ -1,5 +1,6 @@
 import debugModule from 'debug';
 import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from './connection.js';
+import {getFlat} from '../config/config.js';
 
 import type {configHostType} from './config.js';
 import type {connectionOptionsType} from '../database/oracle.js';
@@ -42,12 +43,12 @@ export const flatten = (hosts: configHostType[]): flattenedType[] => {
 					hostSwitch,
 					hostSchemaCount,
 					databaseName: database.name,
-					databaseConnection: getConnectionDatabase(host, database),
-					containerConnection: getConnectionContainerDatabase(host, database),
+					databaseConnection: getConnectionDatabase(getFlat(host, database)),
+					containerConnection: getConnectionContainerDatabase(getFlat(host, database)),
 					databaseSwitch,
 					databaseSchemaCount,
 					schemaName: schema.name,
-					schemaConnection: getConnectionSchema(host, database, schema),
+					schemaConnection: getConnectionSchema(getFlat(host, database, schema)),
 				});
 
 				hostSwitch = false;

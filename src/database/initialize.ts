@@ -1,12 +1,15 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
+import {probe} from '../util/probe.js';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {getStatus} from './worker.js';
 import {statsInitial} from '../statsStore.js';
 import {getConnectionDatabase} from '../config/connection.js';
+import {getFlat} from '../config/config.js';
+import {write, writeNewLine, writeStrtingOnColumn} from '../util/tty.js';
 
-import type {configType, configHostType, configDatabaseType} from '../config/config.js';
-import type {statsKeyType} from '../statsStore.js';
+import type {configType, flatType} from '../config/config.js';
+import type {statsKeyType, statsInitialType} from '../statsStore.js';
 import type {statusType} from './worker.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
@@ -82,45 +85,56 @@ END;`;
 export async function gathererInitial(config: configType): Promise<void> {
 	debug('gathererInitial', config);
 
-	const queryPromises: Promise<initialGatherType>[] = [];
+	// prepare promises
+	const gather = [] as flatType[];
 	config.hosts.forEach(host => {
 		host.databases.forEach(database => {
-			queryPromises.push(gatherInitialize(host, database));
+			gather.push(getFlat(host, database));
 		});
 	});
 
-	const queryResults = await Promise.all(queryPromises);
+	// process promises
+	const stats  = [] as statsInitialType[];
+	for (let i = 0; i < gather.length; i++) {
+		const result = await gatherInitialize(gather[i]);
+		stats.push(result);
+	}
 
-	const stats = queryResults.map(e => {
-		return {
-			hostName: e.hostName,
-			databaseName: e.databaseName,
-			statics: e.statics,
-		};
-	});
+	writeNewLine();
 
 	statsInitial(stats);
 }
 
 /*
- * get statistics from CDB.
+ * get statistics for database
  */
-async function gatherInitialize(host: configHostType, database: configDatabaseType): Promise<initialGatherType> {
-	const connectionOptions = getConnectionDatabase(host, database);
-	const title = `Gathering initial data on host "${host.name}" with database "${database.name}" as "${connectionOptions.username}" using "${connectionOptions.connectionString}"`;
+async function gatherInitialize(flat: flatType): Promise<initialGatherType> {
+	const connectionOptions = getConnectionDatabase(flat);
+	const title = `Gathering initial data with database "${flat.database.name}" as "${connectionOptions.username}" using "${connectionOptions.connectionString}"`;
 
-	debug(title);
+	write('\n' + title);
 
 	const data: initialGatherType = {
-		hostName: host.name,
-		databaseName: database.name,
+		hostName: flat.host.name,
+		databaseName: flat.database.name,
 		status: getStatus(true),
 	};
 
+	// probe the host
+	writeStrtingOnColumn(' - probing ...', title.length);
+	const hostAlive = await probe(flat.host.address);
+	if (!hostAlive) {
+		const message = 'host not alive';
+		writeStrtingOnColumn(' - ' + message, title.length);
+		data.status = getStatus(false, message);
+		return data;
+	}
+
 	// connect
+	writeStrtingOnColumn(' - connecting ...', title.length);
 	const connection = await connect(connectionOptions);
 	if (typeof connection === 'string') {
-		console.log(`${title}: error`);
+		writeStrtingOnColumn(' - error', title.length);
 		data.status = getStatus(false, connection);
 		return data;
 	}
@@ -128,7 +142,7 @@ async function gatherInitialize(host: configHostType, database: configDatabaseTy
 	// execute
 	const info = await execute<sqlInitialType>(connection, sqlInitial, bndInitial);
 	if (typeof info === 'string') {
-		console.log(`${title}: cannot execute`);
+		writeStrtingOnColumn(' - cannot execute', title.length);
 		data.status = getStatus(false, info);
 		return data;
 	}
@@ -136,12 +150,12 @@ async function gatherInitialize(host: configHostType, database: configDatabaseTy
 	// disconnect
 	const result = disconnect(connection, connectionOptions);
 	if (typeof result === 'string') {
-		console.log(`${title}: cannot disconnect`);
+		writeStrtingOnColumn(' - cannot disconnect', title.length);
 		data.status = getStatus(false, result);
 		return data;
 	}
 
-	console.log(`${title}: success`);
+	writeStrtingOnColumn(' - success', title.length);
 
 	data.statics = info;
 

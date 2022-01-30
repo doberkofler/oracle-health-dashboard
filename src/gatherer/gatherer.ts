@@ -2,6 +2,7 @@ import debugModule from 'debug';
 import {expose} from 'threads/worker';
 import {statsAdd} from '../statsStore.js';
 import {gatherPeriodic} from '../database/worker.js';
+import {getFlat} from '../config/config.js';
 import {inspect} from '../util/util.js';
 
 import type {configType} from '../config/config.js';
@@ -29,7 +30,7 @@ export async function gatherer(config: configType): Promise<void> {
 		// container database
 		host.databases.filter(database => database.enabled).forEach(database => {
 			// gather
-			promises.push(gatherPeriodic(host, database));
+			promises.push(gatherPeriodic(getFlat(host, database)));
 		});
 	});
 	// quere all databases and and wait until we got results from all of them

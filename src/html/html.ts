@@ -2,7 +2,6 @@ import {isInteger} from '../util/util.js';
 
 type optionsType = {
 	style?: string,
-	includeBootstrap?: boolean,
 	refreshSecs?: number,
 };
 
@@ -26,9 +25,6 @@ export function getHtmlPage(title: string, content: string | Array<string>, opti
 	/*
 	html.push(		'<link rel="icon" href="static/favicon.ico">');
 	*/
-	if (options && options.includeBootstrap !== false) {
-		html.push('<link rel="stylesheet" href="static/bootstrap/css/bootstrap.min.css">');
-	}
 	html.push('<link rel="stylesheet" href="static/index.css">');
 	if (options && typeof options.style === 'string' && options.style.length > 0) {
 		html.push('<style>');

@@ -6,15 +6,15 @@ import {getStatus} from './worker.js';
 import {statsInitial} from '../statsStore.js';
 import {getConnectionDatabase} from '../config/connection.js';
 import {getFlat} from '../config/config.js';
-import {write, writeNewLine, writeStrtingOnColumn} from '../util/tty.js';
+import {write, writeNewLine, writeStartingOnColumn} from '../util/tty.js';
 
 import type {configType, flatType} from '../config/config.js';
-import type {statsKeyType, statsInitialType} from '../statsStore.js';
+import type {statsInitType} from '../statsStore.js';
 import type {statusType} from './worker.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
 
-export type sqlInitialType = {
+export type staticMetricType = {
 	oracle_version: string,
 	oracle_platform: string,
 	oracle_log_mode: string,
@@ -23,9 +23,8 @@ export type sqlInitialType = {
 	oracle_pga_aggregate_target: string,
 };
 
-export type initialGatherType = statsKeyType & {
+export type initialGatherType = statsInitType & {
 	status: statusType,
-	statics?: sqlInitialType,
 };
 
 const bndInitial = [
@@ -94,7 +93,7 @@ export async function gathererInitial(config: configType): Promise<void> {
 	});
 
 	// process promises
-	const stats  = [] as statsInitialType[];
+	const stats  = [] as statsInitType[];
 	for (let i = 0; i < gather.length; i++) {
 		const result = await gatherInitialize(gather[i]);
 		stats.push(result);
@@ -117,34 +116,43 @@ async function gatherInitialize(flat: flatType): Promise<initialGatherType> {
 	const data: initialGatherType = {
 		hostName: flat.host.name,
 		databaseName: flat.database.name,
+		schemaName: '',
 		status: getStatus(true),
+		statics: {
+			oracle_version: '',
+			oracle_platform: '',
+			oracle_log_mode: '',
+			oracle_database_character_set: '',
+			oracle_sga_target: '',
+			oracle_pga_aggregate_target: '',
+		}
 	};
 
 	// probe the host
 	if (flat.host.probe) {
-		writeStrtingOnColumn(' - probing ...', title.length);
+		writeStartingOnColumn(' - probing ...', title.length);
 		const hostAlive = await probe(flat.host.address);
 		if (!hostAlive) {
 			const message = 'host not alive';
-			writeStrtingOnColumn(' - ' + message, title.length);
+			writeStartingOnColumn(' - ' + message, title.length);
 			data.status = getStatus(false, message);
 			return data;
 		}
 	}
 
 	// connect
-	writeStrtingOnColumn(' - connecting ...', title.length);
+	writeStartingOnColumn(' - connecting ...', title.length);
 	const connection = await connect(connectionOptions);
 	if (typeof connection === 'string') {
-		writeStrtingOnColumn(' - error', title.length);
+		writeStartingOnColumn(' - error', title.length);
 		data.status = getStatus(false, connection);
 		return data;
 	}
 
 	// execute
-	const info = await execute<sqlInitialType>(connection, sqlInitial, bndInitial);
+	const info = await execute<staticMetricType>(connection, sqlInitial, bndInitial);
 	if (typeof info === 'string') {
-		writeStrtingOnColumn(' - cannot execute', title.length);
+		writeStartingOnColumn(' - cannot execute', title.length);
 		data.status = getStatus(false, info);
 		return data;
 	}
@@ -152,12 +160,12 @@ async function gatherInitialize(flat: flatType): Promise<initialGatherType> {
 	// disconnect
 	const result = disconnect(connection, connectionOptions);
 	if (typeof result === 'string') {
-		writeStrtingOnColumn(' - cannot disconnect', title.length);
+		writeStartingOnColumn(' - cannot disconnect', title.length);
 		data.status = getStatus(false, result);
 		return data;
 	}
 
-	writeStrtingOnColumn(' - success', title.length);
+	writeStartingOnColumn(' - success', title.length);
 
 	data.statics = info;
 

@@ -9,16 +9,36 @@ describe('statsInitial', () => {
 		statsInitial([{
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
+			statics: {
+				oracle_version: '',
+				oracle_platform: '',
+				oracle_log_mode: '',
+				oracle_database_character_set: '',
+				oracle_sga_target: '',
+				oracle_pga_aggregate_target: '',
+			},
 		}]);
 
 		const stats = jsonLoad(FILENAME);
 		expect(stats).toStrictEqual({
 			magic: 'MAGIC',
 			version: 1,
-			databases: [{
-				hostName: 'host',
-				databaseName: 'database',
-				metrics: [],
+			hosts: [{
+				name: 'host',
+				databases: [{
+					name: 'database',
+					statics: {
+						oracle_version: '',
+						oracle_platform: '',
+						oracle_log_mode: '',
+						oracle_database_character_set: '',
+						oracle_sga_target: '',
+						oracle_pga_aggregate_target: '',
+					},
+					metrics: [],
+					schemas: [],
+				}],
 			}],
 		});
 	});
@@ -29,13 +49,33 @@ describe('statsLoad', () => {
 		statsInitial([{
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
+			statics: {
+				oracle_version: '',
+				oracle_platform: '',
+				oracle_log_mode: '',
+				oracle_database_character_set: '',
+				oracle_sga_target: '',
+				oracle_pga_aggregate_target: '',
+			},
 		}]);
 
 		const stats = statsLoad();
 		expect(stats).toStrictEqual([{
-			hostName: 'host',
-			databaseName: 'database',
-			metrics: [],
+			name: 'host',
+			databases: [{
+				name: 'database',
+				statics: {
+					oracle_version: '',
+					oracle_platform: '',
+					oracle_log_mode: '',
+					oracle_database_character_set: '',
+					oracle_sga_target: '',
+					oracle_pga_aggregate_target: '',
+				},
+				metrics: [],
+				schemas: [],
+			}],
 		}]);
 	});
 
@@ -108,22 +148,27 @@ describe('statsAdd', () => {
 		statsInitial([{
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			statics,
 		}]);
 
 		statsAdd([{
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			status,
 			metric,
 		}]);
 
 		const stats = statsLoad();
 		expect(stats).toStrictEqual([{
-			hostName: 'host',
-			databaseName: 'database',
-			metrics: [Object.assign({}, metric, status)],
-			statics,
+			name: 'host',
+			databases: [{
+				name: 'database',
+				statics,
+				metrics: [Object.assign({}, metric, status)],
+				schemas: [],
+			}],
 		}]);
 	});
 
@@ -162,6 +207,7 @@ describe('statsAdd', () => {
 		statsInitial([{
 			hostName: 'host',
 			databaseName: 'database',
+			schemaName: '',
 			statics,
 		}]);
 
@@ -169,6 +215,7 @@ describe('statsAdd', () => {
 			statsAdd([{
 				hostName: 'host',
 				databaseName: 'Tatabase',
+				schemaName: '',
 				status,
 				metric,
 			}]);

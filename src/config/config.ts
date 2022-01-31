@@ -34,6 +34,7 @@ export type configHostType = {
 export type configType = {
 	http_port: number,
 	pollingSeconds: number,
+	hidePasswords: boolean,
 	hosts: configHostType[],
 };
 
@@ -114,6 +115,7 @@ export function validateConfig(config: partialConfigType): configType {
 	const newConfig: configType = {
 		http_port: 80,
 		pollingSeconds: 60,
+		hidePasswords: false,
 		hosts: [],
 	};
 
@@ -139,6 +141,15 @@ export function validateConfig(config: partialConfigType): configType {
 		}
 	}
 
+	// hidePasswords
+	if ('hidePasswords' in config) {
+		if (typeof config.hidePasswords !== 'boolean') {
+			throw new Error('The configuration has no valid property "hidePasswords"');
+		} else {
+			newConfig.hidePasswords = config.hidePasswords;
+		}
+	}
+
 	// hosts
 	if (!Array.isArray(config.hosts)) {
 		throw new Error('The configuration has no property "hosts" of type array');
@@ -146,6 +157,13 @@ export function validateConfig(config: partialConfigType): configType {
 
 	// validate the structure of the hosts
 	newConfig.hosts = config.hosts.map((host, index) => validateHost(host, index));
+
+	// make sure that the host names are unique
+	newConfig.hosts.forEach(host => {
+		if (newConfig.hosts.filter(e => e.name === host.name).length > 1) {
+			throw new Error(`The host name "${host.name}" is used multiple times`);
+		}
+	});
 
 	return newConfig;
 }
@@ -202,6 +220,13 @@ function validateHost(host: partialConfigHostType, hostIndex: number): configHos
 	} else {
 		newHost.databases = host.databases.map((database, index) => validateDatabase(hostErrorLocation, database, index));
 	}
+
+	// make sure that the database names are unique
+	newHost.databases.forEach(database => {
+		if (newHost.databases.filter(e => e.name === database.name).length > 1) {
+			throw new Error(`The database name "${database.name}" is used multiple times: "${hostErrorLocation}"`);
+		}
+	});
 
 	return newHost;
 }
@@ -330,6 +355,13 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		newDatabase.schemas = database.schemas.map((schema, index) => validateSchema(databaseErrorLocation, schema, index));
 	}
 
+	// make sure that the schema names are unique
+	newDatabase.schemas.forEach(schema => {
+		if (newDatabase.schemas.filter(e => e.name === schema.name).length > 1) {
+			throw new Error(`The schema name "${schema.name}" is used multiple times: "${databaseErrorLocation}"`);
+		}
+	});
+	
 	return newDatabase;
 }
 

@@ -1,7 +1,7 @@
 import debugModule from 'debug';
 import {probe} from '../util/probe.js';
 import {getConnectionString, connect, disconnect} from './oracle.js';
-import {write, writeNewLine, writeStrtingOnColumn} from '../util/tty.js';
+import {write, writeNewLine, writeStartingOnColumn} from '../util/tty.js';
 
 import type {configType} from '../config/config';
 import type {connectionOptionsType} from './oracle.js';
@@ -94,7 +94,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 		// probe the host
 		let hostAlive = true;
 		if (ping.probe) {
-			writeStrtingOnColumn(' - probing ...', ping.title.length);
+			writeStartingOnColumn(' - probing ...', ping.title.length);
 			hostAlive = await probe(ping.address);
 			if (!hostAlive) {
 				message = 'host not alive';
@@ -102,7 +102,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 		}
 
 		if (hostAlive) {
-			writeStrtingOnColumn(' - connecting ...', ping.title.length);
+			writeStartingOnColumn(' - connecting ...', ping.title.length);
 			const success = await connectionTest(ping.connection);
 			if (success) {
 				status.successCount++;
@@ -111,7 +111,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 			}
 		}
 
-		writeStrtingOnColumn(' - ' + message, ping.title.length);
+		writeStartingOnColumn(' - ' + message, ping.title.length);
 	}
 
 	writeNewLine();

@@ -47,7 +47,7 @@
   },
   "scripts": {
     "start": "node build/src/index.js",
-    "start:watch": "nodemon --watch build/src --watch ./config build/src/index.js --config=./config/config.json",
+    "start:watch": "nodemon --watch build/src --watch ./test-configs build/src/index.js --config=./config/config.json",
     "clean": "rimraf coverage build tmp && jest --clearCache",
     "build": "npm run clean && tsc -p tsconfig.release.json",
     "build:watch": "tsc -w -p tsconfig.release.json",

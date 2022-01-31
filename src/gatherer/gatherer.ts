@@ -23,6 +23,8 @@ expose(gatherer);
 export async function gatherer(config: configType): Promise<void> {
 	debug('gatherer');
 
+	console.log('Gathering metrics...');
+
 	const promises = [] as Promise<periodicGatherType>[];
 
 	// process hosts
@@ -40,6 +42,7 @@ export async function gatherer(config: configType): Promise<void> {
 	const stats = results.map(result => ({
 		hostName: result.hostName,
 		databaseName: result.databaseName,
+		schemaName: '',
 		status: result.status,
 		metric: result.metric,
 	}));

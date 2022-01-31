@@ -12,7 +12,7 @@ export const writeAfterEraseLine = (text: string): void => {
 	process.stdout.write(text);
 };
 
-export const writeStrtingOnColumn = (text: string, x: number): void => {
+export const writeStartingOnColumn = (text: string, x: number): void => {
 	process.stdout.cursorTo(x);
 	process.stdout.clearLine(1);
 	process.stdout.write(text);

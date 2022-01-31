@@ -4,7 +4,7 @@ import {
 
 describe('getHtmlPage', () => {
 	it('returns a html page with the given content', () => {
-		expect(getHtmlPage('', '', {includeBootstrap: false})).toBe([
+		expect(getHtmlPage('', '', {})).toBe([
 			'<html lang="en">',
 			'<head>',
 			'<meta charset="UTF-8">',
@@ -19,7 +19,7 @@ describe('getHtmlPage', () => {
 			'</html>',
 		].join('\n'));
 
-		expect(getHtmlPage('title', 'content', {includeBootstrap: false})).toBe([
+		expect(getHtmlPage('title', 'content', {})).toBe([
 			'<html lang="en">',
 			'<head>',
 			'<meta charset="UTF-8">',
@@ -44,7 +44,6 @@ describe('getHtmlPage', () => {
 			'<title>Oracle Health Dashboard - title</title>',
 			'<meta name="description" content="Oracle Health Dashboard - title">',
 			'<meta http-equiv="refresh" content="5" >',
-			'<link rel="stylesheet" href="static/bootstrap/css/bootstrap.min.css">',
 			'<link rel="stylesheet" href="static/index.css">',
 			'<style>',
 			'.class {color: red;}',

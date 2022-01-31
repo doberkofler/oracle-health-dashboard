@@ -1,9 +1,17 @@
 import debugModule from 'debug';
 import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from './connection.js';
 import {getFlat} from '../config/config.js';
+import {inspect} from '../util/util.js';
 
 import type {configHostType} from './config.js';
+import type {statsHostType, dynamicMetricType} from '../statsStore.js';
 import type {connectionOptionsType} from '../database/oracle.js';
+import type {staticMetricType} from '../database/initialize.js';
+
+type statsType = {
+	statics: staticMetricType | null,
+	dynamic: dynamicMetricType | null,
+};
 
 export type flattenedType = {
 	id: number,
@@ -18,11 +26,12 @@ export type flattenedType = {
 	databaseSchemaCount: number,
 	schemaName: string,
 	schemaConnection: connectionOptionsType,
+	stats: statsType,
 };
 
 const debug = debugModule('oracle-health-dashboard:flatten');
 
-export const flatten = (hosts: configHostType[]): flattenedType[] => {
+export const flatten = (hosts: configHostType[], statsHosts: statsHostType[] = []): flattenedType[] => {
 	const flattened: flattenedType[] = [];
 
 	let id = 0;
@@ -51,6 +60,7 @@ export const flatten = (hosts: configHostType[]): flattenedType[] => {
 					databaseSchemaCount,
 					schemaName: schema.name,
 					schemaConnection: getConnectionSchema(getFlat(host, database, schema)),
+					stats: getStats(statsHosts, host.name, database.name),
 				});
 
 				hostSwitch = false;
@@ -61,7 +71,35 @@ export const flatten = (hosts: configHostType[]): flattenedType[] => {
 		});
 	});
 
-	debug({hosts, flattened});
+	debug(inspect({hosts, flattened}));
 
 	return flattened;
+};
+
+const getStats = (statsHosts: statsHostType[], hostName: string, databaseName: string): statsType => {
+	const stats = {
+		statics: null,
+		dynamic: null,
+	} as statsType;
+
+	// host
+	const host = statsHosts.find(e => e.name === hostName);
+	if (!host) {
+		return stats;
+	}
+
+	// database
+	const database = host.databases.find(e => e.name === databaseName);
+	if (!database) {
+		return stats;
+	}
+
+	if (!database.statics) {
+		return stats;
+	}
+
+	stats.statics = database.statics ? database.statics : null;
+	stats.dynamic = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
+
+	return stats;
 };

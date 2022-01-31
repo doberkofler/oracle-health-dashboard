@@ -2,7 +2,12 @@ import {configLoad, validateConfig} from '../src/config/config.js';
 
 describe('configLoad', () => {
 	it('loads the configuration and returns a validated configuration object or throws an error', () => {
-		expect(configLoad('./__tests__/config.test.json')).toStrictEqual({http_port: 80, pollingSeconds: 60, hosts: []});
+		expect(configLoad('./__tests__/config.test.json')).toStrictEqual({
+			http_port: 80,
+			pollingSeconds: 60,
+			hidePasswords: false,
+			hosts: [],
+		});
 	});
 });
 
@@ -13,6 +18,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [],
 		});
 
@@ -23,6 +29,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 9090,
 			pollingSeconds: 90,
+			hidePasswords: false,
 			hosts: [],
 		});
 
@@ -33,13 +40,18 @@ describe('validateConfig', () => {
 				address: '127.0.0.1',
 				databases: [],
 			}]
-		})).toStrictEqual({http_port: 80, pollingSeconds: 60, hosts: [{
-			enabled: true,
-			name: 'name',
-			address: '127.0.0.1',
-			probe: true,
-			databases: [],
-		}]});
+		})).toStrictEqual({
+			http_port: 80,
+			pollingSeconds: 60,
+			hidePasswords: false,
+			hosts: [{
+				enabled: true,
+				name: 'name',
+				address: '127.0.0.1',
+				probe: true,
+				databases: [],
+			}],
+		});
 
 		// without container database
 		expect(validateConfig({
@@ -60,6 +72,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -103,6 +116,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -148,6 +162,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -193,6 +208,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -238,6 +254,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -283,6 +300,7 @@ describe('validateConfig', () => {
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [{
 				enabled: true,
 				name: 'host_name',

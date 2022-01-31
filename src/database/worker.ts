@@ -4,7 +4,6 @@ import {getConnectionDatabase, getConnectionContainerDatabase/*, getConnectionSc
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {inspect} from '../util/util.js';
 
-import type {statsKeyType} from '../statsStore.js';
 import type {flatType} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
@@ -39,12 +38,14 @@ export type initialGatherType = {
 
 export type metricType = sqlCdbType & sqlPdbType;
 
-export type periodicGatherType = statsKeyType & {
+export type periodicGatherType = {
+	hostName: string,
+	databaseName: string,
 	status: statusType,
 	metric: metricType,
 };
 
-export type periodicGatherSchemaType = statsKeyType & {
+export type periodicGatherSchemaType = {
 	status: statusType,
 };
 

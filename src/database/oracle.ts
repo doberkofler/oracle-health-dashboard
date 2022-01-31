@@ -25,8 +25,14 @@ export function getConnectionString(address: string, port: number, service: stri
 /*
  * Get a connection as string
  */
-export function getConnectionAsString(connection: connectionOptionsType): string {
-	return `${connection.username}/${connection.password}@${connection.connectionString}`;
+export function getConnectionAsString(connection: connectionOptionsType, showPassword: boolean): string {
+	let text = connection.username;
+
+	if (showPassword) {
+		text += '/' + connection.password;
+	}
+
+	return text + '@' + connection.connectionString;
 }
 
 /*

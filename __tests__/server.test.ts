@@ -12,6 +12,7 @@ describe('server', () => {
 		const config = {
 			http_port: 12345,
 			pollingSeconds: 60,
+			hidePasswords: false,
 			hosts: [],
 		};
 

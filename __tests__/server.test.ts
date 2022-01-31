@@ -1,6 +1,6 @@
-import express from 'express';
+import type express from 'express';
 import request from 'supertest';
-import * as http from 'http';
+import type * as http from 'http';
 import {serverStart, serverStop} from '../src/server.js';
 import {statsInitial} from '../src/statsStore.js';
 
@@ -23,7 +23,7 @@ describe('server', () => {
 		server = result.server;
 	});
 
-	afterAll(() => serverStop(server));
+	afterAll(() => void serverStop(server));
 
 	it('handlerDefault', async () => {
 		const response = await request(app).get('').send({});

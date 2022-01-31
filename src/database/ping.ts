@@ -64,13 +64,13 @@ export async function ping(config: configType): Promise<pingResultType> {
 
 			// process schemas
 			database.schemas.filter(schema => schema.enabled).forEach(schema => {
-				const connectionString = getConnectionString(host.address, database.port, database.service);
+				const schemaConnectionString = getConnectionString(host.address, database.port, database.service);
 				pings.push({
-					title:  `Attempting to connect with database "${database.name}" as "${schema.username}" using "${connectionString}"`,
+					title:  `Attempting to connect with database "${database.name}" as "${schema.username}" using "${schemaConnectionString}"`,
 					address: host.address,
 					probe: host.probe,
 					connection: {
-						connectionString,
+						connectionString: schemaConnectionString,
 						username: schema.username,
 						password: schema.password,
 					},
@@ -84,26 +84,24 @@ export async function ping(config: configType): Promise<pingResultType> {
 		totalCount: pings.length,
 		successCount: 0,
 	};
-	for (let i = 0; i < pings.length; i++) {
-		const ping = pings[i];
-
-		write('\n' + ping.title);
+	for (const p of pings) {
+		write('\n' + p.title);
 
 		let message = 'success';
 
 		// probe the host
 		let hostAlive = true;
-		if (ping.probe) {
-			writeStartingOnColumn(' - probing ...', ping.title.length);
-			hostAlive = await probe(ping.address);
+		if (p.probe) {
+			writeStartingOnColumn(' - probing ...', p.title.length);
+			hostAlive = await probe(p.address);
 			if (!hostAlive) {
 				message = 'host not alive';
 			}
 		}
 
 		if (hostAlive) {
-			writeStartingOnColumn(' - connecting ...', ping.title.length);
-			const success = await connectionTest(ping.connection);
+			writeStartingOnColumn(' - connecting ...', p.title.length);
+			const success = await connectionTest(p.connection);
 			if (success) {
 				status.successCount++;
 			} else {
@@ -111,7 +109,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 			}
 		}
 
-		writeStartingOnColumn(' - ' + message, ping.title.length);
+		writeStartingOnColumn(' - ' + message, p.title.length);
 	}
 
 	writeNewLine();

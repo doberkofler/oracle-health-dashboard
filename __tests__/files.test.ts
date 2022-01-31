@@ -67,7 +67,7 @@ describe('jsonLoad', () => {
 	});
 });
 
-function createJsonFile() {
+function createJsonFile(): void {
 	jsonSave(tempFilename, {
 		str: 'str',
 		num: 0.1,

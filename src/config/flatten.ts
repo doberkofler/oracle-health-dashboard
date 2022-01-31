@@ -98,7 +98,7 @@ const getStats = (statsHosts: statsHostType[], hostName: string, databaseName: s
 		return stats;
 	}
 
-	stats.statics = database.statics ? database.statics : null;
+	stats.statics = database.statics;
 	stats.dynamic = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
 
 	return stats;

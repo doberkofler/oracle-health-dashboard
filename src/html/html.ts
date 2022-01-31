@@ -8,7 +8,7 @@ type optionsType = {
 /*
 *	get page
 */
-export function getHtmlPage(title: string, content: string | Array<string>, options?: optionsType): string {
+export function getHtmlPage(title: string, content: string | string[], options?: optionsType): string {
 	const html = [];
 	const pageTitle = 'Oracle Health Dashboard' + (title.length > 0 ? ' - ' + title : '');
 

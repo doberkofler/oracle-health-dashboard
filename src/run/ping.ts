@@ -5,7 +5,7 @@ import {installShutdown} from '../shutdown.js';
 
 const debug = debugModule('oracle-health-dashboard:runping');
 
-export async function runPing(configFilename: string) {
+export async function runPing(configFilename: string): Promise<void> {
 	debug('runPing', configFilename);
 
 	// install shutdown handler

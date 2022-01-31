@@ -10,10 +10,10 @@ export type connectionOptionsType = {
 	password: string,
 };
 
-export type bindingsType = Array<{
+export type bindingsType = {
 	id: string,
 	type: number,
-}>;
+}[];
 
 /*
  * Get connection string
@@ -70,7 +70,7 @@ export async function disconnect(connection: oracledb.Connection, options: conne
 	debug(`Disconnect from "${options.connectionString}" as "${options.username}"`);
 
 	try {
-		connection.close();
+		await connection.close();
 	} catch (e: unknown) {
 		const message = `Unable to disconnect from "${options.connectionString}" as "${options.username}"`;
 		debug(message, e);
@@ -112,20 +112,20 @@ export async function execute<T>(connection: oracledb.Connection, sql: string, b
 		const placeholder = getPlaceholder(id, bindings);
 
 		switch (binding.type) {
-		case oracledb.STRING:
-			data[id] = getBindString(result, placeholder);
-			break;
+			case oracledb.STRING:
+				data[id] = getBindString(result, placeholder);
+				break;
 
-		case oracledb.NUMBER:
-			data[id] = getBindNumber(result, placeholder);
-			break;
+			case oracledb.NUMBER:
+				data[id] = getBindNumber(result, placeholder);
+				break;
 
-		case oracledb.DATE:
-			data[id] = getBindDate(result, placeholder);
-			break;
+			case oracledb.DATE:
+				data[id] = getBindDate(result, placeholder);
+				break;
 
-		default:
-			throw new Error(`Invalid bind type "${binding.type}" found for placeholder "${placeholder}"`);
+			default:
+				throw new Error(`Invalid bind type "${binding.type}" found for placeholder "${placeholder}"`);
 		}
 	});
 

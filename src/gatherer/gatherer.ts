@@ -10,7 +10,7 @@ import type {periodicGatherType} from '../database/worker.js';
 
 const debug = debugModule('oracle-health-dashboard:gatherer');
 
-export type Gatherer = typeof gatherer
+export type Gatherer = typeof gatherer;
 
 expose(gatherer);
 
@@ -53,5 +53,7 @@ export async function gatherer(config: configType): Promise<void> {
 	statsAdd(stats);
 
 	// repeat again in "config.pollingSeconds" seconds
-	setTimeout(gatherer.bind(null, config), config.pollingSeconds * 1000);
+	setTimeout(() => {
+		void gatherer(config);
+	}, config.pollingSeconds * 1000);
 }

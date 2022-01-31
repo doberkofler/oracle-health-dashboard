@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* istanbul ignore file */
 
 import {runServer} from './run/server.js';
@@ -10,22 +12,18 @@ yargs(hideBin(process.argv))
 	.command({
 		command: ['start', '$0'],
 		describe: 'Start the server',
-		handler: argv => {
-			void runServer(argv.config as string);
-		}
+		handler: async argv => runServer(argv.config as string)
 	})
 	.command({
 		command: 'ping',
 		describe: 'Ping all database connections and show results',
-		handler: argv => {
-			void runPing(argv.config as string);
-		}
+		handler: async argv => runPing(argv.config as string)
 	})
 	.command({
 		command: 'gendoc',
 		describe: 'Generate documentation of the configuration',
 		handler: argv => {
-			void runGenDoc(argv.config as string);
+			runGenDoc(argv.config as string);
 		}
 	})
 	.option('config', {

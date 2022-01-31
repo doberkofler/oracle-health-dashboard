@@ -33,7 +33,7 @@ export function jsonLoad<T>(filename: string): T {
 	const data = textLoad(filename);
 
 	try {
-		return JSON.parse(data, jsonDateParser);
+		return JSON.parse(data, jsonDateParser) as T;
 	} catch (e: unknown) {
 		throw new Error(`The content "${data}" of the file "${filename}" is not valid json`);
 	}
@@ -50,7 +50,7 @@ export function jsonSave(filename: string, value: unknown): void {
 /*
 *	JSON date parser
 */
-function jsonDateParser(_key: string, value: unknown) {
+function jsonDateParser(_key: string, value: unknown): Date | unknown {
 	if (typeof value === 'string') {
 		let a = reISO.exec(value);
 		if (a) {

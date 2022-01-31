@@ -1,12 +1,12 @@
 import debugModule from 'debug';
-import { textSave } from '../util/files.js';
+import {textSave} from '../util/files.js';
 import {configLoad} from '../config/config.js';
 import {installShutdown} from '../shutdown.js';
 import {getPage} from '../pages/pageConfig/index.js';
 
 const debug = debugModule('oracle-health-dashboard:rungendoc');
 
-export async function runGenDoc(configFilename: string) {
+export function runGenDoc(configFilename: string): void {
 	debug('runGenDoc', configFilename);
 
 	// install shutdown handler

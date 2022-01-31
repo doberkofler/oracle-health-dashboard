@@ -119,7 +119,7 @@ export function validateConfig(config: partialConfigType): configType {
 		hosts: [],
 	};
 
-	if (typeof config !== 'object' || config === null) {
+	if (typeof config !== 'object') {
 		throw new Error('The configuration is not an object');
 	}
 
@@ -297,12 +297,12 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 
 	// containerDatabase
 	if ('containerDatabase' in database) {
-		if (typeof database.containerDatabase !== 'object' || database.containerDatabase === null) {
+		if (typeof database.containerDatabase !== 'object') {
 			throw new Error(`"containerDatabase" must be an object: "${databaseErrorLocation}"`);
 		}
 
 		const containerDatabaseErrorLocation = `${databaseErrorLocation}.containerDatabase`;
-		const containerDatabase = database.containerDatabase as Partial<configContainerDatabaseType>;
+		const containerDatabase = database.containerDatabase;
 
 		newDatabase.containerDatabase = {
 			port: newDatabase.port,

@@ -9,7 +9,7 @@ import type {Gatherer} from '../gatherer/gatherer';
 
 const debug = debugModule('oracle-health-dashboard:runserver');
 
-export async function runServer(configFilename: string) {
+export async function runServer(configFilename: string): Promise<void> {
 	debug('runServer', configFilename);
 
 	// install shutdown handler
@@ -32,7 +32,7 @@ export async function runServer(configFilename: string) {
 	const {server} = await serverStart(config);
 	console.log(`Listening at http://127.0.0.1:${config.http_port}`);
 
-	async function shutdownHandler() {
+	async function shutdownHandler(): Promise<void> {
 		// terminate gataherer thread
 		console.log('Stopping gatherer thread...');
 		await Thread.terminate(gatherer);

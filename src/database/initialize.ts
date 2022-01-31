@@ -94,8 +94,8 @@ export async function gathererInitial(config: configType): Promise<void> {
 
 	// process promises
 	const stats  = [] as statsInitType[];
-	for (let i = 0; i < gather.length; i++) {
-		const result = await gatherInitialize(gather[i]);
+	for (const g of gather) {
+		const result = await gatherInitialize(g);
 		stats.push(result);
 	}
 

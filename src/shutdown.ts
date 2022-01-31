@@ -2,12 +2,16 @@ import debugModule from 'debug';
 
 const debug = debugModule('oracle-health-dashboard:shutdown');
 
-export async function installShutdown(handler?: () => Promise<void>) {
+export function installShutdown(handler?: () => Promise<void>): void {
 	debug('installShutdown');
 
 	// install signal event handler
-	process.on('SIGTERM', () => void shutdown(handler));
-	process.on('SIGINT', () => void shutdown(handler));
+	process.on('SIGTERM', () => {
+		shutdown(handler);
+	});
+	process.on('SIGINT', () => {
+		shutdown(handler);
+	});
 }
 
 function shutdown(handler?: () => Promise<void>): void {

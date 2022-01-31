@@ -4,8 +4,8 @@ import compression from 'compression';
 import {handlerDefault} from './router/handlerDefault.js';
 import {handlerConfig} from './router/handlerConfig.js';
 import {handlerDebug} from './router/handlerDebug.js';
-import * as http from 'http';
 
+import type * as http from 'http';
 import type {configType} from './config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:server');
@@ -32,10 +32,14 @@ export async function serverStart(config: configType): Promise<{app: express.Exp
 		app.get('/debug', handlerDebug.bind(null, config));
 
 		// listen
-		const server = app.listen(config.http_port, () => resolve({app, server}));
+		const server = app.listen(config.http_port, () => {
+			resolve({app, server});
+		});
 	});
 }
 
 export async function serverStop(server: http.Server): Promise<void> {
-	return new Promise(resolve => server.close(() => resolve()));
+	return new Promise(resolve => server.close(() => {
+		resolve();
+	}));
 }

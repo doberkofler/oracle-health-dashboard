@@ -204,7 +204,7 @@ export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType
 	// get information for PDB
 	const infoPDB = await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB);
 	if (typeof infoPDB === 'string') {
-		disconnect(connection, connectDatabase);
+		await disconnect(connection, connectDatabase);
 		data.status = getStatus(false, infoPDB);
 		return data;
 	}
@@ -239,14 +239,14 @@ export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType
 
 	if (connectContainerDatabase) {
 		// connect to CDB
-		const connection = await connect(connectContainerDatabase);
-		if (typeof connection === 'string') {
-			data.status = getStatus(false, connection);
+		const containerConnection = await connect(connectContainerDatabase);
+		if (typeof containerConnection === 'string') {
+			data.status = getStatus(false, containerConnection);
 			return data;
 		}
 	
 		// get information for CDB
-		const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
+		const infoCDB = await execute<sqlCdbType>(containerConnection, sqlCDB, bndCDB);
 		if (typeof infoCDB === 'string') {
 			data.status = getStatus(false, infoCDB);
 			return data;
@@ -259,7 +259,7 @@ export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType
 		data.metric.executions_per_sec = infoCDB.executions_per_sec;
 
 		// disconnect from CDB
-		resultCDB = disconnect(connection, connectContainerDatabase);
+		resultCDB = disconnect(containerConnection, connectContainerDatabase);
 		if (typeof resultCDB === 'string') {
 			data.status = getStatus(false, resultCDB);
 			return data;

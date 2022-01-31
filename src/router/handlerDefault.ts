@@ -1,7 +1,7 @@
-import express from 'express';
 import debugModule from 'debug';
 import {getPage} from '../pages/pageDefault/index.js';
 
+import type express from 'express';
 import type {configType} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:handlerDefault');
@@ -9,7 +9,7 @@ const debug = debugModule('oracle-health-dashboard:handlerDefault');
 /*
 *	handler "default"
 */
-export async function handlerDefault(config: configType, _req: express.Request, res: express.Response): Promise<express.Response> {
+export function handlerDefault(config: configType, _req: express.Request, res: express.Response): express.Response {
 	debug('handlerDefault');
 		
 	// get page

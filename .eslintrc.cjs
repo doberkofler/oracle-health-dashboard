@@ -8,6 +8,7 @@ module.exports = {
 	parserOptions: {
 		project: 'tsconfig.json',
 		sourceType: 'module',
+		extraFileExtensions: ['.cjs'],
 	},
 	plugins: [
 		'@typescript-eslint',

@@ -7,6 +7,7 @@ export type configSchemaType = {
 	name: string,
 	username: string,
 	password: string,
+	customPropertiesSelect: string,
 };
 export type configContainerDatabaseType = {
 	port: number,
@@ -21,6 +22,7 @@ export type configDatabaseType = {
 	service: string,
 	username: string,
 	password: string,
+	customPropertiesSelect: string,
 	containerDatabase: configContainerDatabaseType | null,
 	schemas: configSchemaType[],
 };
@@ -51,7 +53,7 @@ type partialConfigType = Partial<Omit<configType, 'hosts'>> & {
 };
 
 // types used when using an individual host/database/schema
-export type flatDatabaseType = Omit<configDatabaseType, 'schemas'>;
+export type flatDatabaseType = Omit<configDatabaseType, 'customPropertiesSelect' | 'schemas'>;
 export type flatHostType = Omit<configHostType, 'databases'>;
 export type flatType = {
 	host: flatHostType,
@@ -185,7 +187,7 @@ function validateHost(host: partialConfigHostType, hostIndex: number): configHos
 	// enabled
 	if ('enabled' in host) {
 		if (typeof host.enabled !== 'boolean') {
-			throw new Error(`"enabled" must be boolean: "${hostErrorLocation}"`);
+			throw new Error(`"enabled" must be a boolean: "${hostErrorLocation}"`);
 		} else {
 			newHost.enabled = host.enabled;
 		}
@@ -193,14 +195,14 @@ function validateHost(host: partialConfigHostType, hostIndex: number): configHos
 
 	// name
 	if (typeof host.name !== 'string' || host.name.length === 0) {
-		throw new Error(`"name" must be non-empty string: "${hostErrorLocation}"`);
+		throw new Error(`"name" must be a non-empty string: "${hostErrorLocation}"`);
 	} else {
 		newHost.name = host.name;
 	}
 
 	// host
 	if (typeof host.address !== 'string' || host.address.length === 0) {
-		throw new Error(`"address" must be non-empty string: "${hostErrorLocation}"`);
+		throw new Error(`"address" must be a non-empty string: "${hostErrorLocation}"`);
 	} else {
 		newHost.address = host.address;
 	}
@@ -208,7 +210,7 @@ function validateHost(host: partialConfigHostType, hostIndex: number): configHos
 	// probe
 	if ('probe' in host) {
 		if (typeof host.probe !== 'boolean') {
-			throw new Error(`"probe" must be boolean: "${hostErrorLocation}"`);
+			throw new Error(`"probe" must be a boolean: "${hostErrorLocation}"`);
 		} else {
 			newHost.probe = host.probe;
 		}
@@ -242,6 +244,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		service: '',
 		username: '',
 		password: '',
+		customPropertiesSelect: '',
 		containerDatabase: null,
 		schemas: [],
 	
@@ -252,7 +255,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 	// enabled
 	if ('enabled' in database) {
 		if (typeof database.enabled !== 'boolean') {
-			throw new Error(`"enabled" must be boolean: "${databaseErrorLocation}"`);
+			throw new Error(`"enabled" must be a boolean: "${databaseErrorLocation}"`);
 		} else {
 			newDatabase.enabled = database.enabled;
 		}
@@ -260,7 +263,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 
 	// name
 	if (typeof database.name !== 'string' || database.name.length === 0) {
-		throw new Error(`"name" must be non-empty string: "${databaseErrorLocation}"`);
+		throw new Error(`"name" must be a non-empty string: "${databaseErrorLocation}"`);
 	} else {
 		newDatabase.name = database.name;
 	}
@@ -268,7 +271,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 	// port
 	if ('port' in database) {
 		if (!isInteger(database.port) || database.port <= 0 || database.port > 65536) {
-			throw new Error(`"port" must be integer between 1 and 65536: "${databaseErrorLocation}"`);
+			throw new Error(`"port" must be an integer between 1 and 65536: "${databaseErrorLocation}"`);
 		} else {
 			newDatabase.port = database.port;
 		}
@@ -276,23 +279,32 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 
 	// service
 	if (typeof database.service !== 'string' || database.service.length === 0) {
-		throw new Error(`"service" must be non-empty string: "${databaseErrorLocation}"`);
+		throw new Error(`"service" must be a non-empty string: "${databaseErrorLocation}"`);
 	} else {
 		newDatabase.service = database.service;
 	}
 
 	// username
 	if (typeof database.username !== 'string' || database.username.length === 0) {
-		throw new Error(`"username" must be non-empty string: "${databaseErrorLocation}"`);
+		throw new Error(`"username" must be a non-empty string: "${databaseErrorLocation}"`);
 	} else {
 		newDatabase.username = database.username;
 	}
 
 	// password
 	if (typeof database.password !== 'string' || database.password.length === 0) {
-		throw new Error(`"password" must be non-empty string: "${databaseErrorLocation}"`);
+		throw new Error(`"password" must be a non-empty string: "${databaseErrorLocation}"`);
 	} else {
 		newDatabase.password = database.password;
+	}
+
+	// customPropertiesSelect
+	if ('customPropertiesSelect' in database) {
+		if (typeof database.customPropertiesSelect !== 'string') {
+			throw new Error(`"customPropertiesSelect" must be a string: "${databaseErrorLocation}"`);
+		} else {
+			newDatabase.customPropertiesSelect = database.customPropertiesSelect;
+		}
 	}
 
 	// containerDatabase
@@ -314,7 +326,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		// port
 		if ('port' in containerDatabase) {
 			if (!isInteger(containerDatabase.port) || containerDatabase.port <= 0 || containerDatabase.port > 65536) {
-				throw new Error(`"port" must be integer between 1 and 65536: "${containerDatabaseErrorLocation}"`);
+				throw new Error(`"port" must be an integer between 1 and 65536: "${containerDatabaseErrorLocation}"`);
 			} else {
 				newDatabase.containerDatabase.port = containerDatabase.port;
 			}
@@ -323,7 +335,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		// service
 		if ('service' in containerDatabase) {
 			if (typeof containerDatabase.service !== 'string' || containerDatabase.service.length === 0) {
-				throw new Error(`"service" must be non-empty string: "${containerDatabaseErrorLocation}"`);
+				throw new Error(`"service" must be a non-empty string: "${containerDatabaseErrorLocation}"`);
 			} else {
 				newDatabase.containerDatabase.service = containerDatabase.service;
 			}
@@ -332,7 +344,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		// username
 		if ('username' in containerDatabase) {
 			if (typeof containerDatabase.username !== 'string' || containerDatabase.username.length === 0) {
-				throw new Error(`"username" must be non-empty string: "${containerDatabaseErrorLocation}"`);
+				throw new Error(`"username" must be a non-empty string: "${containerDatabaseErrorLocation}"`);
 			} else {
 				newDatabase.containerDatabase.username = containerDatabase.username;
 			}
@@ -341,7 +353,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		// password
 		if ('password' in containerDatabase) {
 			if (typeof containerDatabase.password !== 'string' || containerDatabase.password.length === 0) {
-				throw new Error(`"password" must be non-empty string: "${containerDatabaseErrorLocation}"`);
+				throw new Error(`"password" must be a non-empty string: "${containerDatabaseErrorLocation}"`);
 			} else {
 				newDatabase.containerDatabase.password = containerDatabase.password;
 			}
@@ -375,12 +387,13 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 		name: '',
 		username: '',
 		password: '',
+		customPropertiesSelect: '',
 	};
 
 	// enabled
 	if ('enabled' in schema) {
 		if (typeof schema.enabled !== 'boolean') {
-			throw new Error(`"enabled" must be boolean: "${schemaErrorLocation}"`);
+			throw new Error(`"enabled" must be a boolean: "${schemaErrorLocation}"`);
 		} else {
 			newSchema.enabled = schema.enabled;
 		}
@@ -388,23 +401,32 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 
 	// name
 	if (typeof schema.name !== 'string' || schema.name.length === 0) {
-		throw new Error(`"name" must be non-empty string: "${schemaErrorLocation}"`);
+		throw new Error(`"name" must be a non-empty string: "${schemaErrorLocation}"`);
 	} else {
 		newSchema.name = schema.name;
 	}
 
 	// username
 	if (typeof schema.username !== 'string' || schema.username.length === 0) {
-		throw new Error(`"username" must be non-empty string: "${schemaErrorLocation}"`);
+		throw new Error(`"username" must be a non-empty string: "${schemaErrorLocation}"`);
 	} else {
 		newSchema.username = schema.username;
 	}
 
 	// password
 	if (typeof schema.password !== 'string' || schema.password.length === 0) {
-		throw new Error(`"password" must be non-empty string: "${schemaErrorLocation}"`);
+		throw new Error(`"password" must be a non-empty string: "${schemaErrorLocation}"`);
 	} else {
 		newSchema.password = schema.password;
+	}
+
+	// customPropertiesSelect
+	if ('customPropertiesSelect' in schema) {
+		if (typeof schema.customPropertiesSelect !== 'string') {
+			throw new Error(`"customPropertiesSelect" must be a string: "${databaseErrorLocation}"`);
+		} else {
+			newSchema.customPropertiesSelect = schema.customPropertiesSelect;
+		}
 	}
 
 	return newSchema;

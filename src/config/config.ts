@@ -1,5 +1,5 @@
 import {jsonLoad} from '../util/files.js';
-import {isInteger} from '../util/util.js';
+import {isInteger, isStringArray} from '../util/util.js';
 
 // types used for the configuration
 export type configSchemaType = {
@@ -7,7 +7,7 @@ export type configSchemaType = {
 	name: string,
 	username: string,
 	password: string,
-	customPropertiesSelect: string,
+	customPropertiesSelects: string[],
 };
 export type configContainerDatabaseType = {
 	port: number,
@@ -22,7 +22,7 @@ export type configDatabaseType = {
 	service: string,
 	username: string,
 	password: string,
-	customPropertiesSelect: string,
+	customPropertiesSelects: string[],
 	containerDatabase: configContainerDatabaseType | null,
 	schemas: configSchemaType[],
 };
@@ -41,9 +41,12 @@ export type configType = {
 };
 
 // types used when validating the configuration
+type partialConfigSchemaType = Partial<configSchemaType> & {
+	customPropertiesSelects?: string | string[],
+};
 type partialConfigDatabaseType = Partial<Omit<configDatabaseType, 'containerDatabase' | 'schemas'>> & {
 	containerDatabase?: Partial<configContainerDatabaseType>,
-	schemas?: Partial<configSchemaType>[],
+	schemas?: partialConfigSchemaType[],
 };
 type partialConfigHostType = Partial<Omit<configHostType, 'databases'>> & {
 	databases?: partialConfigDatabaseType[],
@@ -53,7 +56,7 @@ type partialConfigType = Partial<Omit<configType, 'hosts'>> & {
 };
 
 // types used when using an individual host/database/schema
-export type flatDatabaseType = Omit<configDatabaseType, 'customPropertiesSelect' | 'schemas'>;
+export type flatDatabaseType = Omit<configDatabaseType, 'customPropertiesSelects' | 'schemas'>;
 export type flatHostType = Omit<configHostType, 'databases'>;
 export type flatType = {
 	host: flatHostType,
@@ -244,7 +247,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		service: '',
 		username: '',
 		password: '',
-		customPropertiesSelect: '',
+		customPropertiesSelects: [],
 		containerDatabase: null,
 		schemas: [],
 	
@@ -298,12 +301,14 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		newDatabase.password = database.password;
 	}
 
-	// customPropertiesSelect
-	if ('customPropertiesSelect' in database) {
-		if (typeof database.customPropertiesSelect !== 'string') {
-			throw new Error(`"customPropertiesSelect" must be a string: "${databaseErrorLocation}"`);
+	// customPropertiesSelects
+	if ('customPropertiesSelects' in database) {
+		if (typeof database.customPropertiesSelects === 'string') {
+			newDatabase.customPropertiesSelects = [database.customPropertiesSelects];
+		} else if (isStringArray(database.customPropertiesSelects)) {
+			newDatabase.customPropertiesSelects = database.customPropertiesSelects;
 		} else {
-			newDatabase.customPropertiesSelect = database.customPropertiesSelect;
+			throw new Error(`"customPropertiesSelects" must be a string or string array: "${databaseErrorLocation}"`);
 		}
 	}
 
@@ -387,7 +392,7 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 		name: '',
 		username: '',
 		password: '',
-		customPropertiesSelect: '',
+		customPropertiesSelects: [],
 	};
 
 	// enabled
@@ -420,12 +425,14 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 		newSchema.password = schema.password;
 	}
 
-	// customPropertiesSelect
-	if ('customPropertiesSelect' in schema) {
-		if (typeof schema.customPropertiesSelect !== 'string') {
-			throw new Error(`"customPropertiesSelect" must be a string: "${databaseErrorLocation}"`);
+	// customPropertiesSelects
+	if ('customPropertiesSelects' in schema) {
+		if (typeof schema.customPropertiesSelects === 'string') {
+			newSchema.customPropertiesSelects = [schema.customPropertiesSelects];
+		} else if (isStringArray(schema.customPropertiesSelects)) {
+			newSchema.customPropertiesSelects = schema.customPropertiesSelects;
 		} else {
-			newSchema.customPropertiesSelect = schema.customPropertiesSelect;
+			throw new Error(`"customPropertiesSelects" must be a string or string array: "${databaseErrorLocation}"`);
 		}
 	}
 

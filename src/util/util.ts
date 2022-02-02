@@ -2,6 +2,16 @@ import {formatDistance, isDate as _isDate, isValid, format} from 'date-fns';
 import {inspect as _inspect} from 'util';
 
 /**
+ * Is the given value an array of "string"
+ *
+ * @param {unknown} value - The value to be checked
+ * @returns {boolean} returns true if the value matches the type
+ */
+export function isStringArray(value: unknown): value is string[] {
+	return Array.isArray(value) && value.every(e => typeof e === 'string');
+}
+
+/**
  * Is the given value a "Number"
  *
  * @param {unknown} value - The value to be checked

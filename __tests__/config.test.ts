@@ -85,7 +85,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelect: '',
+					customPropertiesSelects: [],
 					containerDatabase: null,
 					schemas: [],
 				}],
@@ -130,7 +130,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelect: '',
+					customPropertiesSelects: [],
 					containerDatabase: {
 						port: 1521,
 						service: 'container_service',
@@ -177,7 +177,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelect: '',
+					customPropertiesSelects: [],
 					containerDatabase: {
 						port: 1522,
 						service: 'database_service',
@@ -224,7 +224,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelect: '',
+					customPropertiesSelects: [],
 					containerDatabase: {
 						port: 1521,
 						service: 'container_service',
@@ -271,7 +271,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelect: '',
+					customPropertiesSelects: [],
 					containerDatabase: {
 						port: 1521,
 						service: 'database_service',
@@ -318,7 +318,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelect: '',
+					customPropertiesSelects: [],
 					containerDatabase: {
 						port: 1521,
 						service: 'database_service',

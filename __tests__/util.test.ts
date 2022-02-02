@@ -1,4 +1,5 @@
 import {
+	isStringArray,
 	isNumber,
 	isInteger,
 	isDate,
@@ -7,6 +8,28 @@ import {
 	timestampToString,
 	inspect,
 } from '../src/util/util.js';
+
+describe('isStringArray', () => {
+	it('returns true for arrays of strings', () => {
+		expect(isStringArray([''])).toBe(true);
+		expect(isStringArray(['1', '2'])).toBe(true);
+		expect(isStringArray([0])).toBe(false);
+		expect(isStringArray(['', 0])).toBe(false);
+
+		expect(isStringArray(0)).toBe(false);
+		expect(isStringArray(1)).toBe(false);
+		expect(isStringArray(0.1)).toBe(false);
+		expect(isStringArray(undefined)).toBe(false);
+		expect(isStringArray('')).toBe(false);
+		expect(isStringArray(NaN)).toBe(false);
+		expect(isStringArray(null)).toBe(false);
+		expect(isStringArray({})).toBe(false);
+		expect(isStringArray([])).toBe(true);
+		expect(isStringArray(true)).toBe(false);
+		expect(isStringArray(false)).toBe(false);
+		expect(isStringArray(new Date())).toBe(false);
+	});
+});
 
 describe('isNumber', () => {
 	it('returns true for numbers', () => {

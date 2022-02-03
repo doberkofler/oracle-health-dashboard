@@ -1,6 +1,7 @@
 import {jsonLoad, jsonSave} from './util/files.js';
 import {inspect} from './util/util.js';
-import type {statusType, metricType} from './database/worker.js';
+
+import type {statusType, metricType, customStatsType} from './database/worker.js';
 import type {staticMetricType} from './database/initialize.js';
 
 const MAGIC = 'MAGIC';
@@ -33,6 +34,7 @@ export type statsAddDataType = {
 export type statsSchemaType = {
 	name: string,
 	status: statusType,
+	custom: customStatsType,
 };
 
 export type statsDatabaseType = {

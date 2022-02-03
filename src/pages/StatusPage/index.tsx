@@ -10,6 +10,12 @@ type rowType = {
 	showPassword: boolean,
 };
 
+type detailType = {
+	title: string,
+	value: string,
+	unit?: string,
+};
+
 //const debug = debugModule('oracle-health-dashboard:statuspage');
 
 const borderLine = '2px solid #ddd';
@@ -74,7 +80,7 @@ const Database = ({row, showPassword}: rowType): JSX.Element | null => {
 					<LastUpdate timestamp={row.stats.dynamic?.status.timestamp} />
 				</h2>
 				<DatabaseConnectionString row={row} showPassword={showPassword} />
-				<Details row={row} />
+				<DatabaseDetails row={row} />
 			</td>
 		);
 	} else {
@@ -83,13 +89,24 @@ const Database = ({row, showPassword}: rowType): JSX.Element | null => {
 };
 
 const Schema = ({row, showPassword}: rowType): JSX.Element => {
+	const data: detailType[] = [];
+
 	const style: React.CSSProperties = {
 		borderBottom: borderLine,
 		padding: '8px',
 	};
 
-	if (row.stats.dynamic?.schema && !row.stats.dynamic.schema.status.success) {
-		style.backgroundColor = 'red';
+	if (row.stats.dynamic?.schema) {
+		const schema = row.stats.dynamic.schema;
+
+		if (!schema.status.success) {
+			style.backgroundColor = 'red';
+		}
+
+		// custom metrics
+		schema.custom.forEach(e => {
+			addLine(data, e.title, e.value);
+		});
 	}
 
 	const connection = getConnectionAsString(row.schemaConnection, showPassword);
@@ -103,6 +120,7 @@ const Schema = ({row, showPassword}: rowType): JSX.Element => {
 			<h5>
 				{connection.toLocaleLowerCase()}
 			</h5>
+			<Details data={data} />
 		</td>
 	);
 };
@@ -142,53 +160,58 @@ const LastUpdate = ({timestamp}: {timestamp?: Date}): JSX.Element | null => {
 	}
 };
 
-const Details = ({row}: {row: flattenedType}): JSX.Element | null => {
-	const data = [] as {
-		title: string,
-		value: string,
-		unit?: string,
-	}[];
-
-	function addLine(title: string, value: string | number | boolean | Date | null, unit = ''): void {
-		data.push({
-			title,
-			value: getValueAsString(value),
-			unit,
-		});
-	}
+const DatabaseDetails = ({row}: {row: flattenedType}): JSX.Element | null => {
+	const data: detailType[] = [];
 
 	if (row.stats.statics) {
 		const statics = row.stats.statics;
 
-		addLine('Oracle version', statics.oracle_version);
-		addLine('Oracle platform', statics.oracle_platform);
-		addLine('Archive logging', statics.oracle_log_mode);
-		addLine('Character set', statics.oracle_database_character_set);
-		addLine('SGA target', statics.oracle_sga_target);
-		addLine('PGA target', statics.oracle_pga_aggregate_target);
+		addLine(data, 'Oracle version', statics.oracle_version);
+		addLine(data, 'Oracle platform', statics.oracle_platform);
+		addLine(data, 'Archive logging', statics.oracle_log_mode);
+		addLine(data, 'Character set', statics.oracle_database_character_set);
+		addLine(data, 'SGA target', statics.oracle_sga_target);
+		addLine(data, 'PGA target', statics.oracle_pga_aggregate_target);
 	}
 
 	if (row.stats.dynamic) {
 		const dynamic = row.stats.dynamic;
 
 		//addLine('Server date', metric.server_date);
-		addLine('Host CPU utilization', dynamic.host_cpu_utilization, '%');
-		addLine('IO requests per sec', dynamic.io_requests_per_second);
-		addLine('Buffer cache hit ratio', dynamic.buffer_cache_hit_ratio, '%');
-		addLine('Executions per sec', dynamic.executions_per_sec);
+		addLine(data, 'Host CPU utilization', dynamic.host_cpu_utilization, '%');
+		addLine(data, 'IO requests per sec', dynamic.io_requests_per_second);
+		addLine(data, 'Buffer cache hit ratio', dynamic.buffer_cache_hit_ratio, '%');
+		addLine(data, 'Executions per sec', dynamic.executions_per_sec);
+
+		// custom metrics
+		dynamic.custom.forEach(e => {
+			addLine(data, e.title, e.value);
+		});
 	}
 
-	if (data.length === 0) {
+	return <Details data={data} />;
+};
+
+const addLine = (data: detailType[], title: string, value: string | number | boolean | Date | null, unit = ''): void => {
+	data.push({
+		title,
+		value: getValueAsString(value),
+		unit,
+	});
+};
+
+const Details = ({data}: {data: detailType[]}): JSX.Element | null => {
+	if (data.length > 0) {
+		return (
+			<div className="metrics-enclosure">
+				<div className="metrics">
+					{data.map(line => <DetailsLine key={line.title} title={line.title} value={line.value} unit={line.unit} />)}
+				</div>
+			</div>
+		);
+	} else {
 		return null;
 	}
-
-	return (
-		<div className="metrics-enclosure">
-			<div className="metrics">
-				{data.map(line => <DetailsLine key={line.title} title={line.title} value={line.value} unit={line.unit} />)}
-			</div>
-		</div>
-	);
 };
 
 const DetailsLine = ({title, value, unit = ''}: {title: string, value: string, unit?: string}): JSX.Element => {
@@ -199,7 +222,7 @@ const DetailsLine = ({title, value, unit = ''}: {title: string, value: string, u
 			</div>
 			<div>
 				{value}
-				{value.length > 0 && Uint16Array.length > 0 ? unit : ''}
+				{value.length > 0 && unit.length > 0 ? unit : ''}
 			</div>
 		</>
 	);

@@ -9,7 +9,10 @@ const VERSION = 1;
 // Use JSON file for storage
 const FILENAME = 'db.json';
 
-export type dynamicMetricType = statusType & metricType;
+export type dynamicMetricType = metricType & {
+	status: statusType,
+	schemas: statsSchemaType[],
+};
 
 export type statsInitType = {
 	hostName: string,
@@ -24,6 +27,7 @@ export type statsAddDataType = {
 	schemaName: string,
 	status: statusType,
 	metric: metricType,
+	schemas: statsSchemaType[],
 };
 
 export type statsSchemaType = {
@@ -35,7 +39,6 @@ export type statsDatabaseType = {
 	name: string,
 	statics?: staticMetricType,
 	metrics: dynamicMetricType[],
-	schemas: statsSchemaType[],
 };
 
 export type statsHostType = {
@@ -100,7 +103,6 @@ export function statsInitial(data: statsInitType[]): void {
 				name: row.databaseName,
 				statics: row.statics,
 				metrics: [],
-				schemas: [],
 			} as statsDatabaseType;
 			host.databases.push(database);
 		}
@@ -130,7 +132,11 @@ export function statsAdd(rows: statsAddDataType[]): void {
 			throw new Error(`Unable to find database "${row.databaseName}" in host "${row.hostName}" in "${inspect(oldHosts)}"`);
 		}
 
-		const metric = Object.assign({}, row.metric, row.status);
+		const metric = Object.assign({}, row.metric, {
+			status: row.status,
+			schemas: row.schemas,
+		});
+
 		database.metrics.push(metric);
 	});
 

@@ -40,6 +40,10 @@ export type configType = {
 	hosts: configHostType[],
 };
 
+// types without the tree
+export type justHostType = Omit<configHostType, 'databases'>;
+export type justDatabaseType = Omit<configDatabaseType, 'schemas'>;
+
 // types used when validating the configuration
 type partialConfigSchemaType = Partial<configSchemaType> & {
 	customPropertiesSelects?: string | string[],
@@ -67,12 +71,12 @@ export type flatType = {
 /**
  * Returns a flat host/database/schema object.
  *
- * @param {configHostType} host - The host.
- * @param {configDatabaseType} database - The database.
+ * @param {justHostType} host - The host.
+ * @param {justDatabaseType} database - The database.
  * @param {configSchemaType | null | undefined} [schema] - The optional schema.
  * @returns {flatType} - A flat host/database/schema type.
  */
-export function getFlat(host: configHostType, database: configDatabaseType, schema?: configSchemaType | null | undefined): flatType {
+export function getFlat(host: justHostType, database: justDatabaseType, schema?: configSchemaType | null | undefined): flatType {
 	const flat: flatType = {
 		host: {
 			enabled: host.enabled,

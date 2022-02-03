@@ -4,6 +4,8 @@ import {configLoad} from '../config/config.js';
 import {installShutdown} from '../shutdown.js';
 import {gathererInitial} from '../database/initialize.js';
 import {serverStart, serverStop} from '../server.js';
+import {log} from '../util/tty.js';
+
 
 import type {Gatherer} from '../gatherer/gatherer';
 
@@ -30,17 +32,17 @@ export async function runServer(configFilename: string): Promise<void> {
 
 	// start srever
 	const {server} = await serverStart(config);
-	console.log(`Listening at http://127.0.0.1:${config.http_port}`);
+	log(`Listening at http://127.0.0.1:${config.http_port}`);
 
 	async function shutdownHandler(): Promise<void> {
 		// terminate gataherer thread
-		console.log('Stopping gatherer thread...');
+		log('Stopping gatherer thread...');
 		await Thread.terminate(gatherer);
-		console.log('Stopped gatherer thread.');
+		log('Stopped gatherer thread.');
 
 		// close server
-		console.log('Closing server connection...');
+		log('Closing server connection...');
 		await serverStop(server);
-		console.log('Closed server connections.');
+		log('Closed server connections.');
 	}
 }

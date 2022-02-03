@@ -109,7 +109,7 @@ export async function gathererInitial(config: configType): Promise<void> {
  */
 async function gatherInitialize(flat: flatType): Promise<initialGatherType> {
 	const connectionOptions = getConnectionDatabase(flat);
-	const title = `Gathering initial data with database "${flat.database.name}" as "${connectionOptions.username}" using "${connectionOptions.connectionString}"`;
+	const title = `[${new Date().toJSON()}] Gathering initial data with database "${flat.database.name}" as "${connectionOptions.username}" using "${connectionOptions.connectionString}"`;
 
 	write('\n' + title);
 

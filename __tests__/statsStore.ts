@@ -37,7 +37,6 @@ describe('statsInitial', () => {
 						oracle_pga_aggregate_target: '',
 					},
 					metrics: [],
-					schemas: [],
 				}],
 			}],
 		});
@@ -74,7 +73,6 @@ describe('statsLoad', () => {
 					oracle_pga_aggregate_target: '',
 				},
 				metrics: [],
-				schemas: [],
 			}],
 		}]);
 	});
@@ -158,6 +156,7 @@ describe('statsAdd', () => {
 			schemaName: '',
 			status,
 			metric,
+			schemas: [],
 		}]);
 
 		const stats = statsLoad();
@@ -166,8 +165,7 @@ describe('statsAdd', () => {
 			databases: [{
 				name: 'database',
 				statics,
-				metrics: [Object.assign({}, metric, status)],
-				schemas: [],
+				metrics: [Object.assign({}, metric, {status, schemas: []})],
 			}],
 		}]);
 	});
@@ -218,6 +216,7 @@ describe('statsAdd', () => {
 				schemaName: '',
 				status,
 				metric,
+				schemas: [],
 			}]);
 		}).toThrow();
 	});

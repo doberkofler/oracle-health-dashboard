@@ -6,6 +6,20 @@ import type {connectionOptionsType} from '../database/oracle.js';
 
 //const debug = debugModule('oracle-health-dashboard:connection');
 
+export const getConnectionBasic = (options: {
+	address: string,
+	port: number,
+	service: string,
+	username: string,
+	password: string,
+}): connectionOptionsType => {
+	return {
+		connectionString: getConnectionString(options.address, options.port, options.service),
+		username: options.username,
+		password: options.password,
+	};
+};
+
 export const getConnectionDatabase = (flat: flatType): connectionOptionsType => {
 	return {
 		connectionString: getConnectionString(flat.host.address, flat.database.port, flat.database.service),

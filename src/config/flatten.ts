@@ -4,13 +4,14 @@ import {getFlat} from '../config/config.js';
 import {inspect} from '../util/util.js';
 
 import type {configHostType} from './config.js';
-import type {statsHostType, dynamicMetricType} from '../statsStore.js';
+import type {statsHostType, dynamicMetricType, statsSchemaType} from '../statsStore.js';
 import type {connectionOptionsType} from '../database/oracle.js';
 import type {staticMetricType} from '../database/initialize.js';
 
+type flatDynamicType = Omit<dynamicMetricType, 'schemas'> & {schema: null | statsSchemaType};
 type statsType = {
-	statics: staticMetricType | null,
-	dynamic: dynamicMetricType | null,
+	statics: null | staticMetricType,
+	dynamic: null | flatDynamicType,
 };
 
 export type flattenedType = {
@@ -60,7 +61,7 @@ export const flatten = (hosts: configHostType[], statsHosts: statsHostType[] = [
 					databaseSchemaCount,
 					schemaName: schema.name,
 					schemaConnection: getConnectionSchema(getFlat(host, database, schema)),
-					stats: getStats(statsHosts, host.name, database.name),
+					stats: getStats(statsHosts, host.name, database.name, schema.name),
 				});
 
 				hostSwitch = false;
@@ -76,7 +77,7 @@ export const flatten = (hosts: configHostType[], statsHosts: statsHostType[] = [
 	return flattened;
 };
 
-const getStats = (statsHosts: statsHostType[], hostName: string, databaseName: string): statsType => {
+const getStats = (statsHosts: statsHostType[], hostName: string, databaseName: string, schemaName: string): statsType => {
 	const stats = {
 		statics: null,
 		dynamic: null,
@@ -98,8 +99,19 @@ const getStats = (statsHosts: statsHostType[], hostName: string, databaseName: s
 		return stats;
 	}
 
+	// static
 	stats.statics = database.statics;
-	stats.dynamic = database.metrics.length > 0 ? database.metrics[database.metrics.length - 1] : null;
+
+	// dynamic
+	if (database.metrics.length > 0) {
+		const lastStats = database.metrics[database.metrics.length - 1];
+		const schemaStats = lastStats.schemas.find(e => e.name === schemaName);
+		const lastStatsFlat: flatDynamicType = Object.assign({}, lastStats, {schema: schemaStats ? schemaStats : null});
+
+		delete (lastStatsFlat as any).schemas; // eslint-disable-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+
+		stats.dynamic = lastStatsFlat;
+	}
 
 	return stats;
 };

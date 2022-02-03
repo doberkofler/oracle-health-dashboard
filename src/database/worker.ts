@@ -1,10 +1,11 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
-import {getConnectionDatabase, getConnectionContainerDatabase/*, getConnectionSchema*/} from '../config/connection.js';
+import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from '../config/connection.js';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
+import {getFlat} from '../config/config.js';
 import {inspect} from '../util/util.js';
 
-import type {flatType} from '../config/config.js';
+import type {justHostType, justDatabaseType, configSchemaType} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
@@ -38,15 +39,17 @@ export type initialGatherType = {
 
 export type metricType = sqlCdbType & sqlPdbType;
 
-export type periodicGatherType = {
+export type gatherSchemaType = {
+	name: string,
+	status: statusType,
+};
+
+export type gatherDatabaseType = {
 	hostName: string,
 	databaseName: string,
 	status: statusType,
 	metric: metricType,
-};
-
-export type periodicGatherSchemaType = {
-	status: statusType,
+	schemas: gatherSchemaType[],
 };
 
 const bndCDB = [
@@ -171,10 +174,11 @@ Oracle - Tablespace Usage
 /**
  * get statistics from CDB.
  */
-export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType> {
-	const data: periodicGatherType = {
-		hostName: flat.host.name,
-		databaseName: flat.database.name,
+export async function gatherPeriodic(host: justHostType, database: justDatabaseType, schemas: configSchemaType[]): Promise<gatherDatabaseType> {
+	const flat = getFlat(host, database);
+	const data: gatherDatabaseType = {
+		hostName: host.name,
+		databaseName: database.name,
 		status: getStatus(false),
 		metric: {
 			server_date: null,
@@ -189,6 +193,7 @@ export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType
 			last_rman_backup_date_full_db: null,
 			last_rman_backup_date_archive_log: null,
 		},
+		schemas: [],
 	};
 
 	const connectDatabase = getConnectionDatabase(flat);
@@ -266,20 +271,13 @@ export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType
 		}
 	}
 
-	/* TODO:
-	// eventually also gather information about the schema
-	if (schema) {
-		const connectSchema = getConnectionSchema(host, database, schema);
-		debug({schema, connectSchema});
-		const schemaInfo = await gatherSchema(database);
-		if (!schemaInfo.status.success) {
-			data.status = schemaInfo.status;
-			return data;
-		}
-	}
-	*/
-
 	data.status = getStatus(true);
+
+	// gather information about the schemas
+	for (const schema of schemas) {
+		const resultSchema = await gatherSchema(host, database, schema);
+		data.schemas.push(resultSchema);
+	}
 
 	debug('gatherPeriodic', inspect(flat));
 
@@ -289,27 +287,26 @@ export async function gatherPeriodic(flat: flatType): Promise<periodicGatherType
 /*
 * get statistics from schema.
 */
-/* TODO:
-async function gatherSchema(database: databaseType): Promise<periodicGatherSchemaType> {
-	debug('gatherSchema', database.schemaName);
+async function gatherSchema(host: justHostType, database: justDatabaseType, schema: configSchemaType): Promise<gatherSchemaType> {
+	debug('gatherSchema', schema.name);
 
-	const data: periodicGatherSchemaType = {
-		id: database.id,
-		hostName: database.hostName,
-		databaseName: database.databaseName,
-		schemaName: database.schemaName,
-		status: getStatus(true, ''),
+	const flat = getFlat(host, database, schema);
+	const schemaConnect = getConnectionSchema(flat);
+
+	const data: gatherSchemaType = {
+		name: schema.name,
+		status: getStatus(true),
 	};
 
 	// connect with schema
-	const connection = await connect(database.schemaConnect);
+	const connection = await connect(schemaConnect);
 	if (typeof connection === 'string') {
 		data.status = getStatus(false, connection);
 		return data;
 	}
 
 	// disconnect from schema
-	const resultDisconnect = disconnect(connection, database.schemaConnect);
+	const resultDisconnect = disconnect(connection, schemaConnect);
 	if (typeof resultDisconnect === 'string') {
 		data.status = getStatus(false, resultDisconnect);
 		return data;
@@ -317,7 +314,6 @@ async function gatherSchema(database: databaseType): Promise<periodicGatherSchem
 
 	return data;
 }
-*/
 
 /**
  * get status object.

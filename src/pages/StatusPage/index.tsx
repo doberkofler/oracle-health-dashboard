@@ -57,10 +57,22 @@ const Host = ({row}: {row: flattenedType}): JSX.Element | null => {
 };
 
 const Database = ({row, showPassword}: rowType): JSX.Element | null => {
+	const style: React.CSSProperties = {
+		borderBottom: borderLine,
+		borderRight: borderLine,
+		padding: '8px',
+	};
+
+	if (row.stats.dynamic && !row.stats.dynamic.status.success) {
+		style.backgroundColor = 'red';
+	}
+
 	if (row.databaseSwitch) {
 		return (
-			<td rowSpan={row.databaseSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
-				<h2>{row.databaseName}<LastUpdate row={row}/></h2>
+			<td rowSpan={row.databaseSchemaCount} style={style}>
+				<h2>{row.databaseName}
+					<LastUpdate timestamp={row.stats.dynamic?.status.timestamp} />
+				</h2>
 				<DatabaseConnectionString row={row} showPassword={showPassword} />
 				<Details row={row} />
 			</td>
@@ -71,10 +83,26 @@ const Database = ({row, showPassword}: rowType): JSX.Element | null => {
 };
 
 const Schema = ({row, showPassword}: rowType): JSX.Element => {
+	const style: React.CSSProperties = {
+		borderBottom: borderLine,
+		padding: '8px',
+	};
+
+	if (row.stats.dynamic?.schema && !row.stats.dynamic.schema.status.success) {
+		style.backgroundColor = 'red';
+	}
+
+	const connection = getConnectionAsString(row.schemaConnection, showPassword);
+
 	return (
-		<td style={{borderBottom: borderLine, padding: '8px'}}>
-			<h3>{row.schemaName}</h3>
-			<SchemaConnectionString row={row} showPassword={showPassword} />
+		<td style={style}>
+			<h3>
+				{row.schemaName}
+				<LastUpdate timestamp={row.stats.dynamic?.schema?.status.timestamp} />
+			</h3>
+			<h5>
+				{connection.toLocaleLowerCase()}
+			</h5>
 		</td>
 	);
 };
@@ -97,33 +125,21 @@ const DatabaseConnectionString = ({row, showPassword}: {row: flattenedType, show
 			</h5>
 		);
 	} else {
-		return <h5>{getConnectionAsString(row.databaseConnection, showPassword).toLocaleLowerCase()}</h5>;
+		return (
+			<h5>
+				{getConnectionAsString(row.databaseConnection, showPassword).toLocaleLowerCase()}
+			</h5>
+		);
 	}
 
 };
 
-const SchemaConnectionString = ({row, showPassword}: {row: flattenedType, showPassword: boolean}): JSX.Element => {
-	const connection = getConnectionAsString(row.schemaConnection, showPassword); 
-
-	return <h5>{connection.toLocaleLowerCase()}</h5>;
-};
-
-/*
-const Online = ({online}: {online: boolean}): JSX.Element | null => {
-	return (
-		<div>
-			<span className={online ? 'green' : 'red'}>
-				{online ? 'online' : 'offline'}
-			</span>
-		</div>
-	);
-};
-*/
-
-const LastUpdate = ({row}: {row: flattenedType}): JSX.Element | null => {
-	const timestamp = row.stats.dynamic && isDate(row.stats.dynamic.timestamp) ? distanceToString(row.stats.dynamic.timestamp) : '';
-
-	return timestamp.length > 0 ? <span className="timestamp">Updated:&nbsp;{timestamp}</span> : null;
+const LastUpdate = ({timestamp}: {timestamp?: Date}): JSX.Element | null => {
+	if (timestamp && isDate(timestamp)) {
+		return <span className="timestamp">Updated&nbsp;{distanceToString(timestamp)}</span>;
+	} else {
+		return null;
+	}
 };
 
 const Details = ({row}: {row: flattenedType}): JSX.Element | null => {

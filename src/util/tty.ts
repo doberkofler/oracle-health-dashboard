@@ -17,3 +17,7 @@ export const writeStartingOnColumn = (text: string, x: number): void => {
 	process.stdout.clearLine(1);
 	process.stdout.write(text);
 };
+
+export const log = (text: string): void => {
+	console.log(`[${new Date().toJSON()}] ${text}`);
+};

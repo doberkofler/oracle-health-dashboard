@@ -2,11 +2,11 @@ import debugModule from 'debug';
 import {expose} from 'threads/worker';
 import {statsAdd} from '../statsStore.js';
 import {gatherPeriodic} from '../database/worker.js';
-import {getFlat} from '../config/config.js';
 import {inspect} from '../util/util.js';
+import {log} from '../util/tty.js';
 
 import type {configType} from '../config/config.js';
-import type {periodicGatherType} from '../database/worker.js';
+import type {gatherDatabaseType} from '../database/worker.js';
 
 const debug = debugModule('oracle-health-dashboard:gatherer');
 
@@ -23,16 +23,16 @@ expose(gatherer);
 export async function gatherer(config: configType): Promise<void> {
 	debug('gatherer');
 
-	console.log('Gathering metrics...');
+	log('Gathering metrics...');
 
-	const promises = [] as Promise<periodicGatherType>[];
+	const promises = [] as Promise<gatherDatabaseType>[];
 
 	// process hosts
 	config.hosts.filter(host => host.enabled).forEach(host => {
 		// container database
 		host.databases.filter(database => database.enabled).forEach(database => {
 			// gather
-			promises.push(gatherPeriodic(getFlat(host, database)));
+			promises.push(gatherPeriodic(host, database, database.schemas));
 		});
 	});
 	// quere all databases and and wait until we got results from all of them
@@ -45,6 +45,7 @@ export async function gatherer(config: configType): Promise<void> {
 		schemaName: '',
 		status: result.status,
 		metric: result.metric,
+		schemas: result.schemas,
 	}));
 
 	debug('gatherer', inspect({results, stats}));

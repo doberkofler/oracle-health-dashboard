@@ -4,8 +4,9 @@ import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSche
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {getFlat} from '../config/config.js';
 import {inspect} from '../util/util.js';
+import {warn} from '../util/tty.js';
 
-import type {justHostType, justDatabaseType, configSchemaType} from '../config/config.js';
+import type {justHostType, justDatabaseType, configSchemaType, configCustomStatType, configCustomRepository} from '../config/config.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
@@ -37,11 +38,14 @@ export type initialGatherType = {
 	oracle_version: string,
 };
 
-export type metricType = sqlCdbType & sqlPdbType;
+export type metricType = sqlCdbType & sqlPdbType & {
+	custom: customStatsType,
+};
 
 export type gatherSchemaType = {
 	name: string,
 	status: statusType,
+	custom: customStatsType,
 };
 
 export type gatherDatabaseType = {
@@ -51,6 +55,12 @@ export type gatherDatabaseType = {
 	metric: metricType,
 	schemas: gatherSchemaType[],
 };
+
+export type customStatType = {
+	title: string,
+	value: string,
+};
+export type customStatsType = customStatType[];
 
 const bndCDB = [
 	{
@@ -146,35 +156,10 @@ BEGIN
 END;
 `;
 
-/*
-
-Oracle - Tablespace Usage
-		SELECT		ddf.TABLESPACE_NAME "Tablespace",
-					ddf.BYTES "Bytes Allocated",
-					ddf.BYTES - DFS.BYTES  "Bytes Used",
-					ROUND(((ddf.BYTES - dfs.BYTES) / ddf.BYTES) * 100, 2) "Percent Used",
-         			dfs.BYTES "Bytes Free",
-         			ROUND((1 - ((ddf.BYTES - dfs.BYTES) / ddf.BYTES)) * 100, 2) "Percent Free",
-         			DECODE(SIGN(ROUND((1 - ((ddf.BYTES - dfs.BYTES) / ddf.BYTES)) * 100, 2) - 10), -1, STYLE_WARNING, NULL) "style"
-		FROM    	(	SELECT		TABLESPACE_NAME,
-        							SUM(BYTES) bytes
-         				FROM		dba_data_files
-         				GROUP BY 	TABLESPACE_NAME
-  					) ddf,
-        			(
-        				SELECT		TABLESPACE_NAME,
-                					SUM(BYTES) bytes
-         				FROM		dba_free_space
-         				GROUP BY	TABLESPACE_NAME
-         			) dfs
-		WHERE		ddf.TABLESPACE_NAME = dfs.TABLESPACE_NAME
-		ORDER BY	((ddf.BYTES - dfs.BYTES) / ddf.BYTES) DESC;
-*/
-
 /**
  * get statistics from CDB.
  */
-export async function gatherPeriodic(host: justHostType, database: justDatabaseType, schemas: configSchemaType[]): Promise<gatherDatabaseType> {
+export async function gatherPeriodic(customRepository: configCustomRepository, host: justHostType, database: justDatabaseType, schemas: configSchemaType[]): Promise<gatherDatabaseType> {
 	const flat = getFlat(host, database);
 	const data: gatherDatabaseType = {
 		hostName: host.name,
@@ -192,6 +177,7 @@ export async function gatherPeriodic(host: justHostType, database: justDatabaseT
 			last_successful_rman_backup_date_archive_log: null,
 			last_rman_backup_date_full_db: null,
 			last_rman_backup_date_archive_log: null,
+			custom: [],
 		},
 		schemas: [],
 	};
@@ -219,6 +205,11 @@ export async function gatherPeriodic(host: justHostType, database: justDatabaseT
 	data.metric.last_successful_rman_backup_date_archive_log = infoPDB.last_successful_rman_backup_date_archive_log;
 	data.metric.last_rman_backup_date_full_db = infoPDB.last_rman_backup_date_full_db;
 	data.metric.last_rman_backup_date_archive_log = infoPDB.last_rman_backup_date_archive_log;
+
+	// gather custom statistics
+	if (database.customSelect.length > 0) {
+		data.metric.custom = await getCustomStats(connection, customRepository, database.customSelect);
+	}
 
 	if (!connectContainerDatabase) {
 		// get information for CDB
@@ -275,7 +266,7 @@ export async function gatherPeriodic(host: justHostType, database: justDatabaseT
 
 	// gather information about the schemas
 	for (const schema of schemas) {
-		const resultSchema = await gatherSchema(host, database, schema);
+		const resultSchema = await gatherSchema(customRepository, host, database, schema);
 		data.schemas.push(resultSchema);
 	}
 
@@ -287,7 +278,7 @@ export async function gatherPeriodic(host: justHostType, database: justDatabaseT
 /*
 * get statistics from schema.
 */
-async function gatherSchema(host: justHostType, database: justDatabaseType, schema: configSchemaType): Promise<gatherSchemaType> {
+async function gatherSchema(customRepository: configCustomRepository, host: justHostType, database: justDatabaseType, schema: configSchemaType): Promise<gatherSchemaType> {
 	debug('gatherSchema', schema.name);
 
 	const flat = getFlat(host, database, schema);
@@ -296,6 +287,7 @@ async function gatherSchema(host: justHostType, database: justDatabaseType, sche
 	const data: gatherSchemaType = {
 		name: schema.name,
 		status: getStatus(true),
+		custom: [],
 	};
 
 	// connect with schema
@@ -303,6 +295,11 @@ async function gatherSchema(host: justHostType, database: justDatabaseType, sche
 	if (typeof connection === 'string') {
 		data.status = getStatus(false, connection);
 		return data;
+	}
+
+	// gather custom statistics
+	if (schema.customSelect.length > 0) {
+		data.custom = await getCustomStats(connection, customRepository, schema.customSelect);
 	}
 
 	// disconnect from schema
@@ -315,6 +312,70 @@ async function gatherSchema(host: justHostType, database: justDatabaseType, sche
 	return data;
 }
 
+/*
+* get custom statistics
+*/
+async function getCustomStats(connection: oracledb.Connection, customRepository: configCustomRepository, key: string): Promise<customStatsType> {
+	debug('getCustomStats');
+
+	const custom = customRepository[key];
+	if (typeof custom !== 'object') {
+		throw new Error(`Unable to find custom repository "${key}" in "${inspect(customRepository)}"`);
+	}
+
+	const stats: customStatsType = [];
+	for (const e of custom) {
+		const stat = await getCustomStat(connection, e);
+		stats.push(stat);
+	}
+
+	return stats;
+}
+
+/*
+* get custom statistics
+*/
+async function getCustomStat(connection: oracledb.Connection, custom: configCustomStatType): Promise<customStatType> {
+	debug('getCustomStat');
+
+	// make sure we have a select statement
+	const info = await connection.getStatementInfo(custom.sql);
+	if (info.statementType !== oracledb.STMT_TYPE_SELECT) {
+		throw new Error(`The custom select "${custom.sql}" is actually not a seect statement`);
+	}
+
+	// execute the select
+	let result;
+	try {
+		result = await connection.execute<string[]>(custom.sql);
+	} catch (e: unknown) {
+		throw new Error(`The custom select "${custom.sql}" has errors.\n${inspect(e)}`);
+	}
+
+	// rows
+	if (!Array.isArray(result.rows) || result.rows.length < 1) {
+		throw new Error(`The custom select "${custom.sql}" did not return any rows.\n${inspect(result)}`);
+	}
+	if (result.rows.length > 1) {
+		warn(`The custom select "${custom.sql}" returned "${result.rows.length}" rows, but only the first one will be used`);
+	}
+	const row = result.rows[0];
+
+	// columns
+	if (!Array.isArray(row) || row.length < 1) {
+		throw new Error(`The custom select "${custom.sql}" did not return any columns.\n${inspect(result)}`);
+	}
+	if (row.length > 1) {
+		warn(`The custom select "${custom.sql}" returned "${row.length}" columns, but only the first one will be used`);
+	}
+	const col = row[0];
+
+	return {
+		title: custom.title,
+		value: col.toString(),
+	};
+}
+
 /**
  * get status object.
  */
@@ -325,3 +386,29 @@ export function getStatus(success: boolean, message = ''): statusType {
 		message,
 	};
 }
+
+/*
+
+Oracle - Tablespace Usage
+		SELECT		ddf.TABLESPACE_NAME "Tablespace",
+					ddf.BYTES "Bytes Allocated",
+					ddf.BYTES - DFS.BYTES  "Bytes Used",
+					ROUND(((ddf.BYTES - dfs.BYTES) / ddf.BYTES) * 100, 2) "Percent Used",
+         			dfs.BYTES "Bytes Free",
+         			ROUND((1 - ((ddf.BYTES - dfs.BYTES) / ddf.BYTES)) * 100, 2) "Percent Free",
+         			DECODE(SIGN(ROUND((1 - ((ddf.BYTES - dfs.BYTES) / ddf.BYTES)) * 100, 2) - 10), -1, STYLE_WARNING, NULL) "style"
+		FROM    	(	SELECT		TABLESPACE_NAME,
+        							SUM(BYTES) bytes
+         				FROM		dba_data_files
+         				GROUP BY 	TABLESPACE_NAME
+  					) ddf,
+        			(
+        				SELECT		TABLESPACE_NAME,
+                					SUM(BYTES) bytes
+         				FROM		dba_free_space
+         				GROUP BY	TABLESPACE_NAME
+         			) dfs
+		WHERE		ddf.TABLESPACE_NAME = dfs.TABLESPACE_NAME
+		ORDER BY	((ddf.BYTES - dfs.BYTES) / ddf.BYTES) DESC;
+*/
+

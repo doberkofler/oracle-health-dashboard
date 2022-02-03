@@ -1,5 +1,5 @@
 import {jsonLoad} from '../util/files.js';
-import {isInteger, isStringArray} from '../util/util.js';
+import {isInteger} from '../util/util.js';
 
 // types used for the configuration
 export type configSchemaType = {
@@ -7,8 +7,9 @@ export type configSchemaType = {
 	name: string,
 	username: string,
 	password: string,
-	customPropertiesSelects: string[],
+	customSelect: string,
 };
+
 export type configContainerDatabaseType = {
 	port: number,
 	service: string,
@@ -22,10 +23,11 @@ export type configDatabaseType = {
 	service: string,
 	username: string,
 	password: string,
-	customPropertiesSelects: string[],
+	customSelect: string,
 	containerDatabase: configContainerDatabaseType | null,
 	schemas: configSchemaType[],
 };
+
 export type configHostType = {
 	enabled: boolean,
 	name: string,
@@ -33,11 +35,20 @@ export type configHostType = {
 	probe: boolean,
 	databases: configDatabaseType[],
 };
+
+export type configCustomStatType = {
+	title: string,
+	sql: string,
+};
+export type configCustomStatsType = configCustomStatType[];
+export type configCustomRepository = Record<string, configCustomStatsType>;
+
 export type configType = {
 	http_port: number,
 	pollingSeconds: number,
 	hidePasswords: boolean,
 	hosts: configHostType[],
+	customSelectRepository: configCustomRepository,
 };
 
 // types without the tree
@@ -60,12 +71,13 @@ type partialConfigType = Partial<Omit<configType, 'hosts'>> & {
 };
 
 // types used when using an individual host/database/schema
-export type flatDatabaseType = Omit<configDatabaseType, 'customPropertiesSelects' | 'schemas'>;
+export type flatSchemaType = Omit<configSchemaType, 'customSelect'>;
+export type flatDatabaseType = Omit<configDatabaseType, 'customStats' | 'customSelect' | 'schemas'>;
 export type flatHostType = Omit<configHostType, 'databases'>;
 export type flatType = {
 	host: flatHostType,
 	database: flatDatabaseType,
-	schema?: configSchemaType,
+	schema?: flatSchemaType,
 };
 
 /**
@@ -126,6 +138,7 @@ export function validateConfig(config: partialConfigType): configType {
 		pollingSeconds: 60,
 		hidePasswords: false,
 		hosts: [],
+		customSelectRepository: {},
 	};
 
 	if (typeof config !== 'object') {
@@ -159,13 +172,21 @@ export function validateConfig(config: partialConfigType): configType {
 		}
 	}
 
+	// customm statistics repository
+	if ('customSelectRepository' in config) {
+		if (typeof config.customSelectRepository !== 'object') {
+			throw new Error('The configuration has no valid property "customSelectRepository"');
+		} else {
+			newConfig.customSelectRepository = validateCustomStats(config.customSelectRepository);
+		}
+	}
+
 	// hosts
 	if (!Array.isArray(config.hosts)) {
 		throw new Error('The configuration has no property "hosts" of type array');
+	} else {
+		newConfig.hosts = config.hosts.map((host, index) => validateHost(host, index));
 	}
-
-	// validate the structure of the hosts
-	newConfig.hosts = config.hosts.map((host, index) => validateHost(host, index));
 
 	// make sure that the host names are unique
 	newConfig.hosts.forEach(host => {
@@ -174,7 +195,45 @@ export function validateConfig(config: partialConfigType): configType {
 		}
 	});
 
+	// make sure that all the customstatistics can be referenced
+	newConfig.hosts.forEach(host => {
+		host.databases.forEach(database => {
+			if (database.customSelect.length > 0) {
+				if (typeof newConfig.customSelectRepository[database.customSelect] !== 'object')
+					throw new Error(`The custom statistics configuration "${database.customSelect}" used in host "${host.name}" and database "${database.name}"`);
+			}
+			database.schemas.forEach(schema => {
+				if (schema.customSelect.length > 0) {
+					if (typeof newConfig.customSelectRepository[schema.customSelect] !== 'object')
+						throw new Error(`The custom statistics configuration "${schema.customSelect}" used in host "${host.name}", database "${database.name}" and schema "${schema.name}" cannot be found`);
+				}
+			});
+		});
+	});
+
 	return newConfig;
+}
+
+/*
+*	validateCustomStats
+*/
+function validateCustomStats(stats: configCustomRepository): configCustomRepository {
+	for (const name in stats) {
+		const confs = stats[name];
+
+		confs.forEach((conf, index) => {
+			const errorLocation = `customStats[${name}][${index}]`;
+
+			if (typeof conf.title !== 'string' || conf.title.length === 0) {
+				throw new Error(`"title" must be a non-empty string: "${errorLocation}"`);
+			}
+			if (typeof conf.sql !== 'string' || conf.sql.length === 0) {
+				throw new Error(`"sql" must be a non-empty string: "${errorLocation}"`);
+			}
+		});
+	}
+
+	return stats;
 }
 
 /*
@@ -251,7 +310,7 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		service: '',
 		username: '',
 		password: '',
-		customPropertiesSelects: [],
+		customSelect: '',
 		containerDatabase: null,
 		schemas: [],
 	
@@ -305,14 +364,12 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 		newDatabase.password = database.password;
 	}
 
-	// customPropertiesSelects
-	if ('customPropertiesSelects' in database) {
-		if (typeof database.customPropertiesSelects === 'string') {
-			newDatabase.customPropertiesSelects = [database.customPropertiesSelects];
-		} else if (isStringArray(database.customPropertiesSelects)) {
-			newDatabase.customPropertiesSelects = database.customPropertiesSelects;
+	// customStats
+	if ('customSelect' in database) {
+		if (typeof database.customSelect !== 'string' || database.customSelect.length === 0) {
+			throw new Error(`"customStats" must be a non-empty string: "${databaseErrorLocation}"`);
 		} else {
-			throw new Error(`"customPropertiesSelects" must be a string or string array: "${databaseErrorLocation}"`);
+			newDatabase.customSelect = database.customSelect;
 		}
 	}
 
@@ -396,7 +453,7 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 		name: '',
 		username: '',
 		password: '',
-		customPropertiesSelects: [],
+		customSelect: '',
 	};
 
 	// enabled
@@ -429,14 +486,12 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 		newSchema.password = schema.password;
 	}
 
-	// customPropertiesSelects
-	if ('customPropertiesSelects' in schema) {
-		if (typeof schema.customPropertiesSelects === 'string') {
-			newSchema.customPropertiesSelects = [schema.customPropertiesSelects];
-		} else if (isStringArray(schema.customPropertiesSelects)) {
-			newSchema.customPropertiesSelects = schema.customPropertiesSelects;
+	// customStats
+	if ('customSelect' in schema) {
+		if (typeof schema.customSelect !== 'string' || schema.customSelect.length === 0) {
+			throw new Error(`"customStats" must be a non-empty string: "${databaseErrorLocation}"`);
 		} else {
-			throw new Error(`"customPropertiesSelects" must be a string or string array: "${databaseErrorLocation}"`);
+			newSchema.customSelect = schema.customSelect;
 		}
 	}
 

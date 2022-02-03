@@ -32,7 +32,7 @@ export async function gatherer(config: configType): Promise<void> {
 		// container database
 		host.databases.filter(database => database.enabled).forEach(database => {
 			// gather
-			promises.push(gatherPeriodic(host, database, database.schemas));
+			promises.push(gatherPeriodic(config.customSelectRepository, host, database, database.schemas));
 		});
 	});
 	// quere all databases and and wait until we got results from all of them

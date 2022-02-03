@@ -141,6 +141,7 @@ describe('statsAdd', () => {
 			last_successful_rman_backup_date_archive_log: NOW,
 			last_rman_backup_date_full_db: NOW,
 			last_rman_backup_date_archive_log: NOW,
+			custom: [],
 		};
 
 		statsInitial([{
@@ -200,6 +201,7 @@ describe('statsAdd', () => {
 			last_successful_rman_backup_date_archive_log: NOW,
 			last_rman_backup_date_full_db: NOW,
 			last_rman_backup_date_archive_log: NOW,
+			custom: [],
 		};
 
 		statsInitial([{

@@ -13,6 +13,7 @@ describe('server', () => {
 			http_port: 12345,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [],
 		};
 

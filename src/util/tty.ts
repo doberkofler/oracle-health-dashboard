@@ -21,3 +21,7 @@ export const writeStartingOnColumn = (text: string, x: number): void => {
 export const log = (text: string): void => {
 	console.log(`[${new Date().toJSON()}] ${text}`);
 };
+
+export const warn = (text: string): void => {
+	console.warn(`[${new Date().toJSON()}] ${text}`);
+};

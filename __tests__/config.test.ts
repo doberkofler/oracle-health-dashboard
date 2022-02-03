@@ -6,6 +6,7 @@ describe('configLoad', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [],
 		});
 	});
@@ -19,6 +20,7 @@ describe('validateConfig', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [],
 		});
 
@@ -30,6 +32,7 @@ describe('validateConfig', () => {
 			http_port: 9090,
 			pollingSeconds: 90,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [],
 		});
 
@@ -44,6 +47,7 @@ describe('validateConfig', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
 				name: 'name',
@@ -55,6 +59,12 @@ describe('validateConfig', () => {
 
 		// without container database
 		expect(validateConfig({
+			customSelectRepository: {
+				custom: [{
+					title: 'title',
+					sql: 'sql',
+				}],
+			},
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -67,12 +77,19 @@ describe('validateConfig', () => {
 					username: 'database_username',
 					password: 'database_password',
 					schemas: [],
+					customSelect: 'custom',
 				}],
 			}],
 		})).toStrictEqual({
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {
+				custom: [{
+					title: 'title',
+					sql: 'sql',
+				}],
+			},
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -85,9 +102,9 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelects: [],
 					containerDatabase: null,
 					schemas: [],
+					customSelect: 'custom',
 				}],
 			}],
 		});
@@ -118,6 +135,7 @@ describe('validateConfig', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -130,7 +148,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelects: [],
+					customSelect: '',
 					containerDatabase: {
 						port: 1521,
 						service: 'container_service',
@@ -165,6 +183,7 @@ describe('validateConfig', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -177,7 +196,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelects: [],
+					customSelect: '',
 					containerDatabase: {
 						port: 1522,
 						service: 'database_service',
@@ -212,6 +231,7 @@ describe('validateConfig', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -224,7 +244,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelects: [],
+					customSelect: '',
 					containerDatabase: {
 						port: 1521,
 						service: 'container_service',
@@ -259,6 +279,7 @@ describe('validateConfig', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -271,7 +292,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelects: [],
+					customSelect: '',
 					containerDatabase: {
 						port: 1521,
 						service: 'database_service',
@@ -306,6 +327,7 @@ describe('validateConfig', () => {
 			http_port: 80,
 			pollingSeconds: 60,
 			hidePasswords: false,
+			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
 				name: 'host_name',
@@ -318,7 +340,7 @@ describe('validateConfig', () => {
 					service: 'database_service',
 					username: 'database_username',
 					password: 'database_password',
-					customPropertiesSelects: [],
+					customSelect: '',
 					containerDatabase: {
 						port: 1521,
 						service: 'database_service',

@@ -6,7 +6,7 @@ import {
 	numberToString,
 	distanceToString,
 	timestampToString,
-	inspect,
+	prettyFormat,
 } from '../src/util/util.js';
 
 describe('isStringArray', () => {
@@ -107,10 +107,10 @@ describe('dateToString', () => {
 	});
 });
 
-describe('inspect', () => {
+describe('prettyFormat', () => {
 	it('returns a string representation', () => {
-		expect(inspect(1)).toBe('1');
-		expect(inspect([1])).toBe('[ 1 ]');
-		expect(inspect({p:1})).toBe('{ p: 1 }');
+		expect(prettyFormat(1)).toBe('1');
+		expect(prettyFormat([1])).toBe('Array [\n  1,\n]');
+		expect(prettyFormat({p:1})).toBe('Object {\n  "p": 1,\n}');
 	});
 });

@@ -1,11 +1,11 @@
-import debugModule from 'debug';
+//import debugModule from 'debug';
 import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from './connection.js';
 import {getFlat} from '../config/config.js';
-import {inspect} from '../util/util.js';
+//import {prettyFormat} from '../util/util.js';
 
-import type {configHostType} from './config.js';
+import type {configHostType} from './types.js';
 import type {statsHostType, dynamicMetricType, statsSchemaType} from '../statsStore.js';
-import type {connectionOptionsType} from '../database/oracle.js';
+import type {connectionOptionsType} from '../config/connection';
 import type {staticMetricType} from '../database/initialize.js';
 
 type flatDynamicType = Omit<dynamicMetricType, 'schemas'> & {schema: null | statsSchemaType};
@@ -30,9 +30,9 @@ export type flattenedType = {
 	stats: statsType,
 };
 
-const debug = debugModule('oracle-health-dashboard:flatten');
+//const debug = debugModule('oracle-health-dashboard:flatten');
 
-export const flatten = (hosts: configHostType[], statsHosts: statsHostType[] = []): flattenedType[] => {
+export const flatten = (hosts: configHostType[], includePassword: boolean, statsHosts: statsHostType[] = []): flattenedType[] => {
 	const flattened: flattenedType[] = [];
 
 	let id = 0;
@@ -55,12 +55,12 @@ export const flatten = (hosts: configHostType[], statsHosts: statsHostType[] = [
 					hostSwitch,
 					hostSchemaCount,
 					databaseName: database.name,
-					databaseConnection: getConnectionDatabase(getFlat(host, database)),
-					containerConnection: getConnectionContainerDatabase(getFlat(host, database)),
+					databaseConnection: getConnectionDatabase(getFlat(host, database), includePassword),
+					containerConnection: getConnectionContainerDatabase(getFlat(host, database), includePassword),
 					databaseSwitch,
 					databaseSchemaCount,
 					schemaName: schema.name,
-					schemaConnection: getConnectionSchema(getFlat(host, database, schema)),
+					schemaConnection: getConnectionSchema(getFlat(host, database, schema), includePassword),
 					stats: getStats(statsHosts, host.name, database.name, schema.name),
 				});
 
@@ -72,7 +72,7 @@ export const flatten = (hosts: configHostType[], statsHosts: statsHostType[] = [
 		});
 	});
 
-	debug(inspect({hosts, flattened}));
+	//debug(prettyFormat({hosts, flattened}));
 
 	return flattened;
 };

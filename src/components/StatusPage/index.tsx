@@ -1,13 +1,12 @@
 //import debugModule from 'debug';
 import {numberToString, timestampToString, isDate, distanceToString} from '../../util/util.js';
-import {getConnectionAsString} from '../../database/oracle.js';
+import {getConnectionAsString} from '../../config/connection.js';
 import React from 'react';
 
 import type {flattenedType} from '../../config/flatten.js';
 
 type rowType = {
 	row: flattenedType,
-	showPassword: boolean,
 };
 
 type detailType = {
@@ -20,11 +19,11 @@ type detailType = {
 
 const borderLine = '2px solid #ddd';
 
-export const StatusPage = ({rows, showPassword}: {rows: flattenedType[], showPassword: boolean}): JSX.Element => {
+export const StatusPage = ({rows}: {rows: flattenedType[]}): JSX.Element => {
 	return (
 		<table className="main" style={{borderCollapse: 'collapse', width: '100%'}}>
 			<Header />
-			{rows.map(row => <Row key={row.id.toString()} row={row} showPassword={showPassword} />)}
+			{rows.map(row => <Row key={row.id.toString()} row={row} />)}
 		</table>
 	);
 };
@@ -39,17 +38,17 @@ const Header = (): JSX.Element => {
 	);
 };
 
-const Row = ({row, showPassword}: rowType): JSX.Element => {
+const Row = ({row}: rowType): JSX.Element => {
 	return (
 		<tr>
 			<Host row={row} />
-			<Database row={row} showPassword={showPassword} />
-			<Schema row={row} showPassword={showPassword} />
+			<Database row={row} />
+			<Schema row={row} />
 		</tr>
 	);
 };
 
-const Host = ({row}: {row: flattenedType}): JSX.Element | null => {
+const Host = ({row}: rowType): JSX.Element | null => {
 	if (row.hostSwitch) {
 		return (
 			<td rowSpan={row.hostSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
@@ -62,7 +61,7 @@ const Host = ({row}: {row: flattenedType}): JSX.Element | null => {
 	}
 };
 
-const Database = ({row, showPassword}: rowType): JSX.Element | null => {
+const Database = ({row}: rowType): JSX.Element | null => {
 	const style: React.CSSProperties = {
 		borderBottom: borderLine,
 		borderRight: borderLine,
@@ -79,7 +78,7 @@ const Database = ({row, showPassword}: rowType): JSX.Element | null => {
 				<h2>{row.databaseName}
 					<LastUpdate timestamp={row.stats.dynamic?.status.timestamp} />
 				</h2>
-				<DatabaseConnectionString row={row} showPassword={showPassword} />
+				<DatabaseConnectionString row={row} />
 				<DatabaseDetails row={row} />
 			</td>
 		);
@@ -88,7 +87,7 @@ const Database = ({row, showPassword}: rowType): JSX.Element | null => {
 	}
 };
 
-const Schema = ({row, showPassword}: rowType): JSX.Element => {
+const Schema = ({row}: rowType): JSX.Element => {
 	const data: detailType[] = [];
 
 	const style: React.CSSProperties = {
@@ -109,7 +108,7 @@ const Schema = ({row, showPassword}: rowType): JSX.Element => {
 		});
 	}
 
-	const connection = getConnectionAsString(row.schemaConnection, showPassword);
+	const connection = getConnectionAsString(row.schemaConnection);
 
 	return (
 		<td style={style}>
@@ -133,19 +132,19 @@ const HeaderColumn = ({title, width}: {title: string, width: string}): JSX.Eleme
 	);
 };
 
-const DatabaseConnectionString = ({row, showPassword}: {row: flattenedType, showPassword: boolean}): JSX.Element => {
+const DatabaseConnectionString = ({row}: rowType): JSX.Element => {
 	if (row.containerConnection) {
 		return (
 			<h5>
-				CDB:&nbsp;{getConnectionAsString(row.containerConnection, showPassword).toLocaleLowerCase()}
+				CDB:&nbsp;{getConnectionAsString(row.containerConnection).toLocaleLowerCase()}
 				<br />
-				PDB:&nbsp;{getConnectionAsString(row.databaseConnection, showPassword).toLocaleLowerCase()}
+				PDB:&nbsp;{getConnectionAsString(row.databaseConnection).toLocaleLowerCase()}
 			</h5>
 		);
 	} else {
 		return (
 			<h5>
-				{getConnectionAsString(row.databaseConnection, showPassword).toLocaleLowerCase()}
+				{getConnectionAsString(row.databaseConnection).toLocaleLowerCase()}
 			</h5>
 		);
 	}
@@ -160,7 +159,7 @@ const LastUpdate = ({timestamp}: {timestamp?: Date}): JSX.Element | null => {
 	}
 };
 
-const DatabaseDetails = ({row}: {row: flattenedType}): JSX.Element | null => {
+const DatabaseDetails = ({row}: rowType): JSX.Element | null => {
 	const data: detailType[] = [];
 
 	if (row.stats.statics) {

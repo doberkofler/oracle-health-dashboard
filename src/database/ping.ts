@@ -1,10 +1,11 @@
 import debugModule from 'debug';
 import {probe} from '../util/probe.js';
-import {getConnectionString, connect, disconnect} from './oracle.js';
+import {connect, disconnect} from './oracle.js';
+import {getConnectionString} from '../config/connection.js';
 import {write, writeNewLine, writeStartingOnColumn} from '../util/tty.js';
 
-import type {configType} from '../config/config';
-import type {connectionOptionsType} from './oracle.js';
+import type {configType} from '../config/types.js';
+import type {connectionOptionsType} from '../config/connection.js';
 
 const debug = debugModule('oracle-health-dashboard:databasePing');
 

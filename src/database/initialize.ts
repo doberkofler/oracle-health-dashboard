@@ -8,7 +8,7 @@ import {getConnectionDatabase} from '../config/connection.js';
 import {getFlat} from '../config/config.js';
 import {write, writeNewLine, writeStartingOnColumn} from '../util/tty.js';
 
-import type {configType, flatType} from '../config/config.js';
+import type {configType, flatType} from '../config/types.js';
 import type {statsInitType} from '../statsStore.js';
 import type {statusType} from './worker.js';
 

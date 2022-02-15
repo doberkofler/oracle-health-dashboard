@@ -1,4 +1,4 @@
-export default {
+const config = {
 	preset: 'ts-jest/presets/js-with-ts-esm',
 	globals: {
 		'ts-jest': {
@@ -14,3 +14,5 @@ export default {
 		'!src/**/*.d.ts',
 	],
 };
+
+module.exports = config;

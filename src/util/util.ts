@@ -1,5 +1,5 @@
 import {formatDistance, isDate as _isDate, isValid, format} from 'date-fns';
-import {inspect as _inspect} from 'util';
+import {format as pretty_format} from 'pretty-format';
 
 /**
  * Is the given value an array of "string"
@@ -82,6 +82,6 @@ export function timestampToString(date: Date): string {
  * @param {number} [depth=10] - The depth
  * @returns {string} returns the string reprsentation
  */
-export function inspect(value: unknown, depth = 10): string {
-	return _inspect(value, false, depth, false);
+export function prettyFormat(value: unknown): string {
+	return pretty_format(value);
 }

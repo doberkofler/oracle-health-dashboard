@@ -2,10 +2,10 @@ import debugModule from 'debug';
 import {expose} from 'threads/worker';
 import {statsAdd} from '../statsStore.js';
 import {gatherPeriodic} from '../database/worker.js';
-import {inspect} from '../util/util.js';
+import {prettyFormat} from '../util/util.js';
 import {log} from '../util/tty.js';
 
-import type {configType} from '../config/config.js';
+import type {configType} from '../config/types.js';
 import type {gatherDatabaseType} from '../database/worker.js';
 
 const debug = debugModule('oracle-health-dashboard:gatherer');
@@ -48,7 +48,7 @@ export async function gatherer(config: configType): Promise<void> {
 		schemas: result.schemas,
 	}));
 
-	debug('gatherer', inspect({results, stats}));
+	debug('gatherer', prettyFormat({results, stats}));
 
 	// add the statistics
 	statsAdd(stats);

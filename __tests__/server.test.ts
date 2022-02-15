@@ -1,7 +1,7 @@
 import type express from 'express';
 import request from 'supertest';
 import type * as http from 'http';
-import {serverStart, serverStop} from '../src/server.js';
+import {serverStart, serverStop} from '../src/server/index.js';
 import {statsInitial} from '../src/statsStore.js';
 
 let app: express.Express;

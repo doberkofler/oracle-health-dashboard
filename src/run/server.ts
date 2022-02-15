@@ -3,7 +3,7 @@ import {spawn, Thread, Worker} from 'threads';
 import {configLoad} from '../config/config.js';
 import {installShutdown} from '../shutdown.js';
 import {gathererInitial} from '../database/initialize.js';
-import {serverStart, serverStop} from '../server.js';
+import {serverStart, serverStop} from '../server/index.js';
 import {log} from '../util/tty.js';
 
 
@@ -27,7 +27,7 @@ export async function runServer(configFilename: string): Promise<void> {
 
 	// start gatherer thread
 	debug('start gatherer thread');
-	const gatherer = await spawn<Gatherer>(new Worker('../gatherer/gatherer'));
+	const gatherer = await spawn<Gatherer>(new Worker('../server/gatherer'));
 	await gatherer(config);
 
 	// start srever

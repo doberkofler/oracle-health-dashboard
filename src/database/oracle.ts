@@ -1,39 +1,15 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
-import {isDate, inspect} from '../util/util.js';
+import {isDate, prettyFormat} from '../util/util.js';
+
+import type {connectionOptionsType} from '../config/connection.js';
 
 const debug = debugModule('oracle-health-dashboard:oracle');
-
-export type connectionOptionsType = {
-	connectionString: string,
-	username: string,
-	password: string,
-};
 
 export type bindingsType = {
 	id: string,
 	type: number,
 }[];
-
-/*
- * Get connection string
- */
-export function getConnectionString(address: string, port: number, service: string): string {
-	return `${address}:${port}/${service}`;
-}
-
-/*
- * Get a connection as string
- */
-export function getConnectionAsString(connection: connectionOptionsType, showPassword: boolean): string {
-	let text = connection.username;
-
-	if (showPassword) {
-		text += '/' + connection.password;
-	}
-
-	return text + '@' + connection.connectionString;
-}
 
 /*
 *	Connect with database
@@ -100,7 +76,7 @@ export async function execute<T>(connection: oracledb.Connection, sql: string, b
 	try {
 		result = await connection.execute(sql, binds);
 	} catch (e: unknown) {
-		const message = `Unable to execute "${sql}" with bindings "${inspect(bindings)}"`;
+		const message = `Unable to execute "${sql}" with bindings "${prettyFormat(bindings)}"`;
 		debug(message, e);
 		return message + '\n' + (e as Error).message;
 	}
@@ -153,7 +129,7 @@ function getBindString(result: oracledb.Result<unknown>, placeholder: string): s
 	if (value === null || typeof value === 'string') {
 		return value;
 	} else {
-		throw new Error(`The result object does not contain a property "${placeholder}" of type "string"\n${inspect(result)}`);
+		throw new Error(`The result object does not contain a property "${placeholder}" of type "string"\n${prettyFormat(result)}`);
 	}
 }
 
@@ -166,7 +142,7 @@ function getBindNumber(result: oracledb.Result<unknown>, placeholder: string): n
 	if (value === null || typeof value === 'number') {
 		return value;
 	} else {
-		throw new Error(`The result object does not contain a property "${placeholder}" of type "number"\n${inspect(result)}`);
+		throw new Error(`The result object does not contain a property "${placeholder}" of type "number"\n${prettyFormat(result)}`);
 	}
 }
 
@@ -181,6 +157,6 @@ function getBindDate(result: oracledb.Result<unknown>, placeholder: string): Dat
 	} else if (isDate(value)) {
 		return new Date(value);
 	} else {
-		throw new Error(`The result object does not contain a property "${placeholder}" of type "Date"\n${inspect(result)}`);
+		throw new Error(`The result object does not contain a property "${placeholder}" of type "Date"\n${prettyFormat(result)}`);
 	}
 }

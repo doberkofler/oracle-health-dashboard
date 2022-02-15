@@ -3,10 +3,10 @@ import oracledb from 'oracledb';
 import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from '../config/connection.js';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {getFlat} from '../config/config.js';
-import {inspect} from '../util/util.js';
+import {prettyFormat} from '../util/util.js';
 import {warn} from '../util/tty.js';
 
-import type {justHostType, justDatabaseType, configSchemaType, configCustomStatType, configCustomRepository} from '../config/config.js';
+import type {justHostType, justDatabaseType, configSchemaType, configCustomStatType, configCustomRepository} from '../config/types.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
@@ -270,7 +270,7 @@ export async function gatherPeriodic(customRepository: configCustomRepository, h
 		data.schemas.push(resultSchema);
 	}
 
-	debug('gatherPeriodic', inspect(flat));
+	debug('gatherPeriodic', prettyFormat(flat));
 
 	return data;
 }
@@ -320,7 +320,7 @@ async function getCustomStats(connection: oracledb.Connection, customRepository:
 
 	const custom = customRepository[key];
 	if (typeof custom !== 'object') {
-		throw new Error(`Unable to find custom repository "${key}" in "${inspect(customRepository)}"`);
+		throw new Error(`Unable to find custom repository "${key}" in "${prettyFormat(customRepository)}"`);
 	}
 
 	const stats: customStatsType = [];
@@ -349,12 +349,12 @@ async function getCustomStat(connection: oracledb.Connection, custom: configCust
 	try {
 		result = await connection.execute<string[]>(custom.sql);
 	} catch (e: unknown) {
-		throw new Error(`The custom select "${custom.sql}" has errors.\n${inspect(e)}`);
+		throw new Error(`The custom select "${custom.sql}" has errors.\n${prettyFormat(e)}`);
 	}
 
 	// rows
 	if (!Array.isArray(result.rows) || result.rows.length < 1) {
-		throw new Error(`The custom select "${custom.sql}" did not return any rows.\n${inspect(result)}`);
+		throw new Error(`The custom select "${custom.sql}" did not return any rows.\n${prettyFormat(result)}`);
 	}
 	if (result.rows.length > 1) {
 		warn(`The custom select "${custom.sql}" returned "${result.rows.length}" rows, but only the first one will be used`);
@@ -363,7 +363,7 @@ async function getCustomStat(connection: oracledb.Connection, custom: configCust
 
 	// columns
 	if (!Array.isArray(row) || row.length < 1) {
-		throw new Error(`The custom select "${custom.sql}" did not return any columns.\n${inspect(result)}`);
+		throw new Error(`The custom select "${custom.sql}" did not return any columns.\n${prettyFormat(result)}`);
 	}
 	if (row.length > 1) {
 		warn(`The custom select "${custom.sql}" returned "${row.length}" columns, but only the first one will be used`);

@@ -1,5 +1,5 @@
 import {jsonLoad, jsonSave} from './util/files.js';
-import {inspect} from './util/util.js';
+import {prettyFormat} from './util/util.js';
 
 import type {statusType, metricType, customStatsType} from './database/worker.js';
 import type {staticMetricType} from './database/initialize.js';
@@ -69,11 +69,11 @@ export function statsLoad(): statsHostType[] {
 	}
 
 	if (stats.magic !== MAGIC) {
-		throw new Error(`Statistics database in file "${FILENAME}" is invalid.\n${inspect(stats)}`);
+		throw new Error(`Statistics database in file "${FILENAME}" is invalid.\n${prettyFormat(stats)}`);
 	}
 
 	if (stats.version !== VERSION) {
-		throw new Error(`Statistics database in file "${FILENAME}" has version "${stats.version}" instead of "${VERSION}".\n${inspect(stats)}`);
+		throw new Error(`Statistics database in file "${FILENAME}" has version "${stats.version}" instead of "${VERSION}".\n${prettyFormat(stats)}`);
 	}
 
 	return stats.hosts;
@@ -131,7 +131,7 @@ export function statsAdd(rows: statsAddDataType[]): void {
 		// database
 		const database = host.databases.find(e => e.name === row.databaseName);
 		if (!database) {
-			throw new Error(`Unable to find database "${row.databaseName}" in host "${row.hostName}" in "${inspect(oldHosts)}"`);
+			throw new Error(`Unable to find database "${row.databaseName}" in host "${row.hostName}" in "${prettyFormat(oldHosts)}"`);
 		}
 
 		const metric = Object.assign({}, row.metric, {

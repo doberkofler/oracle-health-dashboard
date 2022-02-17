@@ -3,9 +3,12 @@ import {configLoad, validateConfig} from '../src/config/config.js';
 describe('configLoad', () => {
 	it('loads the configuration and returns a validated configuration object or throws an error', () => {
 		expect(configLoad('./__tests__/config.test.json')).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [],
 		});
@@ -17,21 +20,29 @@ describe('validateConfig', () => {
 		expect(validateConfig({
 			hosts: [],
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [],
 		});
 
 		expect(validateConfig({
-			http_port: 9090,
-			pollingSeconds: 90,
+			options: {
+				http_port: 9090,
+				pollingSeconds: 90,
+			},
 			hosts: [],
 		})).toStrictEqual({
-			http_port: 9090,
-			pollingSeconds: 90,
-			hidePasswords: false,
+			options: {
+				http_port: 9090,
+				pollingSeconds: 90,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [],
 		});
@@ -44,9 +55,12 @@ describe('validateConfig', () => {
 				databases: [],
 			}]
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
@@ -81,9 +95,12 @@ describe('validateConfig', () => {
 				}],
 			}],
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {
 				custom: [{
 					title: 'title',
@@ -132,9 +149,12 @@ describe('validateConfig', () => {
 				}],
 			}],
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
@@ -180,9 +200,12 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
@@ -228,9 +251,12 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
@@ -276,9 +302,12 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
@@ -324,9 +353,12 @@ describe('validateConfig', () => {
 				}],
 			}]
 		})).toStrictEqual({
-			http_port: 80,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 80,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [{
 				enabled: true,
@@ -355,8 +387,8 @@ describe('validateConfig', () => {
 
 	it('throws an error when the configuration is invalid', () => {
 		const tests: [object, string][] = [
-			[{hosts: [], http_port: ''}, 'The configuration has no valid property "port"'],
-			[{hosts: [], pollingSeconds: ''}, 'The configuration has no valid property "pollingSeconds"'],
+			[{hosts: [], options: {http_port: ''}}, 'The configuration has no valid property "options.http_port"'],
+			[{hosts: [], options: {pollingSeconds: ''}}, 'The configuration has no valid property "options.pollingSeconds"'],
 			[{hosts: ''}, 'The configuration has no property "hosts" of type array'],
 			[{hosts: [{enabled: ''}]}, '"enabled" must be a boolean: "hosts[0]"'],
 			[{hosts: [{name: ''}]}, '"name" must be a non-empty string: "hosts[0]"'],

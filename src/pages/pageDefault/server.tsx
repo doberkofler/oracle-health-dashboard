@@ -21,7 +21,10 @@ export function getPage(config: configType): string {
 	const stats = statsLoad();
 
 	// flatten out the host/database/schema structure and merge with the statistics
-	const rows = flatten(config.hosts, !config.hidePasswords, stats);
+	const rows = flatten(config.hosts, {
+		includePassword: !config.options.hidePasswords,
+		useEasyConnectStringPlus: config.options.useEasyConnectStringPlus,
+	}, stats);
 
 	// render page
 	const app = ReactDOMServer.renderToString(<StatusPage rows={rows} />);

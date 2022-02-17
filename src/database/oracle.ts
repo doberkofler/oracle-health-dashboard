@@ -36,6 +36,9 @@ export async function connect(options: connectionOptionsType): Promise<oracledb.
 		return message + '\n' + (e as Error).message;
 	}
 
+	// set the connection call timeout to 5 seconds
+	connection.callTimeout = 5 * 1000;
+
 	return connection;
 }
 

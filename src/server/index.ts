@@ -35,7 +35,7 @@ export async function serverStart(config: configType): Promise<{app: express.Exp
 		app.get('/debug', handlerDebug.bind(null, config));
 
 		// listen
-		const server = app.listen(config.http_port, () => {
+		const server = app.listen(config.options.http_port, () => {
 			resolve({app, server});
 		});
 	});

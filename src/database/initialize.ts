@@ -5,12 +5,13 @@ import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
 import {getStatus} from './worker.js';
 import {statsInitial} from '../statsStore.js';
 import {getConnectionDatabase} from '../config/connection.js';
-import {getFlat} from '../config/config.js';
+import {getFlat} from '../config/flatten.js';
 import {write, writeNewLine, writeStartingOnColumn} from '../util/tty.js';
 
 import type {configType, flatType} from '../config/types.js';
 import type {statsInitType} from '../statsStore.js';
 import type {statusType} from './worker.js';
+import type {connectionFlagsType} from '../config/connection.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
 
@@ -95,7 +96,10 @@ export async function gathererInitial(config: configType): Promise<void> {
 	// process promises
 	const stats  = [] as statsInitType[];
 	for (const g of gather) {
-		const result = await gatherInitialize(g);
+		const result = await gatherInitialize(g, {
+			includePassword: true,
+			useEasyConnectStringPlus: config.options.useEasyConnectStringPlus,
+		});
 		stats.push(result);
 	}
 
@@ -107,8 +111,8 @@ export async function gathererInitial(config: configType): Promise<void> {
 /*
  * get statistics for database
  */
-async function gatherInitialize(flat: flatType): Promise<initialGatherType> {
-	const connectionOptions = getConnectionDatabase(flat);
+async function gatherInitialize(flat: flatType, connectionFlags: connectionFlagsType): Promise<initialGatherType> {
+	const connectionOptions = getConnectionDatabase(flat, connectionFlags);
 	const title = `[${new Date().toJSON()}] Gathering initial data with database "${flat.database.name}" as "${connectionOptions.username}" using "${connectionOptions.connectionString}"`;
 
 	write('\n' + title);

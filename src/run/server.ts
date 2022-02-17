@@ -32,7 +32,7 @@ export async function runServer(configFilename: string): Promise<void> {
 
 	// start srever
 	const {server} = await serverStart(config);
-	log(`Listening at http://127.0.0.1:${config.http_port}`);
+	log(`Listening at http://127.0.0.1:${config.options.http_port}`);
 
 	async function shutdownHandler(): Promise<void> {
 		// terminate gataherer thread

@@ -2,11 +2,12 @@ import debugModule from 'debug';
 import oracledb from 'oracledb';
 import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from '../config/connection.js';
 import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
-import {getFlat} from '../config/config.js';
+import {getFlat} from '../config/flatten.js';
 import {prettyFormat} from '../util/util.js';
 import {warn} from '../util/tty.js';
 
 import type {justHostType, justDatabaseType, configSchemaType, configCustomStatType, configCustomRepository} from '../config/types.js';
+import type {connectionFlagsType} from '../config/connection.js';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
@@ -159,7 +160,7 @@ END;
 /**
  * get statistics from CDB.
  */
-export async function gatherPeriodic(customRepository: configCustomRepository, host: justHostType, database: justDatabaseType, schemas: configSchemaType[]): Promise<gatherDatabaseType> {
+export async function gatherPeriodic(customRepository: configCustomRepository, host: justHostType, database: justDatabaseType, schemas: configSchemaType[], connectionFlags: connectionFlagsType): Promise<gatherDatabaseType> {
 	const flat = getFlat(host, database);
 	const data: gatherDatabaseType = {
 		hostName: host.name,
@@ -182,8 +183,8 @@ export async function gatherPeriodic(customRepository: configCustomRepository, h
 		schemas: [],
 	};
 
-	const connectDatabase = getConnectionDatabase(flat);
-	const connectContainerDatabase = getConnectionContainerDatabase(flat);
+	const connectDatabase = getConnectionDatabase(flat, connectionFlags);
+	const connectContainerDatabase = getConnectionContainerDatabase(flat, connectionFlags);
 
 	// connect with PDB
 	const connection = await connect(connectDatabase);
@@ -266,7 +267,7 @@ export async function gatherPeriodic(customRepository: configCustomRepository, h
 
 	// gather information about the schemas
 	for (const schema of schemas) {
-		const resultSchema = await gatherSchema(customRepository, host, database, schema);
+		const resultSchema = await gatherSchema(customRepository, host, database, schema, connectionFlags);
 		data.schemas.push(resultSchema);
 	}
 
@@ -278,11 +279,11 @@ export async function gatherPeriodic(customRepository: configCustomRepository, h
 /*
 * get statistics from schema.
 */
-async function gatherSchema(customRepository: configCustomRepository, host: justHostType, database: justDatabaseType, schema: configSchemaType): Promise<gatherSchemaType> {
+async function gatherSchema(customRepository: configCustomRepository, host: justHostType, database: justDatabaseType, schema: configSchemaType, connectionFlags: connectionFlagsType): Promise<gatherSchemaType> {
 	debug('gatherSchema', schema.name);
 
 	const flat = getFlat(host, database, schema);
-	const schemaConnect = getConnectionSchema(flat);
+	const schemaConnect = getConnectionSchema(flat, connectionFlags);
 
 	const data: gatherSchemaType = {
 		name: schema.name,

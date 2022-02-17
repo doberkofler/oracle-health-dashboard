@@ -10,9 +10,12 @@ let server: http.Server;
 describe('server', () => {
 	beforeAll(async () => {
 		const config = {
-			http_port: 12345,
-			pollingSeconds: 60,
-			hidePasswords: false,
+			options: {
+				http_port: 12345,
+				pollingSeconds: 60,
+				hidePasswords: false,
+				useEasyConnectStringPlus: true,
+			},
 			customSelectRepository: {},
 			hosts: [],
 		};

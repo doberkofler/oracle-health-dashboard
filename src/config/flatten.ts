@@ -1,11 +1,16 @@
 //import debugModule from 'debug';
 import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from './connection.js';
-import {getFlat} from '../config/config.js';
 //import {prettyFormat} from '../util/util.js';
 
-import type {configHostType} from './types.js';
+import type {
+	configSchemaType,
+	configHostType,
+	justHostType,
+	justDatabaseType,
+	flatType,
+} from './types.js';
 import type {statsHostType, dynamicMetricType, statsSchemaType} from '../statsStore.js';
-import type {connectionOptionsType} from '../config/connection';
+import type {connectionOptionsType, connectionFlagsType} from '../config/connection';
 import type {staticMetricType} from '../database/initialize.js';
 
 type flatDynamicType = Omit<dynamicMetricType, 'schemas'> & {schema: null | statsSchemaType};
@@ -32,7 +37,41 @@ export type flattenedType = {
 
 //const debug = debugModule('oracle-health-dashboard:flatten');
 
-export const flatten = (hosts: configHostType[], includePassword: boolean, statsHosts: statsHostType[] = []): flattenedType[] => {
+/**
+ * Returns a flat host/database/schema object.
+ *
+ * @param {justHostType} host - The host.
+ * @param {justDatabaseType} database - The database.
+ * @param {configSchemaType | null | undefined} [schema] - The optional schema.
+ * @returns {flatType} - A flat host/database/schema type.
+ */
+export function getFlat(host: justHostType, database: justDatabaseType, schema?: configSchemaType | null | undefined): flatType {
+	const flat: flatType = {
+		host: {
+			enabled: host.enabled,
+			name: host.name,
+			address: host.address,
+			probe: host.probe,
+		},
+		database : {
+			enabled: database.enabled,
+			name: database.name,
+			port: database.port,
+			service: database.service,
+			username: database.username,
+			password: database.password,
+			containerDatabase: database.containerDatabase,
+		},
+	};
+
+	if (schema) {
+		flat.schema = schema;
+	}
+
+	return flat;
+}
+
+export const flatten = (hosts: configHostType[], connectionFlags: connectionFlagsType, statsHosts: statsHostType[] = []): flattenedType[] => {
 	const flattened: flattenedType[] = [];
 
 	let id = 0;
@@ -55,12 +94,12 @@ export const flatten = (hosts: configHostType[], includePassword: boolean, stats
 					hostSwitch,
 					hostSchemaCount,
 					databaseName: database.name,
-					databaseConnection: getConnectionDatabase(getFlat(host, database), includePassword),
-					containerConnection: getConnectionContainerDatabase(getFlat(host, database), includePassword),
+					databaseConnection: getConnectionDatabase(getFlat(host, database), connectionFlags),
+					containerConnection: getConnectionContainerDatabase(getFlat(host, database), connectionFlags),
 					databaseSwitch,
 					databaseSchemaCount,
 					schemaName: schema.name,
-					schemaConnection: getConnectionSchema(getFlat(host, database, schema), includePassword),
+					schemaConnection: getConnectionSchema(getFlat(host, database, schema), connectionFlags),
 					stats: getStats(statsHosts, host.name, database.name, schema.name),
 				});
 

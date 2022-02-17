@@ -13,7 +13,10 @@ export function getPage(config: configType): string {
 	debug('getPage');
 
 	// flatten out the host/database/schema structure
-	const rows = flatten(config.hosts, !config.hidePasswords);
+	const rows = flatten(config.hosts, {
+		includePassword: !config.options.hidePasswords,
+		useEasyConnectStringPlus: config.options.useEasyConnectStringPlus,
+	});
 
 	// create page
 	const app = ReactDOMServer.renderToString(<StatusPage rows={rows} />);

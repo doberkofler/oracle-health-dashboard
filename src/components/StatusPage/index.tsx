@@ -1,6 +1,6 @@
 //import debugModule from 'debug';
 import {numberToString, timestampToString, isDate, distanceToString} from '../../util/util.js';
-import {getConnectionAsString} from '../../config/connection.js';
+import {connectionToString} from '../../config/connection.js';
 import React from 'react';
 
 import type {flattenedType} from '../../config/flatten.js';
@@ -108,7 +108,7 @@ const Schema = ({row}: rowType): JSX.Element => {
 		});
 	}
 
-	const connection = getConnectionAsString(row.schemaConnection);
+	const connection = connectionToString(row.schemaConnection);
 
 	return (
 		<td style={style}>
@@ -136,15 +136,15 @@ const DatabaseConnectionString = ({row}: rowType): JSX.Element => {
 	if (row.containerConnection) {
 		return (
 			<h5>
-				CDB:&nbsp;{getConnectionAsString(row.containerConnection).toLocaleLowerCase()}
+				CDB:&nbsp;{connectionToString(row.containerConnection).toLocaleLowerCase()}
 				<br />
-				PDB:&nbsp;{getConnectionAsString(row.databaseConnection).toLocaleLowerCase()}
+				PDB:&nbsp;{connectionToString(row.databaseConnection).toLocaleLowerCase()}
 			</h5>
 		);
 	} else {
 		return (
 			<h5>
-				{getConnectionAsString(row.databaseConnection).toLocaleLowerCase()}
+				{connectionToString(row.databaseConnection).toLocaleLowerCase()}
 			</h5>
 		);
 	}

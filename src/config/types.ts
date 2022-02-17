@@ -40,12 +40,17 @@ export type configCustomStatType = {
 export type configCustomStatsType = configCustomStatType[];
 export type configCustomRepository = Record<string, configCustomStatsType>;
 
-export type configType = {
+export type configOptionsType = {
 	http_port: number,
 	pollingSeconds: number,
 	hidePasswords: boolean,
-	hosts: configHostType[],
+	useEasyConnectStringPlus: boolean,
+};
+
+export type configType = {
+	options: configOptionsType,
 	customSelectRepository: configCustomRepository,
+	hosts: configHostType[],
 };
 
 // types without the tree

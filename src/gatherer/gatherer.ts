@@ -32,7 +32,10 @@ export async function gatherer(config: configType): Promise<void> {
 		// container database
 		host.databases.filter(database => database.enabled).forEach(database => {
 			// gather
-			promises.push(gatherPeriodic(config.customSelectRepository, host, database, database.schemas));
+			promises.push(gatherPeriodic(config.customSelectRepository, host, database, database.schemas, {
+				includePassword: true,
+				useEasyConnectStringPlus: config.options.useEasyConnectStringPlus,
+			}));
 		});
 	});
 	// quere all databases and and wait until we got results from all of them
@@ -56,5 +59,5 @@ export async function gatherer(config: configType): Promise<void> {
 	// repeat again in "config.pollingSeconds" seconds
 	setTimeout(() => {
 		void gatherer(config);
-	}, config.pollingSeconds * 1000);
+	}, config.options.pollingSeconds * 1000);
 }

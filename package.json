@@ -46,8 +46,8 @@
     "typescript": "4.5.5"
   },
   "scripts": {
-    "start": "node build/src/index.js",
-    "start:watch": "nodemon --watch build/src --watch ./test-configs build/src/index.js --config=./config/config.json",
+    "start": "node out/server/index.js --config=./config/config.json",
+    "start:watch": "nodemon --watch out --watch ./config out/server/index.js --config=./config/config.json",
     "clean": "rimraf coverage build tmp && jest --clearCache",
     "build": "npm run clean && node build.js",
     "build:watch": "nodemon --watch src build.js",

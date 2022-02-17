@@ -1,7 +1,18 @@
 {
-	"http_port": 80,
-	"pollingSeconds": 60,
-	"hidePasswords": false,
+	"options": {
+		"http_port": 9090,
+		"pollingSeconds": 60,
+		"hidePasswords": false,
+		"useEasyConnectStringPlus": true
+	},
+	"customSelectRepository": {
+		"countTables": [
+			{
+				"title": "Count the user tables",
+				"sql": "SELECT COUNT(*) FROM user_tables"
+			}
+		]
+	},
 	"hosts": [
 		{
 			"name": "localhost",
@@ -20,7 +31,8 @@
 						{
 							"name": "scott",
 							"username": "scott",
-							"password": "tiger"
+							"password": "tiger",
+							"customSelect": "countTables"
 						}
 					]
 				}

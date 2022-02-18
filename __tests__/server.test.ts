@@ -14,7 +14,7 @@ describe('server', () => {
 				http_port: 12345,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [],

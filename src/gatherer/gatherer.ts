@@ -34,7 +34,7 @@ export async function gatherer(config: configType): Promise<void> {
 			// gather
 			promises.push(gatherPeriodic(config.customSelectRepository, host, database, database.schemas, {
 				includePassword: true,
-				useEasyConnectStringPlus: config.options.useEasyConnectStringPlus,
+				connectTimeoutSeconds: config.options.connectTimeoutSeconds,
 			}));
 		});
 	});

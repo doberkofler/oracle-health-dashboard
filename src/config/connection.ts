@@ -1,6 +1,6 @@
 //import debugModule from 'debug';
 
-import type {flatType} from './types.js';
+import type {configOptionsType, flatType} from './types.js';
 
 //const debug = debugModule('oracle-health-dashboard:connection');
 
@@ -12,17 +12,25 @@ export type connectionOptionsType = {
 
 export type connectionFlagsType = {
 	includePassword: boolean,
-	useEasyConnectStringPlus: boolean,
+	connectTimeoutSeconds: number,
 };
+
+/*
+* Get connection flag from config options
+*/
+export const getConnectionFlags = (options: configOptionsType): connectionFlagsType => ({
+	includePassword: !options.hidePasswords,
+	connectTimeoutSeconds: options.connectTimeoutSeconds,
+});
 
 /*
  * Get connection string
  */
-export function getConnectionString(address: string, port: number, service: string, useEasyConnectStringPlus: boolean): string {
+export function getConnectionString(address: string, port: number, service: string, connectTimeoutSeconds: number): string {
 	let connectionString = `${address}:${port}/${service}`;
 
-	if (useEasyConnectStringPlus) {
-		connectionString += '?connect_timeout=15';
+	if (connectTimeoutSeconds > 0) {
+		connectionString += `?connect_timeout=${connectTimeoutSeconds}`;
 	}
 
 	return connectionString;
@@ -43,7 +51,7 @@ export function connectionToString(connection: connectionOptionsType): string {
 
 export const getConnectionDatabase = (flat: flatType, flags: connectionFlagsType): connectionOptionsType => {
 	return {
-		connectionString: getConnectionString(flat.host.address, flat.database.port, flat.database.service, flags.useEasyConnectStringPlus),
+		connectionString: getConnectionString(flat.host.address, flat.database.port, flat.database.service, flags.connectTimeoutSeconds),
 		username: flat.database.username,
 		password: flags.includePassword ? flat.database.password : '',
 	};
@@ -51,7 +59,7 @@ export const getConnectionDatabase = (flat: flatType, flags: connectionFlagsType
 
 export const getConnectionContainerDatabase = (flat: flatType, flags: connectionFlagsType): connectionOptionsType | null => {
 	return flat.database.containerDatabase ? {
-		connectionString:  getConnectionString(flat.host.address, flat.database.containerDatabase.port, flat.database.containerDatabase.service, flags.useEasyConnectStringPlus),
+		connectionString:  getConnectionString(flat.host.address, flat.database.containerDatabase.port, flat.database.containerDatabase.service, flags.connectTimeoutSeconds),
 		username: flat.database.containerDatabase.username,
 		password: flags.includePassword ? flat.database.containerDatabase.password : '',
 	} : null;
@@ -63,7 +71,7 @@ export const getConnectionSchema = (flat: flatType, flags: connectionFlagsType):
 	}
 
 	return {
-		connectionString: getConnectionString(flat.host.address, flat.database.port, flat.database.service, flags.useEasyConnectStringPlus),
+		connectionString: getConnectionString(flat.host.address, flat.database.port, flat.database.service, flags.connectTimeoutSeconds),
 		username: flat.schema.username,
 		password: flags.includePassword ? flat.schema.password : '',
 	};

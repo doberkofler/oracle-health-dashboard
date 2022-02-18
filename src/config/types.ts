@@ -44,7 +44,7 @@ export type configOptionsType = {
 	http_port: number,
 	pollingSeconds: number,
 	hidePasswords: boolean,
-	useEasyConnectStringPlus: boolean,
+	connectTimeoutSeconds: number,
 };
 
 export type configType = {

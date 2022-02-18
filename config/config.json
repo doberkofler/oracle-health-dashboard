@@ -3,7 +3,7 @@
 		"http_port": 9090,
 		"pollingSeconds": 60,
 		"hidePasswords": false,
-		"useEasyConnectStringPlus": true
+		"connectTimeoutSeconds": 5
 	},
 	"customSelectRepository": {
 		"countTables": [
@@ -16,7 +16,7 @@
 	"hosts": [
 		{
 			"name": "localhost",
-			"host": "127.0.0.1",
+			"address": "127.0.0.1",
 			"databases": [
 				{
 					"name": "orcl",

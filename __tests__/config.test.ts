@@ -7,7 +7,7 @@ describe('configLoad', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [],
@@ -24,7 +24,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [],
@@ -41,7 +41,7 @@ describe('validateConfig', () => {
 				http_port: 9090,
 				pollingSeconds: 90,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [],
@@ -59,7 +59,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [{
@@ -99,7 +99,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {
 				custom: [{
@@ -153,7 +153,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [{
@@ -204,7 +204,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [{
@@ -255,7 +255,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [{
@@ -306,7 +306,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [{
@@ -357,7 +357,7 @@ describe('validateConfig', () => {
 				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
-				useEasyConnectStringPlus: true,
+				connectTimeoutSeconds: 5,
 			},
 			customSelectRepository: {},
 			hosts: [{

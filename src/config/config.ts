@@ -141,12 +141,12 @@ function validateOptions(options: partialConfigOptionsType): configOptionsType {
 		}
 	}
 
-	// useEasyConnectStringPlus
-	if ('useEasyConnectStringPlus' in options) {
-		if (typeof options.useEasyConnectStringPlus !== 'boolean') {
-			throw new Error('The configuration has no valid property "options.useEasyConnectStringPlus"');
+	// connectTimeoutSeconds
+	if ('connectTimeoutSeconds' in options) {
+		if (!isInteger(options.connectTimeoutSeconds) || options.connectTimeoutSeconds < 0) {
+			throw new Error('The configuration has no valid property "options.connectTimeoutSeconds"');
 		} else {
-			newOptions.useEasyConnectStringPlus = options.useEasyConnectStringPlus;
+			newOptions.connectTimeoutSeconds = options.connectTimeoutSeconds;
 		}
 	}
 
@@ -445,6 +445,6 @@ function getDefaultOptions(): configOptionsType {
 		http_port: 80,
 		pollingSeconds: 60,
 		hidePasswords: false,
-		useEasyConnectStringPlus: true,
+		connectTimeoutSeconds: 5,
 	};
 }

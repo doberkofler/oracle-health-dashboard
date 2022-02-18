@@ -5,8 +5,8 @@ import {
 
 describe('getConnectionString', () => {
 	it('gets the connection string', () => {
-		expect(getConnectionString('1', 2, '3', true)).toBe('1:2/3?connect_timeout=15');
-		expect(getConnectionString('1', 2, '3', false)).toBe('1:2/3');
+		expect(getConnectionString('1', 2, '3', 15)).toBe('1:2/3?connect_timeout=15');
+		expect(getConnectionString('1', 2, '3', 0)).toBe('1:2/3');
 	});
 });
 

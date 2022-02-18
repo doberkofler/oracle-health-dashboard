@@ -98,7 +98,7 @@ export async function gathererInitial(config: configType): Promise<void> {
 	for (const g of gather) {
 		const result = await gatherInitialize(g, {
 			includePassword: true,
-			useEasyConnectStringPlus: config.options.useEasyConnectStringPlus,
+			connectTimeoutSeconds: config.options.connectTimeoutSeconds,
 		});
 		stats.push(result);
 	}

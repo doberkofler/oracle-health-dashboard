@@ -37,7 +37,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 		// container database
 		host.databases.filter(database => database.enabled).forEach(database => {
 			if (database.containerDatabase) {
-				const connectionString = getConnectionString(host.address, database.containerDatabase.port, database.containerDatabase.service, config.options.useEasyConnectStringPlus);
+				const connectionString = getConnectionString(host.address, database.containerDatabase.port, database.containerDatabase.service, config.options.connectTimeoutSeconds);
 				pings.push({
 					title:  `Attempting to connect with database "${database.name}" as "${database.containerDatabase.username}" using "${connectionString}"`,
 					address: host.address,
@@ -51,7 +51,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 			}
 
 			// single or pluggable database
-			const connectionString = getConnectionString(host.address, database.port, database.service, config.options.useEasyConnectStringPlus);
+			const connectionString = getConnectionString(host.address, database.port, database.service, config.options.connectTimeoutSeconds);
 			pings.push({
 				title:  `Attempting to connect with database "${database.name}" as "${database.username}" using "${connectionString}"`,
 				address: host.address,
@@ -65,7 +65,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 
 			// process schemas
 			database.schemas.filter(schema => schema.enabled).forEach(schema => {
-				const schemaConnectionString = getConnectionString(host.address, database.port, database.service, config.options.useEasyConnectStringPlus);
+				const schemaConnectionString = getConnectionString(host.address, database.port, database.service, config.options.connectTimeoutSeconds);
 				pings.push({
 					title:  `Attempting to connect with database "${database.name}" as "${schema.username}" using "${schemaConnectionString}"`,
 					address: host.address,

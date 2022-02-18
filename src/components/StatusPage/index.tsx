@@ -171,21 +171,28 @@ const DatabaseDetails = ({row}: rowType): JSX.Element | null => {
 		addLine(data, 'Character set', statics.oracle_database_character_set);
 		addLine(data, 'SGA target', statics.oracle_sga_target);
 		addLine(data, 'PGA target', statics.oracle_pga_aggregate_target);
-	}
 
-	if (row.stats.dynamic) {
-		const dynamic = row.stats.dynamic;
+		if (row.stats.dynamic) {
+			const dynamic = row.stats.dynamic;
 
-		//addLine('Server date', metric.server_date);
-		addLine(data, 'Host CPU utilization', dynamic.host_cpu_utilization, '%');
-		addLine(data, 'IO requests per sec', dynamic.io_requests_per_second);
-		addLine(data, 'Buffer cache hit ratio', dynamic.buffer_cache_hit_ratio, '%');
-		addLine(data, 'Executions per sec', dynamic.executions_per_sec);
+			//addLine('Server date', metric.server_date);
+			addLine(data, 'Host CPU utilization', dynamic.host_cpu_utilization, '%');
+			addLine(data, 'IO requests per sec', dynamic.io_requests_per_second);
+			addLine(data, 'Buffer cache hit ratio', dynamic.buffer_cache_hit_ratio, '%');
+			addLine(data, 'Executions per sec', dynamic.executions_per_sec);
 
-		// custom metrics
-		dynamic.custom.forEach(e => {
-			addLine(data, e.title, e.value);
-		});
+			if (statics.oracle_log_mode === 'ARCHIVELOG') {
+				addLine(data, 'Last successful RMAN backup: data files', dynamic.last_successful_rman_backup_date_full_db);
+				addLine(data, 'Last successful RMAN backup: archive logs', dynamic.last_successful_rman_backup_date_archive_log);
+				addLine(data, 'Last attempted RMAN backup: data files', dynamic.last_rman_backup_date_full_db);
+				addLine(data, 'Last attempted RMAN backup: archive logs', dynamic.last_rman_backup_date_archive_log);
+			}
+
+			// custom metrics
+			dynamic.custom.forEach(e => {
+				addLine(data, e.title, e.value);
+			});
+		}
 	}
 
 	return <Details data={data} />;

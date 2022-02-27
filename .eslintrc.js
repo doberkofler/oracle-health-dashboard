@@ -10,15 +10,26 @@ module.exports = {
 		sourceType: 'module',
 		extraFileExtensions: ['.cjs'],
 	},
+
+	plugins: [
+	],
+	settings: {
+		react: {
+			'version': 'detect',
+		},
+	},
 	plugins: [
 		'@typescript-eslint',
-		'jest'
+		'react',
+		'react-hooks',
+		'jest',
 	],
 	extends: [
 		'eslint:recommended',
 		'plugin:@typescript-eslint/eslint-recommended',
 		'plugin:@typescript-eslint/all',
-		'plugin:jest/recommended'
+		'plugin:react/all',
+		'plugin:jest/recommended',
 	],
 	'rules': {
 		'semi': ['error', 'always'],
@@ -54,5 +65,14 @@ module.exports = {
 	'@typescript-eslint/prefer-readonly-parameter-types': 'off',
 	'@typescript-eslint/space-before-function-paren': ['error', {'anonymous': 'always', 'named': 'never'}],
 	'@typescript-eslint/sort-type-union-intersection-members': 'off',
+	'react/function-component-definition': 'off',
+	'react/jsx-filename-extension': ['error', {extensions: ['.jsx', '.tsx']}],
+	'react/jsx-indent': ['error', 'tab'],
+	'react/jsx-max-props-per-line': 'off',
+	'react/jsx-newline': 'off',
+	'react/jsx-one-expression-per-line': 'off',
+	'react/jsx-sort-props': 'off',
+	'react/no-multi-comp': 'off',
+	'react/require-default-props': 'off',
   }
 };

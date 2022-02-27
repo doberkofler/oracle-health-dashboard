@@ -1,13 +1,11 @@
 //import debugModule from 'debug';
-import {numberToString, timestampToString, isDate, distanceToString} from '../../util/util.js';
 import {connectionToString} from '../../config/connection.js';
 import React from 'react';
+import {DatabaseDetails, Details, addLine} from './DetabaseDetails.js';
+import {Timestamp} from '../Timestamp/index.js';
 
 import type {flattenedType} from '../../config/flatten.js';
-
-type rowType = {
-	row: flattenedType,
-};
+import type {rowType} from './rowType.js';
 
 type detailType = {
 	title: string,
@@ -53,7 +51,7 @@ const Host = ({row}: rowType): JSX.Element | null => {
 		return (
 			<td rowSpan={row.hostSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
 				<h1>{row.hostName}</h1>
-				<h3>Probing:&nbsp;{row.hostProbe ? 'On' : 'Off'}</h3>
+				<h3>{'Probing:&nbsp;'}{row.hostProbe ? 'On' : 'Off'}</h3>
 			</td>
 		);
 	} else {
@@ -136,9 +134,9 @@ const DatabaseConnectionString = ({row}: rowType): JSX.Element => {
 	if (row.containerConnection) {
 		return (
 			<h5>
-				CDB:&nbsp;{connectionToString(row.containerConnection).toLocaleLowerCase()}
+				{'CDB:&nbsp;' + connectionToString(row.containerConnection).toLocaleLowerCase()}
 				<br />
-				PDB:&nbsp;{connectionToString(row.databaseConnection).toLocaleLowerCase()}
+				{'PDB:&nbsp;' + connectionToString(row.databaseConnection).toLocaleLowerCase()}
 			</h5>
 		);
 	} else {
@@ -152,98 +150,14 @@ const DatabaseConnectionString = ({row}: rowType): JSX.Element => {
 };
 
 const LastUpdate = ({timestamp}: {timestamp?: Date}): JSX.Element | null => {
-	if (timestamp && isDate(timestamp)) {
-		return <span className="timestamp">Updated&nbsp;{distanceToString(timestamp)}</span>;
-	} else {
-		return null;
-	}
-};
-
-const DatabaseDetails = ({row}: rowType): JSX.Element | null => {
-	const data: detailType[] = [];
-
-	if (row.stats.statics) {
-		const statics = row.stats.statics;
-
-		addLine(data, 'Oracle version', statics.oracle_version);
-		addLine(data, 'Oracle platform', statics.oracle_platform);
-		addLine(data, 'Archive logging', statics.oracle_log_mode);
-		addLine(data, 'Character set', statics.oracle_database_character_set);
-		addLine(data, 'SGA target', statics.oracle_sga_target);
-		addLine(data, 'PGA target', statics.oracle_pga_aggregate_target);
-
-		if (row.stats.dynamic) {
-			const dynamic = row.stats.dynamic;
-
-			//addLine('Server date', metric.server_date);
-			addLine(data, 'Host CPU utilization', dynamic.host_cpu_utilization, '%');
-			addLine(data, 'IO requests per sec', dynamic.io_requests_per_second);
-			addLine(data, 'Buffer cache hit ratio', dynamic.buffer_cache_hit_ratio, '%');
-			addLine(data, 'Executions per sec', dynamic.executions_per_sec);
-
-			if (statics.oracle_log_mode === 'ARCHIVELOG') {
-				addLine(data, 'Last successful RMAN backup: data files', dynamic.last_successful_rman_backup_date_full_db);
-				addLine(data, 'Last successful RMAN backup: archive logs', dynamic.last_successful_rman_backup_date_archive_log);
-				addLine(data, 'Last attempted RMAN backup: data files', dynamic.last_rman_backup_date_full_db);
-				addLine(data, 'Last attempted RMAN backup: archive logs', dynamic.last_rman_backup_date_archive_log);
-			}
-
-			// custom metrics
-			dynamic.custom.forEach(e => {
-				addLine(data, e.title, e.value);
-			});
-		}
-	}
-
-	return <Details data={data} />;
-};
-
-const addLine = (data: detailType[], title: string, value: string | number | boolean | Date | null, unit = ''): void => {
-	data.push({
-		title,
-		value: getValueAsString(value),
-		unit,
-	});
-};
-
-const Details = ({data}: {data: detailType[]}): JSX.Element | null => {
-	if (data.length > 0) {
+	if (timestamp) {
 		return (
-			<div className="metrics-enclosure">
-				<div className="metrics">
-					{data.map(line => <DetailsLine key={line.title} title={line.title} value={line.value} unit={line.unit} />)}
-				</div>
-			</div>
+			<span className="timestamp">
+				{'Last updated&nbsp;'}
+				<Timestamp timestamp={timestamp} />
+			</span>
 		);
 	} else {
 		return null;
-	}
-};
-
-const DetailsLine = ({title, value, unit = ''}: {title: string, value: string, unit?: string}): JSX.Element => {
-	return (
-		<>
-			<div>
-				{title}
-			</div>
-			<div>
-				{value}
-				{value.length > 0 && unit.length > 0 ? unit : ''}
-			</div>
-		</>
-	);
-};
-
-const getValueAsString = (value: string | number | boolean | Date | null): string => {
-	if (typeof value === 'string') {
-		return value;
-	} else if (typeof value === 'number') {
-		return numberToString(value);
-	} else if (typeof value === 'boolean') {
-		return value ? 'Yes' : 'No';
-	} else if (isDate(value)) {
-		return timestampToString(value);
-	} else {
-		return '';
 	}
 };

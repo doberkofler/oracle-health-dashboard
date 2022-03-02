@@ -42,12 +42,13 @@ describe('jsonSave', () => {
 
 describe('jsonLoad', () => {
 	it('loads a json file and parses it', () => {
-		const data = jsonLoad<{str: string, num: number, boo: boolean, dat: Date, nul: null}>(tempFilename);
+		const data = jsonLoad<Record<string, unknown>>(tempFilename);
 
 		expect(data.str).toBe('str');
 		expect(data.num).toBe(0.1);
 		expect(data.boo).toBe(true);
-		expect(data.dat.getTime()).toBe(someDate.getTime());
+		expect(data.dat).toBeInstanceOf(Date);
+		expect((data.dat as Date).getTime()).toBe(someDate.getTime());
 		expect(data.nul).toBeNull();
 	});
 

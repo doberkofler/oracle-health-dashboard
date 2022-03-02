@@ -50,7 +50,7 @@ export function jsonSave(filename: string, value: unknown): void {
 /*
 *	JSON date parser
 */
-function jsonDateParser(_key: string, value: unknown): Date | undefined {
+function jsonDateParser(_key: string, value: string): string | number | boolean | Date | null {
 	if (typeof value === 'string') {
 		let a = reISO.exec(value);
 		if (a) {
@@ -65,5 +65,5 @@ function jsonDateParser(_key: string, value: unknown): Date | undefined {
 		}
 	}
 
-	return undefined;
+	return value;
 }

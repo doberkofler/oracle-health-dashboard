@@ -114,6 +114,7 @@ describe('validateConfig', () => {
 				probe: true,
 				databases: [{
 					enabled: true,
+					comment: '',
 					name: 'database_name',
 					port: 1521,
 					service: 'database_service',
@@ -163,6 +164,7 @@ describe('validateConfig', () => {
 				probe: true,
 				databases: [{
 					enabled: true,
+					comment: '',
 					name: 'database_name',
 					port: 1521,
 					service: 'database_service',
@@ -214,6 +216,7 @@ describe('validateConfig', () => {
 				probe: true,
 				databases: [{
 					enabled: true,
+					comment: '',
 					name: 'database_name',
 					port: 1521,
 					service: 'database_service',
@@ -265,6 +268,7 @@ describe('validateConfig', () => {
 				probe: true,
 				databases: [{
 					enabled: true,
+					comment: '',
 					name: 'database_name',
 					port: 1521,
 					service: 'database_service',
@@ -316,6 +320,7 @@ describe('validateConfig', () => {
 				probe: true,
 				databases: [{
 					enabled: true,
+					comment: '',
 					name: 'database_name',
 					port: 1521,
 					service: 'database_service',
@@ -367,6 +372,7 @@ describe('validateConfig', () => {
 				probe: true,
 				databases: [{
 					enabled: true,
+					comment: '',
 					name: 'database_name',
 					port: 1521,
 					service: 'database_service',

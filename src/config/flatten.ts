@@ -55,6 +55,7 @@ export function getFlat(host: justHostType, database: justDatabaseType, schema?:
 		},
 		database : {
 			enabled: database.enabled,
+			comment: database.comment,
 			name: database.name,
 			port: database.port,
 			service: database.service,

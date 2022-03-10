@@ -244,6 +244,7 @@ function validateHost(host: partialConfigHostType, hostIndex: number): configHos
 function validateDatabase(hostErrorLocation: string, database: partialConfigDatabaseType, databaseIndex: number): configDatabaseType {
 	const newDatabase: configDatabaseType = {
 		enabled: true,
+		comment: '',
 		name: '',
 		port: 1521,
 		service: '',
@@ -263,6 +264,15 @@ function validateDatabase(hostErrorLocation: string, database: partialConfigData
 			throw new Error(`"enabled" must be a boolean: "${databaseErrorLocation}"`);
 		} else {
 			newDatabase.enabled = database.enabled;
+		}
+	}
+
+	// comment
+	if ('comment' in database) {
+		if (typeof database.comment !== 'string') {
+			throw new Error(`"comment" must be a string: "${databaseErrorLocation}"`);
+		} else {
+			newDatabase.comment = database.comment;
 		}
 	}
 
@@ -389,6 +399,7 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 	const schemaErrorLocation = `${databaseErrorLocation}.schemas[${schemaIndex}]`;
 	const newSchema: configSchemaType = {
 		enabled: true,
+		comment: '',
 		name: '',
 		username: '',
 		password: '',
@@ -401,6 +412,15 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
 			throw new Error(`"enabled" must be a boolean: "${schemaErrorLocation}"`);
 		} else {
 			newSchema.enabled = schema.enabled;
+		}
+	}
+
+	// comment
+	if ('comment' in schema) {
+		if (typeof schema.comment !== 'string') {
+			throw new Error(`"comment" must be a string: "${schemaErrorLocation}"`);
+		} else {
+			newSchema.comment = schema.comment;
 		}
 	}
 

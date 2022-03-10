@@ -51,7 +51,7 @@ const Host = ({row}: rowType): JSX.Element | null => {
 		return (
 			<td rowSpan={row.hostSchemaCount} style={{borderBottom: borderLine, borderRight: borderLine, padding: '8px'}}>
 				<h1>{row.hostName}</h1>
-				<h3>{'Probing:&nbsp;'}{row.hostProbe ? 'On' : 'Off'}</h3>
+				<h3>{'Probe: '}{row.hostProbe ? 'On' : 'Off'}</h3>
 			</td>
 		);
 	} else {
@@ -134,9 +134,9 @@ const DatabaseConnectionString = ({row}: rowType): JSX.Element => {
 	if (row.containerConnection) {
 		return (
 			<h5>
-				{'CDB:&nbsp;' + connectionToString(row.containerConnection).toLocaleLowerCase()}
+				{'CDB: ' + connectionToString(row.containerConnection).toLocaleLowerCase()}
 				<br />
-				{'PDB:&nbsp;' + connectionToString(row.databaseConnection).toLocaleLowerCase()}
+				{'PDB: ' + connectionToString(row.databaseConnection).toLocaleLowerCase()}
 			</h5>
 		);
 	} else {
@@ -153,7 +153,7 @@ const LastUpdate = ({timestamp}: {timestamp?: Date}): JSX.Element | null => {
 	if (timestamp) {
 		return (
 			<span className="timestamp">
-				{'Last updated&nbsp;'}
+				{'Last updated '}
 				<Timestamp timestamp={timestamp} />
 			</span>
 		);

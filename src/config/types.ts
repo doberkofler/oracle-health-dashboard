@@ -2,6 +2,7 @@
 export type configSchemaType = {
 	enabled: boolean,
 	name: string,
+	comment: string,
 	username: string,
 	password: string,
 	customSelect: string,
@@ -15,6 +16,7 @@ export type configContainerDatabaseType = {
 };
 export type configDatabaseType = {
 	enabled: boolean,
+	comment: string,
 	name: string,
 	port: number,
 	service: string,

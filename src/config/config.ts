@@ -32,10 +32,11 @@ type partialConfigType = Partial<Omit<configType, 'options' | 'hosts'>> & {
  * Returns a configuration object.
  *
  * @param {string} [filename='config.json'] - The configuration filename.
+ * @param {string} [encryptionKey=''] - The encryption key.
  * @returns {configType} - A configuration object.
  */
-export function configLoad(filename = 'config.json'): configType {
-	const config = jsonLoad<partialConfigType>(filename);
+export function configLoad(filename = 'config.json', encryptionKey = ''): configType {
+	const config = jsonLoad<partialConfigType>(filename, encryptionKey);
 
 	return validateConfig(config);
 }

@@ -11,15 +11,15 @@ import type {Gatherer} from '../gatherer/gatherer';
 
 const debug = debugModule('oracle-health-dashboard:runserver');
 
-export async function runServer(configFilename: string): Promise<void> {
-	debug('runServer', configFilename);
+export async function runServer(configFilename: string, encryptionKey: string): Promise<void> {
+	debug('runServer', configFilename, encryptionKey);
 
 	// install shutdown handler
 	installShutdown(shutdownHandler);
 
 	// load configuration
 	debug('load configuration');
-	const config = configLoad(configFilename);
+	const config = configLoad(configFilename, encryptionKey);
 
 	// initialize gatherer
 	debug('initialize gatherer');

@@ -6,15 +6,15 @@ import {getPage} from '../pages/pageConfig/index.js';
 
 const debug = debugModule('oracle-health-dashboard:rungendoc');
 
-export function runGenDoc(configFilename: string): void {
-	debug('runGenDoc', configFilename);
+export function runGenDoc(configFilename: string, encryptionKey: string): void {
+	debug('runGenDoc', configFilename, encryptionKey);
 
 	// install shutdown handler
 	installShutdown();
 
 	// load configuration
 	debug('load configuration');
-	const config = configLoad(configFilename);
+	const config = configLoad(configFilename, encryptionKey);
 
 	// generate documentation
 	const content = getPage(config);

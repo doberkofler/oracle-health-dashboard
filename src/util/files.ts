@@ -1,4 +1,5 @@
 import fs from 'fs';
+import {decrypt} from './encryption.js';
 
 const reISO = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*))(?:Z|(\+|-)([\d|:]*))?$/;
 const reMsAjax = /^\/Date\((d|-|.*)\)[/|\\]$/;
@@ -29,8 +30,14 @@ export function textSave(filename: string, data: string): void {
 /*
  * Load json file
  */
-export function jsonLoad<T>(filename: string): T {
-	const data = textLoad(filename);
+export function jsonLoad<T>(filename: string, encryptionKey = ''): T {
+	let data = textLoad(filename);
+
+	// decrypt
+	if (encryptionKey !== '') {
+		const buffer = decrypt(Buffer.from(data, 'base64'), encryptionKey);
+		data = buffer.toString();
+	}
 
 	try {
 		return JSON.parse(data, jsonDateParser) as T;

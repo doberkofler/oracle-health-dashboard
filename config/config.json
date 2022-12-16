@@ -1,0 +1,42 @@
+{
+	"options": {
+		"http_port": 9090,
+		"pollingSeconds": 60,
+		"hidePasswords": false,
+		"connectTimeoutSeconds": 5
+	},
+	"customSelectRepository": {
+		"countTables": [
+			{
+				"title": "Count the user tables",
+				"sql": "SELECT COUNT(*) FROM user_tables"
+			}
+		]
+	},
+	"hosts": [
+		{
+			"name": "localhost",
+			"address": "127.0.0.1",
+			"databases": [
+				{
+					"name": "orcl",
+					"port": 1521,
+					"service": "orclpdb",
+					"username": "sys",
+					"password": "manager",
+					"containerDatabase": {
+						"service": "orclcdb"
+					},
+					"schemas": [
+						{
+							"name": "scott",
+							"username": "scott",
+							"password": "tiger",
+							"customSelect": "countTables"
+						}
+					]
+				}
+			]
+		}
+	]
+}

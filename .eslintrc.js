@@ -64,6 +64,7 @@ module.exports = {
 	'@typescript-eslint/quotes': ['error', 'single', 'avoid-escape'],
 	'@typescript-eslint/prefer-readonly-parameter-types': 'off',
 	'@typescript-eslint/space-before-function-paren': ['error', {'anonymous': 'always', 'named': 'never'}],
+	'@typescript-eslint/sort-type-constituents': 'off',
 	'@typescript-eslint/sort-type-union-intersection-members': 'off',
 	'react/function-component-definition': 'off',
 	'react/jsx-filename-extension': ['error', {extensions: ['.jsx', '.tsx']}],

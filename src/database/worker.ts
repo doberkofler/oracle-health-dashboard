@@ -1,13 +1,13 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
-import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from '../config/connection.js';
-import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
-import {getFlat} from '../config/flatten.js';
-import {prettyFormat} from '../util/util.js';
-import {warn} from '../util/tty.js';
+import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from '../config/connection';
+import {connect, disconnect, execute, getPlaceholder} from './oracle';
+import {getFlat} from '../config/flatten';
+import {prettyFormat} from '../util/util';
+import {warn} from '../util/tty';
 
-import type {justHostType, justDatabaseType, configSchemaType, configCustomStatType, configCustomRepository} from '../config/types.js';
-import type {connectionFlagsType} from '../config/connection.js';
+import type {justHostType, justDatabaseType, configSchemaType, configCustomStatType, configCustomRepository} from '../config/types';
+import type {connectionFlagsType} from '../config/connection';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
@@ -327,7 +327,9 @@ async function getCustomStats(connection: oracledb.Connection, customRepository:
 	const stats: customStatsType = [];
 	for (const e of custom) {
 		const stat = await getCustomStat(connection, e);
-		stats.push(stat);
+		if (stat !== null) {
+			stats.push(stat);
+		}
 	}
 
 	return stats;
@@ -336,13 +338,22 @@ async function getCustomStats(connection: oracledb.Connection, customRepository:
 /*
 * get custom statistics
 */
-async function getCustomStat(connection: oracledb.Connection, custom: configCustomStatType): Promise<customStatType> {
+async function getCustomStat(connection: oracledb.Connection, custom: configCustomStatType): Promise<customStatType | null> {
 	debug('getCustomStat');
 
 	// make sure we have a select statement
-	const info = await connection.getStatementInfo(custom.sql);
+	let info: oracledb.StatementInfo | null = null;
+	try {
+		info = await connection.getStatementInfo(custom.sql);
+	} catch (e: unknown) {
+		const error = `Cannot process "getStatementInfo" on the select "${custom.sql}".\n${prettyFormat(e)}`;
+		warn(error);
+		return null;
+	}
 	if (info.statementType !== oracledb.STMT_TYPE_SELECT) {
-		throw new Error(`The custom select "${custom.sql}" is actually not a seect statement`);
+		const error = `The custom select "${custom.sql}" is actually not a seect statement`;
+		warn(error);
+		return null;
 	}
 
 	// execute the select
@@ -350,12 +361,16 @@ async function getCustomStat(connection: oracledb.Connection, custom: configCust
 	try {
 		result = await connection.execute<string[]>(custom.sql);
 	} catch (e: unknown) {
-		throw new Error(`The custom select "${custom.sql}" has errors.\n${prettyFormat(e)}`);
+		const error = `The custom select "${custom.sql}" has errors.\n${prettyFormat(e)}`;
+		warn(error);
+		return null;
 	}
 
 	// rows
 	if (!Array.isArray(result.rows) || result.rows.length < 1) {
-		throw new Error(`The custom select "${custom.sql}" did not return any rows.\n${prettyFormat(result)}`);
+		const error = `The custom select "${custom.sql}" did not return any rows.\n${prettyFormat(result)}`;
+		warn(error);
+		return null;
 	}
 	if (result.rows.length > 1) {
 		warn(`The custom select "${custom.sql}" returned "${result.rows.length}" rows, but only the first one will be used`);
@@ -364,7 +379,9 @@ async function getCustomStat(connection: oracledb.Connection, custom: configCust
 
 	// columns
 	if (!Array.isArray(row) || row.length < 1) {
-		throw new Error(`The custom select "${custom.sql}" did not return any columns.\n${prettyFormat(result)}`);
+		const error = `The custom select "${custom.sql}" did not return any columns.\n${prettyFormat(result)}`;
+		warn(error);
+		return null;
 	}
 	if (row.length > 1) {
 		warn(`The custom select "${custom.sql}" returned "${row.length}" columns, but only the first one will be used`);

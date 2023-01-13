@@ -7,7 +7,7 @@ import {
 	distanceToString,
 	timestampToString,
 	prettyFormat,
-} from '../src/util/util.js';
+} from '../src/util/util';
 
 describe('isStringArray', () => {
 	it('returns true for arrays of strings', () => {

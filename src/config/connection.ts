@@ -1,6 +1,6 @@
 //import debugModule from 'debug';
 
-import type {configOptionsType, flatType} from './types.js';
+import type {configOptionsType, flatType} from './types';
 
 //const debug = debugModule('oracle-health-dashboard:connection');
 

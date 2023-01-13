@@ -1,6 +1,6 @@
 //import debugModule from 'debug';
-import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from './connection.js';
-//import {prettyFormat} from '../util/util.js';
+import {getConnectionDatabase, getConnectionContainerDatabase, getConnectionSchema} from './connection';
+//import {prettyFormat} from '../util/util';
 
 import type {
 	configSchemaType,
@@ -8,10 +8,10 @@ import type {
 	justHostType,
 	justDatabaseType,
 	flatType,
-} from './types.js';
-import type {statsHostType, dynamicMetricType, statsSchemaType} from '../statsStore.js';
+} from './types';
+import type {statsHostType, dynamicMetricType, statsSchemaType} from '../statsStore';
 import type {connectionOptionsType, connectionFlagsType} from '../config/connection';
-import type {staticMetricType} from '../database/initialize.js';
+import type {staticMetricType} from '../database/initialize';
 
 type flatDynamicType = Omit<dynamicMetricType, 'schemas'> & {schema: null | statsSchemaType};
 type statsType = {

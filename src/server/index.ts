@@ -2,12 +2,12 @@ import debugModule from 'debug';
 import path from 'path';
 import express from 'express';
 import compression from 'compression';
-import {handlerDefault} from '../router/handlerDefault.js';
-import {handlerConfig} from '../router/handlerConfig.js';
-import {handlerDebug} from '../router/handlerDebug.js';
+import {handlerDefault} from '../router/handlerDefault';
+import {handlerConfig} from '../router/handlerConfig';
+import {handlerDebug} from '../router/handlerDebug';
 
 import type * as http from 'http';
-import type {configType} from '../config/types.js';
+import type {configType} from '../config/types';
 
 const debug = debugModule('oracle-health-dashboard:server');
 

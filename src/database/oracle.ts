@@ -1,8 +1,8 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
-import {isDate, prettyFormat} from '../util/util.js';
+import {isDate, prettyFormat} from '../util/util';
 
-import type {connectionOptionsType} from '../config/connection.js';
+import type {connectionOptionsType} from '../config/connection';
 
 const debug = debugModule('oracle-health-dashboard:oracle');
 

@@ -1,8 +1,8 @@
 import type express from 'express';
 import request from 'supertest';
 import type * as http from 'http';
-import {serverStart, serverStop} from '../src/server/index.js';
-import {statsInitial} from '../src/statsStore.js';
+import {serverStart, serverStop} from '../src/server/index';
+import {statsInitial} from '../src/statsStore';
 
 let app: express.Express;
 let server: http.Server;

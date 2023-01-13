@@ -1,12 +1,12 @@
 import debugModule from 'debug';
-import {StatusPage} from '../../components/StatusPage/index.js';
-import {getHtmlPage} from '../../html/html.js';
-import {getConnectionFlags} from '../../config/connection.js';
-import {flatten} from '../../config/flatten.js';
+import {StatusPage} from '../../components/StatusPage/index';
+import {getHtmlPage} from '../../html/html';
+import {getConnectionFlags} from '../../config/connection';
+import {flatten} from '../../config/flatten';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 
-import type {configType} from '../../config/types.js';
+import type {configType} from '../../config/types';
 
 const debug = debugModule('oracle-health-dashboard:pageConfig');
 

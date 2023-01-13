@@ -1,8 +1,8 @@
 import debugModule from 'debug';
-import {getPage} from '../pages/pageDefault/server.js';
+import {getPage} from '../pages/pageDefault/server';
 
 import type express from 'express';
-import type {configType} from '../config/types.js';
+import type {configType} from '../config/types';
 
 const debug = debugModule('oracle-health-dashboard:handlerDefault');
 

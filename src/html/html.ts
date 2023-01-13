@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import {isInteger} from '../util/util.js';
+import {isInteger} from '../util/util';
 
 type optionsType = {
 	style?: string,

@@ -1,17 +1,17 @@
 import debugModule from 'debug';
 import oracledb from 'oracledb';
-import {probe} from '../util/probe.js';
-import {connect, disconnect, execute, getPlaceholder} from './oracle.js';
-import {getStatus} from './worker.js';
-import {statsInitial} from '../statsStore.js';
-import {getConnectionDatabase} from '../config/connection.js';
-import {getFlat} from '../config/flatten.js';
-import {write, writeNewLine, writeStartingOnColumn} from '../util/tty.js';
+import {probe} from '../util/probe';
+import {connect, disconnect, execute, getPlaceholder} from './oracle';
+import {getStatus} from './worker';
+import {statsInitial} from '../statsStore';
+import {getConnectionDatabase} from '../config/connection';
+import {getFlat} from '../config/flatten';
+import {write, writeNewLine, writeStartingOnColumn} from '../util/tty';
 
-import type {configType, flatType} from '../config/types.js';
-import type {statsInitType} from '../statsStore.js';
-import type {statusType} from './worker.js';
-import type {connectionFlagsType} from '../config/connection.js';
+import type {configType, flatType} from '../config/types';
+import type {statsInitType} from '../statsStore';
+import type {statusType} from './worker';
+import type {connectionFlagsType} from '../config/connection';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
 

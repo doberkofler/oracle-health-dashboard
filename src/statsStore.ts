@@ -1,8 +1,8 @@
-import {jsonLoad, jsonSave} from './util/files.js';
-import {prettyFormat} from './util/util.js';
+import {jsonLoad, jsonSave} from './util/files';
+import {prettyFormat} from './util/util';
 
-import type {statusType, metricType, customStatsType} from './database/worker.js';
-import type {staticMetricType} from './database/initialize.js';
+import type {statusType, metricType, customStatsType} from './database/worker';
+import type {staticMetricType} from './database/initialize';
 
 const MAGIC = 'MAGIC';
 const VERSION = 1;

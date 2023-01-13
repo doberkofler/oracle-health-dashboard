@@ -1,11 +1,11 @@
 //import debugModule from 'debug';
-import {connectionToString} from '../../config/connection.js';
+import {connectionToString} from '../../config/connection';
 import React from 'react';
-import {DatabaseDetails, Details, addLine} from './DetabaseDetails.js';
-import {Timestamp} from '../Timestamp/index.js';
+import {DatabaseDetails, Details, addLine} from './DetabaseDetails';
+import {Timestamp} from '../Timestamp/index';
 
-import type {flattenedType} from '../../config/flatten.js';
-import type {rowType} from './rowType.js';
+import type {flattenedType} from '../../config/flatten';
+import type {rowType} from './rowType';
 
 type detailType = {
 	title: string,

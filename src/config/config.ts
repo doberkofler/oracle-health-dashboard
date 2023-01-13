@@ -1,5 +1,5 @@
-import {jsonLoad} from '../util/files.js';
-import {isInteger} from '../util/util.js';
+import {jsonLoad} from '../util/files';
+import {isInteger} from '../util/util';
 
 import type {
 	configSchemaType,
@@ -9,7 +9,7 @@ import type {
 	configCustomRepository,
 	configOptionsType,
 	configType,
-} from './types.js';
+} from './types';
 
 // types used when validating the configuration
 type partialConfigSchemaType = Partial<configSchemaType> & {

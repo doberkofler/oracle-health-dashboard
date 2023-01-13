@@ -1,8 +1,8 @@
 import React from 'react';
 import {hydrate} from 'react-dom';
-import {StatusPage} from '../../components/StatusPage/index.js';
+import {StatusPage} from '../../components/StatusPage/index';
 
-import type {flattenedType} from '../../config/flatten.js';
+import type {flattenedType} from '../../config/flatten';
 
 const w = window as {__reactjs_ssr_data?: string};
 

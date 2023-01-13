@@ -1,9 +1,9 @@
 import debugModule from 'debug';
-import {statsLoad} from '../../statsStore.js';
-import {getHtmlPage} from '../../html/html.js';
-import {prettyFormat} from '../../util/util.js';
+import {statsLoad} from '../../statsStore';
+import {getHtmlPage} from '../../html/html';
+import {prettyFormat} from '../../util/util';
 
-import type {configType} from '../../config/types.js';
+import type {configType} from '../../config/types';
 
 const debug = debugModule('oracle-health-dashboard:pageDebug');
 

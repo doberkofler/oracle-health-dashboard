@@ -1,10 +1,10 @@
 import debugModule from 'debug';
 import {spawn, Thread, Worker} from 'threads';
-import {configLoad} from '../config/config.js';
-import {installShutdown} from '../shutdown.js';
-import {gathererInitial} from '../database/initialize.js';
-import {serverStart, serverStop} from '../server/index.js';
-import {log} from '../util/tty.js';
+import {configLoad} from '../config/config';
+import {installShutdown} from '../shutdown';
+import {gathererInitial} from '../database/initialize';
+import {serverStart, serverStop} from '../server/index';
+import {log} from '../util/tty';
 
 
 import type {Gatherer} from '../gatherer/gatherer';

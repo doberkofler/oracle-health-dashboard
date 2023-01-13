@@ -1,8 +1,8 @@
 import debugModule from 'debug';
 import path from 'path';
-import {textLoad, textSave} from '../util/files.js';
-import {encrypt} from '../util/encryption.js';
-import {installShutdown} from '../shutdown.js';
+import {textLoad, textSave} from '../util/files';
+import {encrypt} from '../util/encryption';
+import {installShutdown} from '../shutdown';
 
 const debug = debugModule('oracle-health-dashboard:runEncrypt');
 

@@ -1,9 +1,9 @@
 //import debugModule from 'debug';
-import {numberToString, isDate} from '../../util/util.js';
+import {numberToString, isDate} from '../../util/util';
 import React from 'react';
-import {Timestamp} from '../Timestamp/index.js';
+import {Timestamp} from '../Timestamp/index';
 
-import type {rowType} from './rowType.js';
+import type {rowType} from './rowType';
 
 type detailType = {
 	title: string,

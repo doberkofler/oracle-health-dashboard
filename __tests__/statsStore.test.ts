@@ -6,7 +6,7 @@ const FILENAME = 'db.json';
 
 const now = new Date();
 
-const status = {
+const dataStatus = {
 	timestamp: now,
 	success: true,
 	message: '',
@@ -42,6 +42,7 @@ describe('statsInitial', () => {
 			hostName: 'hostName',
 			databaseName: 'databaseName',
 			schemaName: 'schemaName',
+			status: dataStatus,
 			static: dataStatic,
 		}]);
 
@@ -67,6 +68,7 @@ describe('statsLoad', () => {
 			hostName: 'hostName',
 			databaseName: 'databaseName',
 			schemaName: '',
+			status: dataStatus,
 			static: dataStatic,
 		}]);
 
@@ -120,13 +122,14 @@ describe('statsAdd', () => {
 			hostName: 'hostName',
 			databaseName: 'databaseName',
 			schemaName: '',
+			status: dataStatus,
 			static: dataStatic,
 		}]);
 
 		statsAdd([{
 			hostName: 'hostName',
 			databaseName: 'databaseName',
-			status,
+			status: dataStatus,
 			metric: dataMetric,
 			schemas: [],
 		}]);
@@ -137,7 +140,7 @@ describe('statsAdd', () => {
 			databases: [{
 				databaseName: 'databaseName',
 				static: dataStatic,
-				metrics: [Object.assign({}, dataMetric, {status, schemas: []})],
+				metrics: [Object.assign({}, dataMetric, {status: dataStatus, schemas: []})],
 			}],
 		}]);
 	});
@@ -147,6 +150,7 @@ describe('statsAdd', () => {
 			hostName: 'hostName',
 			databaseName: 'databaseName',
 			schemaName: '',
+			status: dataStatus,
 			static: dataStatic,
 		}]);
 
@@ -154,7 +158,7 @@ describe('statsAdd', () => {
 			statsAdd([{
 				hostName: 'hostName',
 				databaseName: 'TatabaseTame',
-				status,
+				status: dataStatus,
 				metric: dataMetric,
 				schemas: [],
 			}]);

@@ -114,6 +114,7 @@ describe('types', () => {
 				hostName: 'hostName',
 				databaseName: 'databaseName',
 				schemaName: 'schemaName',
+				status: dataStatus,
 				static: dataStaticMetrict,
 			},
 		].forEach(data => expect(z$statsInitType.safeParse(data)).toStrictEqual({success: true, data}));

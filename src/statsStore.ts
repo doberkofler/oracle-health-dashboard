@@ -1,8 +1,11 @@
 import {jsonLoad, jsonSave} from './util/files';
 import {prettyFormat} from './util/util';
+import fs from 'fs';
+import {z} from 'zod';
 
-import type {statusType, metricType, customStatsType} from './database/worker';
-import type {staticMetricType} from './database/initialize';
+import {z$statsType, z$statsInitType, z$statsAddDataType} from './types';
+
+import type {statsHostType, statsInitType, statsDatabaseType, statsAddDataType} from './types';
 
 const MAGIC = 'MAGIC';
 const VERSION = 1;
@@ -10,63 +13,59 @@ const VERSION = 1;
 // Use JSON file for storage
 const FILENAME = 'db.json';
 
-export type dynamicMetricType = metricType & {
-	status: statusType,
-	schemas: statsSchemaType[],
+/*
+ * Save statistics.
+ */
+const statsSave = (hosts: statsHostType[]): void => {
+	const data = z$statsType.parse({
+		magic: MAGIC,
+		version: VERSION,
+		hosts,
+	});
+
+	jsonSave(FILENAME, data);
 };
 
-export type statsInitType = {
-	hostName: string,
-	databaseName: string,
-	schemaName: string,
-	statics: staticMetricType,
+/*
+ * Find database.
+ */
+const findDatabase = (stats: statsHostType[], hostName: string, databaseName: string): statsDatabaseType => {
+	const host = stats.find(e => e.hostName === hostName);
+	if (!host) {
+		throw new Error(`Unable to find host "${hostName}"`);
+	}
+
+	const database = host.databases.find(e => e.databaseName === databaseName);
+	if (!database) {
+		throw new Error(`Unable to find database "${databaseName}" in host "${hostName}" in "${prettyFormat(stats)}"`);
+	}
+
+	return database;
 };
 
-export type statsAddDataType = {
-	hostName: string,
-	databaseName: string,
-	schemaName: string,
-	status: statusType,
-	metric: metricType,
-	schemas: statsSchemaType[],
-};
-
-export type statsSchemaType = {
-	name: string,
-	status: statusType,
-	custom: customStatsType,
-};
-
-export type statsDatabaseType = {
-	name: string,
-	statics?: staticMetricType,
-	metrics: dynamicMetricType[],
-};
-
-export type statsHostType = {
-	name: string,
-	databases: statsDatabaseType[],
-};
-
-export type statsType = {
-	magic: string,
-	version: number,
-	hosts: statsHostType[],
+/**
+ * Remove statistics.
+ *
+ */
+export const statsRemove = (): void => {
+	fs.unlinkSync(FILENAME);
 };
 
 /**
  * Load statistics.
  *
- * @return {statsHostType[]} - The stored statistics.
+ * @return The stored statistics.
  */
-export function statsLoad(): statsHostType[] {
-	let stats: statsType;
+export const statsLoad = (): statsHostType[] => {
+	let data: unknown;
 
 	try {
-		stats = jsonLoad(FILENAME);
+		data = jsonLoad(FILENAME);
 	} catch (e: unknown) {
 		throw new Error(`Statistics database in file "${FILENAME}" not found.`);
 	}
+
+	const stats =  z$statsType.parse(data);
 
 	if (stats.magic !== MAGIC) {
 		throw new Error(`Statistics database in file "${FILENAME}" is invalid.\n${prettyFormat(stats)}`);
@@ -77,33 +76,35 @@ export function statsLoad(): statsHostType[] {
 	}
 
 	return stats.hosts;
-}
+};
 
 /**
  * Initialize statistics.
  *
- * @param {statsInitType[]} data - The stored statistics.
+ * @param data - The stored statistics.
  */
-export function statsInitial(data: statsInitType[]): void {
-	const hosts = [] as statsHostType[];
+export const statsInitial = (data: statsInitType[]): void => {
+	// validate
+	z.array(z$statsInitType).parse(data);
 
+	const hosts = [] as statsHostType[];
 	data.forEach(row => {
 		// host
-		let host = hosts.find(e => e.name === row.hostName);
+		let host = hosts.find(e => e.hostName === row.hostName);
 		if (!host) {
 			host = {
-				name: row.hostName,
+				hostName: row.hostName,
 				databases: [],
 			} as statsHostType;
 			hosts.push(host);
 		}
 
 		// database
-		let database = host.databases.find(e => e.name === row.databaseName);
+		let database = host.databases.find(e => e.databaseName === row.databaseName);
 		if (!database) {
 			database = {
-				name: row.databaseName,
-				statics: row.statics,
+				databaseName: row.databaseName,
+				static: row.static,
 				metrics: [],
 			} as statsDatabaseType;
 			host.databases.push(database);
@@ -111,49 +112,31 @@ export function statsInitial(data: statsInitType[]): void {
 	});
 	
 	statsSave(hosts);
-}
+};
 
 /**
  * Add statistics.
  *
- * @param {statsDatabaseType[]} rows - The data to store.
+ * @param data - The data to store.
  */
-export function statsAdd(rows: statsAddDataType[]): void {
-	const oldHosts = statsLoad();
+export const statsAdd = (data: statsAddDataType[]): void => {
+	// validate the given data
+	z.array(z$statsAddDataType).parse(data);
 
-	rows.forEach(row => {
-		// host
-		const host = oldHosts.find(e => e.name === row.hostName);
-		if (!host) {
-			throw new Error(`Unable to find host "${row.hostName}"`);
-		}
+	// load existing stats
+	const stats = statsLoad();
 
-		// database
-		const database = host.databases.find(e => e.name === row.databaseName);
-		if (!database) {
-			throw new Error(`Unable to find database "${row.databaseName}" in host "${row.hostName}" in "${prettyFormat(oldHosts)}"`);
-		}
-
-		const metric = Object.assign({}, row.metric, {
-			status: row.status,
-			schemas: row.schemas,
+	// add new metrics
+	data.forEach(e => {
+		const database = findDatabase(stats, e.hostName, e.databaseName);
+		const metric = Object.assign({}, e.metric, {
+			status: e.status,
+			schemas: e.schemas,
 		});
 
 		database.metrics.push(metric);
 	});
 
-	statsSave(oldHosts);
-}
-
-/*
- * Save statistics.
- */
-function statsSave(hosts: statsHostType[]): void {
-	const stats: statsType = {
-		magic: MAGIC,
-		version: VERSION,
-		hosts,
-	};
-
-	jsonSave(FILENAME, stats);
-}
+	// save stats
+	statsSave(stats);
+};

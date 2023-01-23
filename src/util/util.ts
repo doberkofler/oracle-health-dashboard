@@ -75,6 +75,113 @@ export function timestampToString(date: Date): string {
 	return format(date, 'd MMM yyyy HH:mm:ss');
 }
 
+/**
+ * Convert a string to a number
+ *
+ * @param value - The string to convert
+ * @returns The number
+ * @example
+ *	stringToNumber(0) -> 0
+ *	stringToNumber(NaN) -> throws TypeError
+ *	stringToNumber('0') -> 0
+ *	stringToNumber('-1.1') -> -1.1
+ *	stringToNumber('') -> throws TypeError
+ *	stringToNumber(' 1') -> throws TypeError
+ *	stringToNumber('1 ') -> throws TypeError
+ */
+export function stringToNumber(value: string | number): number {
+	const num = stringToNumberWeak(value);
+
+	if (num === null) {
+		throw new TypeError(`"${value}" is not a number`);
+	}
+
+	return num;
+}
+
+/**
+ * Convert a string to a number
+ *
+ * @param value - The string to convert
+ * @returns The number or null if the string could not be converted
+ * @example
+ *	stringToNumberWeak(0) -> 0
+ *	stringToNumberWeak(NaN) -> null
+ *	stringToNumberWeak('0') -> 0
+ *	stringToNumberWeak('-1.1') -> -1.1
+ *	stringToNumberWeak('') -> null
+ *	stringToNumberWeak(' 1') -> null
+ *	stringToNumberWeak('1 ') -> null
+ */
+export function stringToNumberWeak(value: string | number): number | null {
+	// is the value already of type number?
+	if (typeof value === 'number') {
+		return !Number.isNaN(value) && Number.isFinite(value) ? value : null;
+	}
+
+	// Test for invalid characters
+	if (!/^[+-]?\d*\.?\d+(?:[Ee][+-]?\d+)?$/.test(value)) {
+		return null;
+	}
+
+	// Convert value to a number
+	const num = Number(value);
+	return Number.isNaN(num) ? null : num;
+}
+
+/**
+ * Convert a string to a integer
+ *
+ * @param value - The string to convert
+ * @returns The integer
+ * @example
+ *	stringToInteger(0) -> 0
+ *	stringToInteger(NaN) -> throws TypeError
+ *	stringToInteger('0') -> 0
+ *	stringToInteger('-1.1') -> throws TypeError
+ *	stringToInteger('') -> throws TypeError
+ *	stringToInteger(' 1') -> throws TypeError
+ *	stringToInteger('1 ') -> throws TypeError
+ */
+export function stringToInteger(value: string | number): number {
+	const num = stringToIntegerWeak(value);
+
+	if (num === null) {
+		throw new TypeError(`"${value}" is not a number`);
+	}
+
+	return num;
+}
+
+/**
+ * Convert a string to a integer
+ *
+ * @param value - The string to convert
+ * @returns The integer or null if the string could not be converted
+ * @example
+ *	stringToIntegerWeak(0) -> 0
+ *	stringToIntegerWeak(NaN) -> null
+ *	stringToIntegerWeak('0') -> 0
+ *	stringToIntegerWeak('-1.1') -> null
+ *	stringToIntegerWeak('') -> null
+ *	stringToIntegerWeak(' 1') -> null
+ *	stringToIntegerWeak('1 ') -> null
+ */
+export function stringToIntegerWeak(value: string | number): number | null {
+	// is the value already a "real" integer, we just return the value
+	if (typeof value === 'number' && Number.isInteger(value)) {
+		return value;
+	}
+
+	// try to convert value to a number
+	const num = stringToNumberWeak(value);
+	if (num === null || !Number.isInteger(num)) {
+		return null;
+	}
+
+	return num;
+}
+
 /*
  *	Convert any value to a string
  *

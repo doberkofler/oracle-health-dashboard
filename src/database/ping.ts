@@ -4,7 +4,7 @@ import {connect, disconnect} from './oracle';
 import {getConnectionString} from '../config/connection';
 import {write, writeNewLine, writeStartingOnColumn} from '../util/tty';
 
-import type {configType} from '../config/types';
+import type {configType} from '../types';
 import type {connectionOptionsType} from '../config/connection';
 
 const debug = debugModule('oracle-health-dashboard:databasePing');
@@ -86,7 +86,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 		successCount: 0,
 	};
 	for (const p of pings) {
-		write('\n' + p.title);
+		write(`\n${p.title}`);
 
 		let message = 'success';
 
@@ -110,7 +110,7 @@ export async function ping(config: configType): Promise<pingResultType> {
 			}
 		}
 
-		writeStartingOnColumn(' - ' + message, p.title.length);
+		writeStartingOnColumn(` - ${message}`, p.title.length);
 	}
 
 	writeNewLine();

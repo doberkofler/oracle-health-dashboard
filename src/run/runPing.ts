@@ -3,17 +3,19 @@ import {configLoad} from '../config/config';
 import {ping} from '../database/ping';
 import {installShutdown} from '../shutdown';
 
+import type {cliOptionsType} from '../cli/options';
+
 const debug = debugModule('oracle-health-dashboard:runping');
 
-export async function runPing(configFilename: string, encryptionKey: string): Promise<void> {
-	debug('runPing', configFilename, encryptionKey);
+export async function runPing(options: cliOptionsType): Promise<void> {
+	debug('runPing', options);
 
 	// install shutdown handler
 	installShutdown();
 
 	// load configuration
 	debug('load configuration');
-	const config = configLoad(configFilename, encryptionKey);
+	const config = configLoad(options.config, options.encryptionKey);
 
 	// ping all databases
 	debug('initialize gatherer');

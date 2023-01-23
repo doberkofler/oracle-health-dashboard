@@ -1,6 +1,6 @@
 //import debugModule from 'debug';
 
-import type {configOptionsType, flatType} from './types';
+import type {configOptionsType, flatType} from '../types';
 
 //const debug = debugModule('oracle-health-dashboard:connection');
 
@@ -43,10 +43,10 @@ export function connectionToString(connection: connectionOptionsType): string {
 	let text = connection.username;
 
 	if (connection.password.length > 0) {
-		text += '/' + connection.password;
+		text += `/${connection.password}`;
 	}
 
-	return text + '@' + connection.connectionString;
+	return `${text}@${connection.connectionString}`;
 }
 
 export const getConnectionDatabase = (flat: flatType, flags: connectionFlagsType): connectionOptionsType => {

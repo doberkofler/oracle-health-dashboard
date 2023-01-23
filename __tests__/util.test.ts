@@ -1,9 +1,15 @@
+/* eslint-disable jest/no-conditional-expect */
+
 import {
 	isStringArray,
 	isNumber,
 	isInteger,
 	isDate,
 	numberToString,
+	stringToNumber,
+	stringToNumberWeak,
+	stringToInteger,
+	stringToIntegerWeak,
 	distanceToString,
 	timestampToString,
 	prettyFormat,
@@ -88,6 +94,81 @@ describe('numberToString', () => {
 		expect(numberToString(0)).toBe('0');
 		expect(numberToString(1)).toBe('1');
 		expect(numberToString(0.006)).toBe('0.01');
+	});
+});
+
+describe('convert string to', () => {
+	const TESTS = [
+		{value: 0,				expectedNumber: 0,			expectedInteger: 0},
+		{value: 1,				expectedNumber: 1,			expectedInteger: 1},
+		{value: NaN,			expectedNumber: null,		expectedInteger: null},
+		{value: Infinity,		expectedNumber: null,		expectedInteger: null},
+		{value: '0',			expectedNumber: 0,			expectedInteger: 0},
+		{value: '1',			expectedNumber: 1,			expectedInteger: 1},
+		{value: '-1',			expectedNumber: -1,			expectedInteger: -1},
+		{value: '100000',		expectedNumber: 100000,		expectedInteger: 100000},
+		{value: '100000.00',	expectedNumber: 100000,		expectedInteger: 100000},
+		{value: '100000.',		expectedNumber: null,		expectedInteger: null},
+		{value: '7e7',			expectedNumber: 7e7,		expectedInteger: 7e7},
+		{value: '-7e-7',		expectedNumber: -7e-7,		expectedInteger: null},
+		{value: '0.1',			expectedNumber: 0.1,		expectedInteger: null},
+		{value: '+.1',			expectedNumber: 0.1,		expectedInteger: null},
+		{value: '-.1',			expectedNumber: -0.1,		expectedInteger: null},
+		{value: '0.00001',		expectedNumber: 0.00001,	expectedInteger: null},
+		{value: '-0.00001',		expectedNumber: -0.00001,	expectedInteger: null},
+		{value: '', 			expectedNumber: null,		expectedInteger: null},
+		{value: ' 0', 			expectedNumber: null,		expectedInteger: null},
+		{value: '0 ', 			expectedNumber: null,		expectedInteger: null},
+		{value: ' 0 ', 			expectedNumber: null,		expectedInteger: null},
+		{value: '1 1', 			expectedNumber: null,		expectedInteger: null},
+	];
+
+	it('stringToNumber', () => {
+		expect.hasAssertions();
+
+		TESTS.forEach(test => {
+			if (test.expectedNumber !== null) {
+				const computed = stringToNumber(test.value);
+				expect(computed).toStrictEqual(test.expectedNumber);
+			} else {
+				expect(() => {
+					stringToNumber(test.value);
+				}).toThrow();
+			}
+		});
+	});
+
+	it('stringToNumberWeak', () => {
+		expect.hasAssertions();
+
+		TESTS.forEach(test => {
+			const computed = stringToNumberWeak(test.value);
+			expect(computed).toStrictEqual(test.expectedNumber);
+		});
+	});
+
+	it('stringToInteger', () => {
+		expect.hasAssertions();
+
+		TESTS.forEach(test => {
+			if (test.expectedInteger !== null) {
+				const computed = stringToInteger(test.value);
+				expect(computed).toStrictEqual(test.expectedInteger);
+			} else {
+				expect(() => {
+					stringToInteger(test.value);
+				}).toThrow();
+			}
+		});
+	});
+
+	it('stringToIntegerWeak', () => {
+		expect.hasAssertions();
+
+		TESTS.forEach(test => {
+			const computed = stringToIntegerWeak(test.value);
+			expect(computed).toStrictEqual(test.expectedInteger);
+		});
 	});
 });
 

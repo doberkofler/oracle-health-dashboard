@@ -7,22 +7,13 @@ import {statsInitial} from '../statsStore';
 import {getConnectionDatabase} from '../config/connection';
 import {getFlat} from '../config/flatten';
 import {write, writeNewLine, writeStartingOnColumn} from '../util/tty';
+import {z$staticMetricType} from '../types';
+import {prettyFormat} from '../util/util';
 
-import type {configType, flatType} from '../config/types';
-import type {statsInitType} from '../statsStore';
-import type {statusType} from './worker';
+import type {configType, flatType, statsInitType, statusType} from '../types';
 import type {connectionFlagsType} from '../config/connection';
 
 const debug = debugModule('oracle-health-dashboard:databaseInitial');
-
-export type staticMetricType = {
-	oracle_version: string,
-	oracle_platform: string,
-	oracle_log_mode: string,
-	oracle_database_character_set: string,
-	oracle_sga_target: string,
-	oracle_pga_aggregate_target: string,
-};
 
 export type initialGatherType = statsInitType & {
 	status: statusType,
@@ -76,42 +67,10 @@ BEGIN
 	SELECT  value INTO :${getPlaceholder('oracle_pga_aggregate_target', bndInitial)} FROM v$parameter WHERE name = 'pga_aggregate_target';
 END;`;
 
-/**
- * Initialize statistics gathering.
- *
- * @param {configType} config - The configuration object.
- * @returns {Promise<void>} - A promise that resolves when done.
- */
-export async function gathererInitial(config: configType): Promise<void> {
-	debug('gathererInitial', config);
-
-	// prepare promises
-	const gather = [] as flatType[];
-	config.hosts.forEach(host => {
-		host.databases.forEach(database => {
-			gather.push(getFlat(host, database));
-		});
-	});
-
-	// process promises
-	const stats  = [] as statsInitType[];
-	for (const g of gather) {
-		const result = await gatherInitialize(g, {
-			includePassword: true,
-			connectTimeoutSeconds: config.options.connectTimeoutSeconds,
-		});
-		stats.push(result);
-	}
-
-	writeNewLine();
-
-	statsInitial(stats);
-}
-
 /*
  * get statistics for database
  */
-async function gatherInitialize(flat: flatType, connectionFlags: connectionFlagsType): Promise<initialGatherType> {
+const gatherInitialize = async (flat: flatType, connectionFlags: connectionFlagsType): Promise<initialGatherType> => {
 	const connectionOptions = getConnectionDatabase(flat, connectionFlags);
 	const title = `[${new Date().toJSON()}] Gathering initial data with database "${flat.database.name}" as "${connectionOptions.username}" using "${connectionOptions.connectionString}"`;
 
@@ -122,7 +81,7 @@ async function gatherInitialize(flat: flatType, connectionFlags: connectionFlags
 		databaseName: flat.database.name,
 		schemaName: '',
 		status: getStatus(true),
-		statics: {
+		static: {
 			oracle_version: '',
 			oracle_platform: '',
 			oracle_log_mode: '',
@@ -154,7 +113,7 @@ async function gatherInitialize(flat: flatType, connectionFlags: connectionFlags
 	}
 
 	// execute
-	const info = await execute<staticMetricType>(connection, sqlInitial, bndInitial);
+	const info = z$staticMetricType.parse(await execute(connection, sqlInitial, bndInitial));
 	if (typeof info === 'string') {
 		writeStartingOnColumn(' - cannot execute', title.length);
 		data.status = getStatus(false, info);
@@ -171,7 +130,41 @@ async function gatherInitialize(flat: flatType, connectionFlags: connectionFlags
 
 	writeStartingOnColumn(' - success', title.length);
 
-	data.statics = info;
+	data.static = info;
 
 	return data;
-}
+};
+
+/**
+ * Initialize statistics gathering.
+ *
+ * @param config - The configuration object.
+ * @returns A promise that resolves when done.
+ */
+export const gathererInitial = async (config: configType): Promise<void> => {
+	debug('gathererInitial', config);
+
+	// prepare promises
+	const gather = [] as flatType[];
+	config.hosts.forEach(host => {
+		host.databases.forEach(database => {
+			gather.push(getFlat(host, database));
+		});
+	});
+
+	// process promises
+	const stats  = [] as statsInitType[];
+	for (const e of gather) {
+		const result = await gatherInitialize(e, {
+			includePassword: true,
+			connectTimeoutSeconds: config.options.connectTimeoutSeconds,
+		});
+		stats.push(result);
+	}
+
+	writeNewLine();
+
+	debug('stats', prettyFormat(stats));
+
+	statsInitial(stats);
+};

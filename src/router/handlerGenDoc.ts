@@ -1,12 +1,12 @@
 import debugModule from 'debug';
-import {getPage} from '../pages/pageDebug/index';
+import {getPage} from '../pages/pageGenDoc/server';
 
 import type express from 'express';
 import type {configType} from '../types';
 
-const debug = debugModule('oracle-health-dashboard:handlerDefault');
+const debug = debugModule('oracle-health-dashboard:handlergenDoc');
 
-const getHtml = (config: configType, _req: express.Request, res: express.Response): express.Response => {
+export const getHtml = (config: configType, _req: express.Request, res: express.Response): express.Response => {
 	debug('getHtml');
 		
 	// get page
@@ -19,8 +19,8 @@ const getHtml = (config: configType, _req: express.Request, res: express.Respons
 	return res.send(html);
 };
 
-export const handlerDebug = (app: express.Application, config: configType): void => {
-	debug('handlerDebug');
+export const handlerGenDoc = (app: express.Application, config: configType): void => {
+	debug('handlerGenDoc');
 
 	app.get('/debug', (req, res) => getHtml(config, req, res));
 };

@@ -8,10 +8,9 @@ import type {
 	justHostType,
 	justDatabaseType,
 	flatType,
-} from './types';
-import type {statsHostType, dynamicMetricType, statsSchemaType} from '../statsStore';
+} from '../types';
 import type {connectionOptionsType, connectionFlagsType} from '../config/connection';
-import type {staticMetricType} from '../database/initialize';
+import type {statsHostType, dynamicMetricType, statsSchemaType, staticMetricType} from '../types';
 
 type flatDynamicType = Omit<dynamicMetricType, 'schemas'> & {schema: null | statsSchemaType};
 type statsType = {
@@ -124,28 +123,28 @@ const getStats = (statsHosts: statsHostType[], hostName: string, databaseName: s
 	} as statsType;
 
 	// host
-	const host = statsHosts.find(e => e.name === hostName);
+	const host = statsHosts.find(e => e.hostName === hostName);
 	if (!host) {
 		return stats;
 	}
 
 	// database
-	const database = host.databases.find(e => e.name === databaseName);
+	const database = host.databases.find(e => e.databaseName === databaseName);
 	if (!database) {
 		return stats;
 	}
 
-	if (!database.statics) {
+	if (!database.static) {
 		return stats;
 	}
 
 	// static
-	stats.statics = database.statics;
+	stats.statics = database.static;
 
 	// dynamic
 	if (database.metrics.length > 0) {
 		const lastStats = database.metrics[database.metrics.length - 1];
-		const schemaStats = lastStats.schemas.find(e => e.name === schemaName);
+		const schemaStats = lastStats.schemas.find(e => e.schemaName === schemaName);
 		const lastStatsFlat: flatDynamicType = Object.assign({}, lastStats, {schema: schemaStats ? schemaStats : null});
 
 		delete (lastStatsFlat as any).schemas; // eslint-disable-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any

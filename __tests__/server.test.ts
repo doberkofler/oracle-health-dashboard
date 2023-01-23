@@ -3,15 +3,23 @@ import request from 'supertest';
 import type * as http from 'http';
 import {serverStart, serverStop} from '../src/server/index';
 import {statsInitial} from '../src/statsStore';
+import {commandType} from '../src/cli/options';
 
 let app: express.Express;
 let server: http.Server;
 
 describe('server', () => {
 	beforeAll(async () => {
+		const options = {
+			command: commandType.start,
+			port: 0,
+			host: '0.0.0.0',
+			config: 'config.json',
+			isInit: false,
+			encryptionKey: '',
+		};
 		const config = {
 			options: {
-				http_port: 12345,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -22,7 +30,7 @@ describe('server', () => {
 
 		statsInitial([]);
 
-		const result = await serverStart(config);
+		const result = await serverStart(options, config);
 		app = result.app;
 		server = result.server;
 	});

@@ -1,31 +1,35 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* istanbul ignore file */
-
 import {runServer} from './run/runServer';
 import {runPing} from './run/runPing';
 import {runGenDoc} from './run/runGenDoc';
 import {runEncrypt} from './run/runEncrypt';
-import {getCliOptions} from './cli/options';
+import {statsRemove} from './statsStore';
+import {getCliOptions, commandType} from './cli/options';
 
 const main = async (): Promise<void> => {
 	const options = getCliOptions();
 
+	if (options.isInit) {
+		statsRemove();
+	}
+
 	switch (options.command) {
-		case 'start':
-			await runServer(options.config, options.encryptionKey);
+		case commandType.start:
+			await runServer(options);
 			break;
 
-		case 'ping':
-			await runPing(options.config, options.encryptionKey);
+		case commandType.ping:
+			await runPing(options);
 			break;
 
-		case 'gendoc':
-			runGenDoc(options.config, options.encryptionKey);
+		case commandType.gendoc:
+			runGenDoc(options);
 			break;
 
-		case 'encrypt':
-			runEncrypt(options.config, options.encryptionKey);
+		case commandType.encrypt:
+			console.log(`Generated encrypted configuration in file ${runEncrypt(options)}`);
+			break;
+
+		default:
 			break;
 	}
 };

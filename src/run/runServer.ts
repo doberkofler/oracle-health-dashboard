@@ -3,23 +3,23 @@ import {spawn, Thread, Worker} from 'threads';
 import {configLoad} from '../config/config';
 import {installShutdown} from '../shutdown';
 import {gathererInitial} from '../database/initialize';
-import {serverStart, serverStop} from '../server/index';
+import {serverStart, serverStop, showConnectInfo} from '../server/index';
 import {log} from '../util/tty';
 
-
+import type {cliOptionsType} from '../cli/options';
 import type {Gatherer} from '../gatherer/gatherer';
 
 const debug = debugModule('oracle-health-dashboard:runserver');
 
-export async function runServer(configFilename: string, encryptionKey: string): Promise<void> {
-	debug('runServer', configFilename, encryptionKey);
+export async function runServer(options: cliOptionsType): Promise<void> {
+	debug('runServer', options);
 
 	// install shutdown handler
 	installShutdown(shutdownHandler);
 
 	// load configuration
 	debug('load configuration');
-	const config = configLoad(configFilename, encryptionKey);
+	const config = configLoad(options.config, options.encryptionKey);
 
 	// initialize gatherer
 	debug('initialize gatherer');
@@ -31,8 +31,8 @@ export async function runServer(configFilename: string, encryptionKey: string): 
 	await gatherer(config);
 
 	// start srever
-	const {server} = await serverStart(config);
-	log(`Listening at http://127.0.0.1:${config.options.http_port}`);
+	const {server} = await serverStart(options, config);
+	showConnectInfo('http', options.host, options.port);
 
 	async function shutdownHandler(): Promise<void> {
 		// terminate gataherer thread

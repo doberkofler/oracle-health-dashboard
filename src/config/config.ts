@@ -9,7 +9,7 @@ import type {
 	configCustomRepository,
 	configOptionsType,
 	configType,
-} from './types';
+} from '../types';
 
 // types used when validating the configuration
 type partialConfigSchemaType = Partial<configSchemaType> & {
@@ -108,15 +108,6 @@ export function validateConfig(config: partialConfigType): configType {
 */
 function validateOptions(options: partialConfigOptionsType): configOptionsType {
 	const newOptions = getDefaultOptions();
-
-	// port
-	if ('http_port' in options) {
-		if (!isInteger(options.http_port) || options.http_port <= 0 || options.http_port > 65536) {
-			throw new Error('The configuration has no valid property "options.http_port"');
-		} else {
-			newOptions.http_port = options.http_port;
-		}
-	}
 
 	// pollingSeconds
 	if ('pollingSeconds' in options) {
@@ -457,7 +448,6 @@ function validateSchema(databaseErrorLocation: string, schema: Partial<configSch
  */
 function getDefaultOptions(): configOptionsType {
 	return {
-		http_port: 80,
 		pollingSeconds: 60,
 		hidePasswords: false,
 		connectTimeoutSeconds: 5,

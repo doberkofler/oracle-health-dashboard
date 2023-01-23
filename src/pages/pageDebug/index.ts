@@ -3,7 +3,7 @@ import {statsLoad} from '../../statsStore';
 import {getHtmlPage} from '../../html/html';
 import {prettyFormat} from '../../util/util';
 
-import type {configType} from '../../config/types';
+import type {configType} from '../../types';
 
 const debug = debugModule('oracle-health-dashboard:pageDebug');
 

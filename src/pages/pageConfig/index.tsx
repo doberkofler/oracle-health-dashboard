@@ -6,7 +6,7 @@ import {flatten} from '../../config/flatten';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 
-import type {configType} from '../../config/types';
+import type {configType} from '../../types';
 
 const debug = debugModule('oracle-health-dashboard:pageConfig');
 

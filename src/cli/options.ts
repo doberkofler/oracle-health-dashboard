@@ -2,12 +2,21 @@
 
 import fs from 'node:fs';
 import {Command} from 'commander';
+import {stringToIntegerWeak} from '../util/util';
 
-type commandType = 'start' | 'ping' | 'gendoc' | 'encrypt';
+export enum commandType {
+	start = 'start',
+	ping = 'ping',
+	gendoc = 'gendoc',
+	encrypt = 'encrypt',
+}
 
-type cliOptionsType = {
+export type cliOptionsType = {
 	command: commandType,
+	port: number,
+	host: string,
 	config: string,
+	isInit: boolean,
 	encryptionKey: string,
 };
 
@@ -21,7 +30,7 @@ const getVersion = (): string => {
 export const getCliOptions = (): cliOptionsType => {
 	const program = new Command();
 
-	let command: commandType = 'start';
+	let command = commandType.start;
 
 	program
 		.name('oracle-health-dashboard')
@@ -31,41 +40,55 @@ export const getCliOptions = (): cliOptionsType => {
 	program.command('start')
 		.description('Start the server')
 		.action(() => {
-			command = 'start';
+			command = commandType.start;
 		});
 
 	program.command('ping')
 		.description('Ping all database connections and show results')
 		.action(() => {
-			command = 'ping';
+			command = commandType.ping;
 		});
 
 	program.command('gendoc')
 		.description('Generate documentation of the configuration')
 		.action(() => {
-			command = 'gendoc';
+			command = commandType.gendoc;
 		});
 
 	program.command('encrypt')
 		.description('Encrypt the configuration file')
 		.action(() => {
-			command = 'encrypt';
+			command = commandType.encrypt;
 		});
 
 	program
+		.option('-a --host [host]', 'Address to use.', '0.0.0.0')
+		.option('-p --port [port]', 'Port to use. If 0, look for open port.', '8080')
 		.option('-c --config [filename]', 'Configuration file', 'config.json')
+		.option('-i --init', 'Initialize database')
 		.option('-e --encryptionKey [key]', 'encryption key needed for when using encrypted configuration files', '');
 
 	program.parse();
 
 	const options = program.opts<{
+		port: string,
+		host: string,
 		config: string,
+		isInit: boolean,
 		encryptionKey: string,
 	}>();
 
+	const port = stringToIntegerWeak(options.port);
+	if (port === null) {
+		program.error('Option "--port" must be an integer');
+	}
+
 	return {
 		command,
+		port: port as unknown as number,
+		host: options.host,
 		config: options.config,
+		isInit: options.isInit,
 		encryptionKey: options.encryptionKey,
 	};
 };

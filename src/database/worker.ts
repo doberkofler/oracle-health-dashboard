@@ -5,63 +5,30 @@ import {connect, disconnect, execute, getPlaceholder} from './oracle';
 import {getFlat} from '../config/flatten';
 import {prettyFormat} from '../util/util';
 import {warn} from '../util/tty';
+import {z$sqlCdbType, z$sqlPdbType} from '../types';
+import {z} from 'zod';
 
-import type {justHostType, justDatabaseType, configSchemaType, configCustomStatType, configCustomRepository} from '../config/types';
+import type {
+	justHostType,
+	justDatabaseType,
+	configSchemaType,
+	configCustomStatType,
+	configCustomRepository,
+	gatherDatabaseType,
+	gatherSchemaType,
+	sqlCdbType,
+	sqlPdbType,
+	customStatType,
+	statusType,
+} from '../types';
 import type {connectionFlagsType} from '../config/connection';
 
 const debug = debugModule('oracle-health-dashboard:databaseWorker');
 
-type sqlCdbType = {
-	server_date: Date | null,
-	host_cpu_utilization: number | null,
-	io_requests_per_second: number | null,
-	buffer_cache_hit_ratio: number | null,
-	executions_per_sec: number | null,
-};
-
-type sqlPdbType = {
-	no_of_sessions: number | null,
-	flashback_percentage: number | null,
-	last_successful_rman_backup_date_full_db: Date | null,
-	last_successful_rman_backup_date_archive_log: Date | null,
-	last_rman_backup_date_full_db: Date | null,
-	last_rman_backup_date_archive_log: Date | null,
-};
-
-export type statusType = {
-	timestamp: Date,
-	success: boolean,
-	message: string,
-};
-
-export type initialGatherType = {
-	status: statusType,
-	oracle_version: string,
-};
-
-export type metricType = sqlCdbType & sqlPdbType & {
-	custom: customStatsType,
-};
-
-export type gatherSchemaType = {
-	name: string,
-	status: statusType,
-	custom: customStatsType,
-};
-
-export type gatherDatabaseType = {
-	hostName: string,
-	databaseName: string,
-	status: statusType,
-	metric: metricType,
-	schemas: gatherSchemaType[],
-};
-
-export type customStatType = {
-	title: string,
-	value: string,
-};
-export type customStatsType = customStatType[];
+const z$customResult = z.object({
+	rows: z.array(z.array(z.string())),
+});
+type customResult = z.infer<typeof z$customResult>;
 
 const bndCDB = [
 	{
@@ -194,7 +161,7 @@ export async function gatherPeriodic(customRepository: configCustomRepository, h
 	}
 
 	// get information for PDB
-	const infoPDB = await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB);
+	const infoPDB = z$sqlPdbType.parse(await execute<sqlPdbType>(connection, sqlPDB, bindingsPDB));
 	if (typeof infoPDB === 'string') {
 		await disconnect(connection, connectDatabase);
 		data.status = getStatus(false, infoPDB);
@@ -214,7 +181,7 @@ export async function gatherPeriodic(customRepository: configCustomRepository, h
 
 	if (!connectContainerDatabase) {
 		// get information for CDB
-		const infoCDB = await execute<sqlCdbType>(connection, sqlCDB, bndCDB);
+		const infoCDB = z$sqlCdbType.parse(await execute<sqlCdbType>(connection, sqlCDB, bndCDB));
 		if (typeof infoCDB === 'string') {
 			data.status = getStatus(false, infoCDB);
 			return data;
@@ -243,7 +210,7 @@ export async function gatherPeriodic(customRepository: configCustomRepository, h
 		}
 	
 		// get information for CDB
-		const infoCDB = await execute<sqlCdbType>(containerConnection, sqlCDB, bndCDB);
+		const infoCDB = z$sqlCdbType.parse(await execute<sqlCdbType>(containerConnection, sqlCDB, bndCDB));
 		if (typeof infoCDB === 'string') {
 			data.status = getStatus(false, infoCDB);
 			return data;
@@ -286,7 +253,7 @@ async function gatherSchema(customRepository: configCustomRepository, host: just
 	const schemaConnect = getConnectionSchema(flat, connectionFlags);
 
 	const data: gatherSchemaType = {
-		name: schema.name,
+		schemaName: schema.name,
 		status: getStatus(true),
 		custom: [],
 	};
@@ -316,7 +283,7 @@ async function gatherSchema(customRepository: configCustomRepository, host: just
 /*
 * get custom statistics
 */
-async function getCustomStats(connection: oracledb.Connection, customRepository: configCustomRepository, key: string): Promise<customStatsType> {
+async function getCustomStats(connection: oracledb.Connection, customRepository: configCustomRepository, key: string): Promise<customStatType[]> {
 	debug('getCustomStats');
 
 	const custom = customRepository[key];
@@ -324,7 +291,7 @@ async function getCustomStats(connection: oracledb.Connection, customRepository:
 		throw new Error(`Unable to find custom repository "${key}" in "${prettyFormat(customRepository)}"`);
 	}
 
-	const stats: customStatsType = [];
+	const stats: customStatType[] = [];
 	for (const e of custom) {
 		const stat = await getCustomStat(connection, e);
 		if (stat !== null) {
@@ -357,9 +324,9 @@ async function getCustomStat(connection: oracledb.Connection, custom: configCust
 	}
 
 	// execute the select
-	let result;
+	let result: customResult;
 	try {
-		result = await connection.execute<string[]>(custom.sql);
+		result = z$customResult.parse(await connection.execute(custom.sql));
 	} catch (e: unknown) {
 		const error = `The custom select "${custom.sql}" has errors.\n${prettyFormat(e)}`;
 		warn(error);
@@ -367,7 +334,7 @@ async function getCustomStat(connection: oracledb.Connection, custom: configCust
 	}
 
 	// rows
-	if (!Array.isArray(result.rows) || result.rows.length < 1) {
+	if (result.rows.length < 1) {
 		const error = `The custom select "${custom.sql}" did not return any rows.\n${prettyFormat(result)}`;
 		warn(error);
 		return null;

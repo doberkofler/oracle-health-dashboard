@@ -5,8 +5,7 @@ import {gatherPeriodic} from '../database/worker';
 import {prettyFormat} from '../util/util';
 import {log} from '../util/tty';
 
-import type {configType} from '../config/types';
-import type {gatherDatabaseType} from '../database/worker';
+import type {configType, gatherDatabaseType} from '../types';
 
 const debug = debugModule('oracle-health-dashboard:gatherer');
 
@@ -45,13 +44,12 @@ export async function gatherer(config: configType): Promise<void> {
 	const stats = results.map(result => ({
 		hostName: result.hostName,
 		databaseName: result.databaseName,
-		schemaName: '',
 		status: result.status,
 		metric: result.metric,
 		schemas: result.schemas,
 	}));
 
-	debug('gatherer', prettyFormat({results, stats}));
+	debug('gatherer', prettyFormat(stats));
 
 	// add the statistics
 	statsAdd(stats);

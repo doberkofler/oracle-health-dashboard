@@ -4,7 +4,6 @@ describe('configLoad', () => {
 	it('loads the configuration and returns a validated configuration object or throws an error', () => {
 		expect(configLoad('./__tests__/config.test.json')).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -21,7 +20,6 @@ describe('validateConfig', () => {
 			hosts: [],
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -32,13 +30,11 @@ describe('validateConfig', () => {
 
 		expect(validateConfig({
 			options: {
-				http_port: 9090,
 				pollingSeconds: 90,
 			},
 			hosts: [],
 		})).toStrictEqual({
 			options: {
-				http_port: 9090,
 				pollingSeconds: 90,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -56,7 +52,6 @@ describe('validateConfig', () => {
 			}]
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -96,7 +91,6 @@ describe('validateConfig', () => {
 			}],
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -151,7 +145,6 @@ describe('validateConfig', () => {
 			}],
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -203,7 +196,6 @@ describe('validateConfig', () => {
 			}]
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -255,7 +247,6 @@ describe('validateConfig', () => {
 			}]
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -307,7 +298,6 @@ describe('validateConfig', () => {
 			}]
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -359,7 +349,6 @@ describe('validateConfig', () => {
 			}]
 		})).toStrictEqual({
 			options: {
-				http_port: 80,
 				pollingSeconds: 60,
 				hidePasswords: false,
 				connectTimeoutSeconds: 5,
@@ -393,7 +382,6 @@ describe('validateConfig', () => {
 
 	it('throws an error when the configuration is invalid', () => {
 		const tests: [object, string][] = [
-			[{hosts: [], options: {http_port: ''}}, 'The configuration has no valid property "options.http_port"'],
 			[{hosts: [], options: {pollingSeconds: ''}}, 'The configuration has no valid property "options.pollingSeconds"'],
 			[{hosts: ''}, 'The configuration has no property "hosts" of type array'],
 			[{hosts: [{enabled: ''}]}, '"enabled" must be a boolean: "hosts[0]"'],

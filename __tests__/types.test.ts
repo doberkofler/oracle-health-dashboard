@@ -9,7 +9,7 @@ import {
 	z$statsSchemaType,
 	z$statsInitType,
 	z$statsAddDataType,
-} from '../src/types';
+} from '../src/shared/types';
 
 const now = new Date();
 

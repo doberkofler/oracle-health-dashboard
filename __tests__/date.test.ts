@@ -1,4 +1,4 @@
-import {isDate, toJSON, fromJSON, dateToHumanizedString, fromJSONWeak} from '../src/util/date';
+import {isDate, toJSON, fromJSON, dateToHumanizedString, fromJSONWeak} from '../src/shared/util/date';
 
 describe('date', () => {
 	it('isDate', () => {

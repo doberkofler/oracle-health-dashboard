@@ -1,5 +1,5 @@
-import {statsInitial, statsAdd, statsLoad} from '../src/statsStore';
-import {jsonLoad, jsonSave} from '../src/util/files';
+import {statsInitial, statsAdd, statsLoad} from '../src/server/statsStore';
+import {jsonLoad, jsonSave} from '../src/server/util/files';
 import fs from 'fs';
 
 const FILENAME = 'db.json';

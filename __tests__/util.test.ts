@@ -13,7 +13,7 @@ import {
 	distanceToString,
 	timestampToString,
 	prettyFormat,
-} from '../src/util/util';
+} from '../src/shared/util/util';
 
 describe('isStringArray', () => {
 	it('returns true for arrays of strings', () => {

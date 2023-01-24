@@ -1,4 +1,4 @@
-import {join} from '../src/util/url';
+import {join} from '../src/shared/util/url';
 
 describe('combineURLs', () => {
 	it('should combine two urls', () => {

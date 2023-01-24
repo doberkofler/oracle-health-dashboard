@@ -33,9 +33,9 @@ const build_server = (options: optionsType): void => {
 
 	const ok = build({
 		entryPoints: {
-			'server/index': './src/index.ts',
-			'server/gatherer': './src/gatherer/gatherer.ts',
-			'root': './src/root.css',
+			'server/index': './src/server/index.ts',
+			'server/gatherer': './src/server/gatherer.ts',
+			'root': './src/server/index.css',
 		},
 		bundle: true,
 		minify: options.mode === 'production',
@@ -51,7 +51,7 @@ const build_server = (options: optionsType): void => {
 };
 
 const build_client = (options: optionsType): void => {
-	const clientFiles = glob.sync('./src/pages/*/client.tsx');
+	const clientFiles = glob.sync('./src/client/pages/*/index.tsx');
 	if (clientFiles.length === 0) {
 		return;
 	}

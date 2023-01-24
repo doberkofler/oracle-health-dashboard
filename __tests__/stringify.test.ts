@@ -1,5 +1,5 @@
-import {stringify, parse} from '../src/util/stringify';
-import {toJSON} from '../src/util/date';
+import {stringify, parse} from '../src/shared/util/stringify';
+import {toJSON} from '../src/shared/util/date';
 
 const tests = (): {value: unknown, stringified: string}[] => {
 	const dateA = new Date(2023, 0, 1, 1, 2, 3, 0); // 1-JAN-2023 01:02:03,0

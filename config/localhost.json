@@ -1,0 +1,41 @@
+{
+	"options": {
+		"pollingSeconds": 60,
+		"hidePasswords": false,
+		"connectTimeoutSeconds": 5
+	},
+	"customSelectRepository": {
+		"LJ": [
+			{
+				"title": "LJ version",
+				"sql": "SELECT majorversion||'.'||minorversion||'.'||release FROM LAS_BackofficeVersion WHERE versionid = (SELECT MAX(versionid) FROM LAS_BackofficeVersion)"
+			}
+		]
+	},
+	"hosts": [
+		{
+			"name": "localhost",
+			"address": "127.0.0.1",
+			"databases": [
+				{
+					"name": "lj_unittest",
+					"port": 1521,
+					"service": "test",
+					"username": "sys",
+					"password": "manager",
+					"containerDatabase": {
+						"service": "orclcdb"
+					},
+					"schemas": [
+						{
+							"name": "LJ_UNITTEST",
+							"username": "LJ_UNITTEST",
+							"password": "DTRELKMARPAT",
+							"customSelect": "LJ"
+						}
+					]
+				}
+			]
+		}
+	]
+}

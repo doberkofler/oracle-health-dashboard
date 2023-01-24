@@ -1,6 +1,6 @@
 import {
 	getHtmlPage,
-} from '../src/html/html';
+} from '../src/shared/util/html';
 
 describe('getHtmlPage', () => {
 	it('returns a html page with the given content', () => {

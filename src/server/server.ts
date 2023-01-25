@@ -1,15 +1,17 @@
 import debugModule from 'debug';
 import path from 'path';
 import os from 'os';
+import fs from 'fs';
 import * as portfinder from 'portfinder';
 import express from 'express';
+import morgan from 'morgan';
 import chalk from 'chalk';
 import compression from 'compression';
 import {handlerData} from './handlerData';
 import {handlerDashboard} from './handlerDashboard';
+import {handlerDashboardDemo} from './handlerDashboardDemo';
 import {handlerGenDoc} from './handlerGenDoc';
 import {handlerConfig} from './handlerConfig';
-import {handlerDebug} from './handlerDebug';
 import {log} from './util/tty';
 
 import type * as http from 'http';
@@ -31,6 +33,11 @@ export const serverStart = async (options: cliOptionsType, config: configType): 
 	return new Promise(resolve => {
 		const app = express();
 
+		// logging
+		if (options.isLogger) {
+			app.use(morgan('dev', {stream: fs.createWriteStream(path.join(process.cwd(), 'access.log'), {flags: 'a'})}));
+		}
+
 		// compression
 		app.use(compression());
 
@@ -42,9 +49,9 @@ export const serverStart = async (options: cliOptionsType, config: configType): 
 		// handler
 		handlerData(app, config);
 		handlerDashboard(app, config);
+		handlerDashboardDemo(app, config);
 		handlerGenDoc(app, config);
 		handlerConfig(app, config);
-		handlerDebug(app, config);
 
 		// listen
 		const server = app.listen(options.port, () => {

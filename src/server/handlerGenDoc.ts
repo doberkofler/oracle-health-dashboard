@@ -22,5 +22,5 @@ export const getHtml = (config: configType, _req: express.Request, res: express.
 export const handlerGenDoc = (app: express.Application, config: configType): void => {
 	debug('handlerGenDoc');
 
-	app.get('/debug', (req, res) => getHtml(config, req, res));
+	app.get('/gendoc', (req, res) => getHtml(config, req, res));
 };

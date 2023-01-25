@@ -16,6 +16,7 @@ describe('server', () => {
 			host: '0.0.0.0',
 			config: 'config.json',
 			isInit: false,
+			isLogger: false,
 			encryptionKey: '',
 		};
 		const config = {

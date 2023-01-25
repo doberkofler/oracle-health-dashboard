@@ -17,6 +17,7 @@ export type cliOptionsType = {
 	host: string,
 	config: string,
 	isInit: boolean,
+	isLogger: boolean,
 	encryptionKey: string,
 };
 
@@ -66,6 +67,7 @@ export const getCliOptions = (): cliOptionsType => {
 		.option('-p --port [port]', 'Port to use. If 0, look for open port.', '8080')
 		.option('-c --config [filename]', 'Configuration file', 'config.json')
 		.option('-i --init', 'Initialize database')
+		.option('-l --logger', 'Activate request logger')
 		.option('-e --encryptionKey [key]', 'encryption key needed for when using encrypted configuration files', '');
 
 	program.parse();
@@ -75,6 +77,7 @@ export const getCliOptions = (): cliOptionsType => {
 		host: string,
 		config: string,
 		isInit: boolean,
+		isLogger: boolean,
 		encryptionKey: string,
 	}>();
 
@@ -89,6 +92,7 @@ export const getCliOptions = (): cliOptionsType => {
 		host: options.host,
 		config: options.config,
 		isInit: options.isInit,
+		isLogger: options.isLogger,
 		encryptionKey: options.encryptionKey,
 	};
 };

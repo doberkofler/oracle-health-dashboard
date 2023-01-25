@@ -1,4 +1,6 @@
-const config = {
+import type {Config} from 'jest';
+
+const config: Config = {
 	preset: 'ts-jest/presets/js-with-ts-esm',
 	transform: {
 		'\\.[jt]sx?$': [
@@ -18,4 +20,4 @@ const config = {
 	],
 };
 
-module.exports = config;
+export default config;

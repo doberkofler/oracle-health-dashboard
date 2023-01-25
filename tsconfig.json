@@ -21,6 +21,7 @@
     "strictNullChecks": true
   },
   "include": [
+    "jest.config.ts",
     "src/**/*",
     "__tests__/**/*"
   ]

@@ -9,7 +9,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "start": "nodemon --watch out --watch config out/server/index.js --config=./config/config.json",
+    "start": "nodemon --watch out --watch config out/server/index.js start --config=./config/config.json",
     "ci": "npm run clean && npm run lint && npm run test && npm run build:d",
     "clean": "rimraf coverage build tmp && jest --clearCache",
     "build:d": "npm run clean && ts-node scripts/build.ts --development",

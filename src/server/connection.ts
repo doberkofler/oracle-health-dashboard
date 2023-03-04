@@ -59,7 +59,7 @@ export const getConnectionDatabase = (flat: flatType, flags: connectionFlagsType
 
 export const getConnectionContainerDatabase = (flat: flatType, flags: connectionFlagsType): connectionOptionsType | null => {
 	return flat.database.containerDatabase ? {
-		connectionString:  getConnectionString(flat.host.address, flat.database.containerDatabase.port, flat.database.containerDatabase.service, flags.connectTimeoutSeconds),
+		connectionString: getConnectionString(flat.host.address, flat.database.containerDatabase.port, flat.database.containerDatabase.service, flags.connectTimeoutSeconds),
 		username: flat.database.containerDatabase.username,
 		password: flags.includePassword ? flat.database.containerDatabase.password : '',
 	} : null;

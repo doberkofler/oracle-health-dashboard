@@ -192,6 +192,6 @@ describe('prettyFormat', () => {
 	it('returns a string representation', () => {
 		expect(prettyFormat(1)).toBe('1');
 		expect(prettyFormat([1])).toBe('Array [\n  1,\n]');
-		expect(prettyFormat({p:1})).toBe('Object {\n  "p": 1,\n}');
+		expect(prettyFormat({p: 1})).toBe('Object {\n  "p": 1,\n}');
 	});
 });

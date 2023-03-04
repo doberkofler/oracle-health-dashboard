@@ -28,6 +28,7 @@ module.exports = {
 	],
 	'rules': {
 		'semi': ['error', 'always'],
+		'@typescript-eslint/block-spacing': ['error', 'never'],
 		'@typescript-eslint/comma-dangle': ['warn', {
 			arrays: 'only-multiline',
 			objects: 'only-multiline',

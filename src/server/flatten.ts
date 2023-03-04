@@ -52,7 +52,7 @@ export function getFlat(host: justHostType, database: justDatabaseType, schema?:
 			address: host.address,
 			probe: host.probe,
 		},
-		database : {
+		database: {
 			enabled: database.enabled,
 			comment: database.comment,
 			name: database.name,

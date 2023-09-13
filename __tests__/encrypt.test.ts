@@ -1,4 +1,4 @@
-import {encrypt, decrypt} from '../src/server/util/encryption';
+import {encrypt, decrypt} from '../src/be/util/encryption';
 
 it('encrypt', () => {
 	const encryptionKey = 'encryptionKey';

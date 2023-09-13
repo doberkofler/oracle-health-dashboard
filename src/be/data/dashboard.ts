@@ -1,7 +1,7 @@
 import {sendJson} from '../../shared/util/data';
 import {z$configType, z$dashboardType} from '../../shared/types';
-import {statsLoad} from '../../server/statsStore';
-export {getConfigPath, getDashboardPath} from '../../client/data/dashboard';
+import {statsLoad} from '../../be/statsStore';
+export {getConfigPath, getDashboardPath} from '../../fe/data/dashboard';
 
 import type {configType, dashboardType} from '../../shared/types';
 import type {Response} from 'express';

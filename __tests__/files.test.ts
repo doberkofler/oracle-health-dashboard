@@ -6,7 +6,7 @@ import {
 	jsonLoad,
 	textLoad,
 	textSave,
-} from '../src/server/util/files';
+} from '../src/be/util/files';
 
 const tempFilename = path.join(os.tmpdir(), 'test.tmp');
 const someDate = new Date(1995, 11, 17, 3, 24, 0);

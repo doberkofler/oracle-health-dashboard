@@ -10,11 +10,11 @@ export const StatBox = ({
 	progress,
 	increase,
 }: {
-	title: string,
-	subtitle: string,
-	icon: JSX.Element,
-	progress: number,
-	increase: string,
+	readonly title: string,
+	readonly subtitle: string,
+	readonly icon: JSX.Element,
+	readonly progress: number,
+	readonly increase: string,
 }): JSX.Element => {
 	const theme = useTheme();
 	const colors = tokens(theme.palette.mode);

@@ -3,7 +3,7 @@ import {spawn, Thread, Worker} from 'threads';
 import {configLoad} from './config';
 import {installShutdown} from './shutdown';
 import {gathererInitial} from './database/initialize';
-import {serverStart, serverStop, showConnectInfo} from '../server/server';
+import {serverStart, serverStop, showConnectInfo} from '../be/server';
 import {log} from './util/tty';
 
 import type {cliOptionsType} from './options';

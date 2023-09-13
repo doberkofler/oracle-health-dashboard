@@ -6,8 +6,8 @@ export const Header = ({
 	title,
 	subtitle,
 }: {
-	title: string,
-	subtitle: string,
+	readonly title: string,
+	readonly subtitle: string,
 }): JSX.Element => {
 	const theme = useTheme();
 	const colors = tokens(theme.palette.mode);

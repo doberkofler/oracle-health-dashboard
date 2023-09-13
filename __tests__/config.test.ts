@@ -1,4 +1,4 @@
-import {configLoad, validateConfig} from '../src/server/config';
+import {configLoad, validateConfig} from '../src/be/config';
 
 describe('configLoad', () => {
 	it('loads the configuration and returns a validated configuration object or throws an error', () => {

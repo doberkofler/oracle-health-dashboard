@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom/client';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {BrowserRouter} from 'react-router-dom';
 import {ThemeProvider} from '@mui/material/styles';
-import {ColorModeContext, useMode} from '../../../shared/components/global/theme';
-import {DashboardApp} from '../../../shared/components/Dashboard/DashboardApp';
+import {ColorModeContext, useMode} from '../../components/global/theme';
+import {DashboardApp} from '../../components/Dashboard/DashboardApp';
 
 const queryClient = new QueryClient();
 

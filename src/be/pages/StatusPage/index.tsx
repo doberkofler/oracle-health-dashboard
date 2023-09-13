@@ -2,7 +2,7 @@
 import {connectionToString} from '../../connection';
 import React from 'react';
 import {DatabaseDetails, Details, addLine} from './DetabaseDetails';
-import {Timestamp} from '../../../shared/components/Timestamp/index';
+import {Timestamp} from '../../../fe/components/Timestamp';
 
 import type {flattenedType} from '../../flatten';
 
@@ -12,13 +12,13 @@ type detailType = {
 	unit?: string,
 };
 
-type rowPropsType = {row: flattenedType};
+type rowPropsType = {readonly row: flattenedType};
 
 //const debug = debugModule('oracle-health-dashboard:statuspage');
 
 const borderLine = '2px solid #ddd';
 
-export const StatusPage = ({rows}: {rows: flattenedType[]}): JSX.Element => {
+export const StatusPage = ({rows}: {readonly rows: flattenedType[]}): JSX.Element => {
 	return (
 		<table className="main" style={{borderCollapse: 'collapse', width: '100%'}}>
 			<Header />
@@ -123,7 +123,7 @@ const Schema = ({row}: rowPropsType): JSX.Element => {
 	);
 };
 
-const HeaderColumn = ({title, width}: {title: string, width: string}): JSX.Element => {
+const HeaderColumn = ({title, width}: {readonly title: string, readonly width: string}): JSX.Element => {
 	return (
 		<th style={{width, padding: '8px', textAlign: 'left', backgroundColor: '#04AA6D', color: 'white', borderRight: borderLine}}>
 			{title}
@@ -150,7 +150,7 @@ const DatabaseConnectionString = ({row}: rowPropsType): JSX.Element => {
 
 };
 
-const LastUpdate = ({timestamp}: {timestamp?: Date}): JSX.Element | null => {
+const LastUpdate = ({timestamp}: {readonly timestamp?: Date}): JSX.Element | null => {
 	if (timestamp) {
 		return (
 			<span className="timestamp">

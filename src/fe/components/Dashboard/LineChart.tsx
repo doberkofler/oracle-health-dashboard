@@ -40,7 +40,7 @@ const getData = (): dataType => {
 };
 
 type PropType = {
-	isDashboard: boolean,
+	readonly isDashboard: boolean,
 };
 
 export const LineChart = ({

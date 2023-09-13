@@ -1,7 +1,7 @@
 import {
 	getConnectionString,
 	connectionToString,
-} from '../src/server/connection';
+} from '../src/be/connection';
 
 describe('getConnectionString', () => {
 	it('gets the connection string', () => {

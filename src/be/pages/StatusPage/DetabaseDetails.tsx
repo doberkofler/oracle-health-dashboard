@@ -1,7 +1,7 @@
 //import debugModule from 'debug';
 import {numberToString, isDate} from '../../../shared/util/util';
 import React from 'react';
-import {Timestamp} from '../../../shared/components/Timestamp/index';
+import {Timestamp} from '../../../fe/components/Timestamp';
 
 import type {flattenedType} from '../../flatten';
 
@@ -11,7 +11,7 @@ type detailType = {
 	unit?: string,
 };
 
-type rowPropsType = {row: flattenedType};
+type rowPropsType = {readonly row: flattenedType};
 
 export const DatabaseDetails = ({row}: rowPropsType): JSX.Element | null => {
 	const data: detailType[] = [];
@@ -60,7 +60,7 @@ export const addLine = (data: detailType[], title: string, value: string | numbe
 	});
 };
 
-export const Details = ({data}: {data: detailType[]}): JSX.Element | null => {
+export const Details = ({data}: {readonly data: detailType[]}): JSX.Element | null => {
 	if (data.length > 0) {
 		return (
 			<div className="metrics-enclosure">
@@ -74,7 +74,7 @@ export const Details = ({data}: {data: detailType[]}): JSX.Element | null => {
 	}
 };
 
-const DetailsLine = ({title, value, unit = ''}: {title: string, value: string | number | boolean | Date | null, unit: string}): JSX.Element => {
+const DetailsLine = ({title, value, unit = ''}: {readonly title: string, readonly value: string | number | boolean | Date | null, readonly unit: string}): JSX.Element => {
 	return (
 		<>
 			<div>
@@ -87,7 +87,7 @@ const DetailsLine = ({title, value, unit = ''}: {title: string, value: string | 
 	);
 };
 
-const DetailsValue = ({value, unit = ''}: {value: string | number | boolean | Date | null, unit: string}): JSX.Element | null => {
+const DetailsValue = ({value, unit = ''}: {readonly value: string | number | boolean | Date | null, readonly unit: string}): JSX.Element | null => {
 	if (typeof value === 'string') {
 		return <span>{value}{value.length > 0 && unit.length > 0 ? unit : ''}</span>;
 	} else if (typeof value === 'number') {

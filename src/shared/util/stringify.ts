@@ -15,7 +15,7 @@ export function replacer(key: string, value: unknown): unknown {
 export function reviver(_key: string, value: unknown): unknown {
 	const date = fromJSONWeak(value);
 
-	return date === null ? value : date;
+	return date ?? value;
 }
 
 /**

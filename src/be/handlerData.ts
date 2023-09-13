@@ -1,5 +1,5 @@
 import debugModule from 'debug';
-import {getConfigPath, sendConfig, getDashboardPath, sendDashboard} from '../server/data/dashboard';
+import {getConfigPath, sendConfig, getDashboardPath, sendDashboard} from '../be/data/dashboard';
 //import {prettyFormat} from '../util/util';
 
 import type express from 'express';

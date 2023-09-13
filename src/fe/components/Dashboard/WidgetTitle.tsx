@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import {tokens} from '../global/theme';
 
 type PropType = {
-	title: string,
+	readonly title: string,
 };
 
 export const WidgetTitle = ({

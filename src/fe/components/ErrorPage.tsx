@@ -4,7 +4,7 @@ import React from 'react';
 import {styled} from '@mui/material/styles';
 
 type PropsType = {
-	error?: Error | string,
+	readonly error?: Error | string,
 };
 
 const PREFIX = 'Error';
@@ -27,7 +27,7 @@ const Root = styled('div')(() => ({
 	},
 }));
 
-const Line = ({title, value: text}: {title: string, value?: string}): JSX.Element => (
+const Line = ({title, value: text}: {readonly title: string, readonly value?: string}): JSX.Element => (
 	<div>
 		<span className={classes.bold}>
 			{title}

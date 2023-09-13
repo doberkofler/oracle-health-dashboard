@@ -14,9 +14,9 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 
 type paraType = {
-	title: string,
-	open: boolean,
-	handleDrawerOpen: () => void,
+	readonly title: string,
+	readonly open: boolean,
+	readonly handleDrawerOpen: () => void,
 };
 
 const Search = styled('div')(({theme}) => ({

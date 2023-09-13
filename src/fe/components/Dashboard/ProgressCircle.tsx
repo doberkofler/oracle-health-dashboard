@@ -6,8 +6,8 @@ export const ProgressCircle = ({
 	progress,
 	size = '40',
 }: {
-	progress: number,
-	size?: string,
+	readonly progress: number,
+	readonly size?: string,
 }): JSX.Element => {
 	const theme = useTheme();
 	const colors = tokens(theme.palette.mode);

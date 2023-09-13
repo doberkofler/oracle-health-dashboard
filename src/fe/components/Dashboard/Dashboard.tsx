@@ -22,12 +22,12 @@ import {LineChart} from './LineChart';
 
 import {mockTransactions} from './mockData';
 
-const BarChart = ({isDashboard}: {isDashboard: boolean}): JSX.Element => <div>{`BarChart(${isDashboard ? 'dashboard' : ''}`}</div>;
-const GeographyChart = ({isDashboard}: {isDashboard: boolean}): JSX.Element => <div>{`GeographyChart(${isDashboard ? 'dashboard' : ''}`}</div>;
+const BarChart = ({isDashboard}: {readonly isDashboard: boolean}): JSX.Element => <div>{`BarChart(${isDashboard ? 'dashboard' : ''}`}</div>;
+const GeographyChart = ({isDashboard}: {readonly isDashboard: boolean}): JSX.Element => <div>{`GeographyChart(${isDashboard ? 'dashboard' : ''}`}</div>;
 
 type PropType = {
-	title: string,
-	subtitle: string,
+	readonly title: string,
+	readonly subtitle: string,
 };
 
 export const Dashboard = ({

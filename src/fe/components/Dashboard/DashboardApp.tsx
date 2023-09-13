@@ -15,7 +15,7 @@ import {groups} from './menuItems';
 import {CircularIndeterminate} from '../CircularIndeterminate';
 import {ErrorPage} from '../ErrorPage';
 
-import {useDashboard} from '../../../client/data/dashboard';
+import {useDashboard} from '../../../fe/data/dashboard';
 
 import type {CSSObject, Theme} from '@mui/material/styles';
 import type {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar';
@@ -92,8 +92,8 @@ const Drawer = styled(MuiDrawer, {shouldForwardProp: (prop) => prop !== 'open'})
 );
 
 type PropType = {
-	title: string,
-	subtitle: string,
+	readonly title: string,
+	readonly subtitle: string,
 };
 
 export const DashboardApp = ({

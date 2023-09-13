@@ -10,8 +10,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 
 type menuItemType = {
-	text: string,
-	icon: JSX.Element,
+	readonly text: string,
+	readonly icon: JSX.Element,
 };
 
 export type menuGroupType = {
@@ -22,7 +22,7 @@ export type menuGroupType = {
 };
 
 type ItemProp = menuItemType & {
-	drawerOpen: boolean,
+	readonly drawerOpen: boolean,
 };
 
 const Item = ({
@@ -43,8 +43,8 @@ const Item = ({
 };
 
 type GroupProp = {
-	drawerOpen: boolean,
-	group: menuGroupType,
+	readonly drawerOpen: boolean,
+	readonly group: menuGroupType,
 };
 
 const Title = ({
@@ -79,8 +79,8 @@ const Group = ({
 };
 
 type MenubarProp = {
-	drawerOpen: boolean,
-	groups: menuGroupType[],
+	readonly drawerOpen: boolean,
+	readonly groups: menuGroupType[],
 };
 
 export const Menubar = ({
